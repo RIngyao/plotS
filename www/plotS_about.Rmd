@@ -1,0 +1,47 @@
+---
+title: ''
+author: "Ringyao Jajo"
+date: '2022-11-15'
+output:
+  pdf_document: default
+  html_document: default
+---
+
+<!-- ```{r setup, include=FALSE} -->
+<!-- knitr::opts_chunk$set(echo = TRUE) -->
+<!-- ``` -->
+
+<br>
+
+
+<br>
+
+
+**PlotS** is a web-based application for statistical analysis and data visualization. It is free and easy to use. We use [Ggplot2](https://ggplot2.tidyverse.org/) for plotting the graph. You can analyze your data in an engaging way by running statistical tests while plotting the graphs. We hope that it will be a useful tool for performing quick analysis. 
+
+The list of graphs currently available for plotting:
+
++ Bar plot
++ Box plot
++ Density plot
++ Frequency polygon
++ Histogram
++ Line plot
++ Scatter plot
+
+For statistical method, we have included the most commonly used parametric and non-parametric tests:
+
++ _**Parametric tests**_
+  + T-test 
+    + Welch's test
+    + Student's tests
+  + ANOVA
+    + One-way ANOVA
+    + Two-way ANOVA (additive and non-additive)
+
++ _**Non-parametric tests**_
+  + Wilcoxon test
+    + Wilcoxon signed-rank test
+    + Wilcoxon rank-sum test
+  + Krukal-Wallis test
+  
