@@ -5,18 +5,56 @@ ui <- fluidPage(
   tags$head(
     tags$style(
       HTML("
-      body { 
-          margin: 0;
-          font-family: Arial, Helvetica, sans-serif;
-        }
-      #content{
-      margin:auto;
+      /*general*/
+      body:not(.analyzeTabBox){ 
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size:17px;
+      justify-content:center;
+      display:flex;
       }
+      
+      .shiny-output-error-validation {
+        /*position:fixed;*/
+        color: #ff0000;
+        font-weight: bold;
+        /*top: calc(50%);*/
+        /*left: calc(50%);*/
+        padding:10%;
+        font-size: 130%;
+        background-color:white;
+        margin:10%;
+      }
+
+      .shiny-notification {
+             position:fixed;
+             top: calc(50%);
+             left: calc(50%);
+             color: black;
+             font-weight:bold;
+             font-size:25px;
+      }
+      
+      .box{
+      -moz-box-shadow:none !important;
+      -webkit-box-shadow:none !important;
+      -goog-ms-box-shadow:none !important;
+      box-shadow:none !important;
+      }
+      
+      .nav-tabs,li,a{
+      font-size:20px;
+      }
+      
+      
+      
+      /*Header*/
+      
       #header {
         overflow: hidden;
        /* background-image:linear-gradient(to bottom, rgba(69, 215, 250, 0.3), white);*/
         /*background-image:linear-gradient(70deg, white, rgba(69, 215, 250, 0.3), white);*/
-        background-image:radial-gradient(rgba(12, 191, 227 , 1), white, white);
+        background-image:radial-gradient(rgba(12, 191, 227, 1), white, white);
       }
       
       #projectTitle{
@@ -33,19 +71,260 @@ ui <- fluidPage(
       box-shadow: 10px 2px 10px #45D7FA inset,  3px 2px 10px white*/
       
       #projectTitle h1{
-      
       text-align:center;
       color: #057C94 ; /*;0890AB*/
       font-weight:bold;
       font-size:25px;
       font-family:'Times New Roman', Times, serif, Arial, Helvetica, sans-serif;
-      padding: 3% 0 0 0;
-      text-shadow:2px 3px 2px #45D7FA, 2px 0 10px white;
+      padding: 3% 0 0 10%;
+      text-shadow:2px 4px 2px #45D7FA, 2px 0 10px white;
       }
       
       #detailDiv{
-      
       margin-top:150px;
+      }
+      
+      
+      /*Main content*/
+      
+      #content {
+      margin:auto;
+      }
+      
+      hr{
+        border:solid 0.4px;
+      }
+      .inst {
+        padding: 5%;
+        font-size:20px;
+        max-width: 1100px;
+      }
+      .inst p{
+        font-size:17px;
+      }
+      .inst li{
+       font-size:15px;
+      }
+      
+      .instructionPanel{
+      display:flex;
+      align-item:center;
+      justify-content:center;
+      }
+      #plotTabset{
+      display:flex !important;
+      flex-direction:row;
+      justify-content:center;
+      margin:auto;
+      }
+      
+      
+      /*analyze and visualyze*/
+      .col-sm-12 > .nav-tabs-custom > .nav{
+        background-image:linear-gradient(white 50%, rgba(56, 168, 249, 0.2))
+        }
+       
+      /*Tables*/
+      .tableMainPanel{
+      margin:auto
+      }
+      .tableSidePanel{
+      max-width:400px;
+      }
+      
+      .rawTable, .organizedTable{
+      text-align:center;
+      text-color:black;
+      margin:center;
+      }
+      
+      .rawTable h3{
+      font-weight:bold;
+      color:#025A9E
+      }
+      .rawTable{
+      max-width: 800px;
+      margin-left: 10%;
+      margin-right: 10%;
+      margin-bottom: 50px;
+      min-height: 30px;
+      box-shadow:none;
+      
+      }
+      
+      #organizedDownload{
+      float:right;
+      }
+      
+      .organizedTable h3{
+      font-weight:bold;
+      size:15;
+      color:#3ABCF4;
+      }
+      .organizedTable{
+      max-width: 800px;
+      margin-left: 10%;
+      margin-right:10%;
+      min-height: 200px
+      }
+     
+      /*Plot figures: start*/
+      .figureMainPanel{
+      margin:auto;
+      color:#F4F4F4;
+      }
+      .figureSidebarPanel{
+      max-width:600px;
+      }
+      
+      .figurePlotBox, .figureTheme{
+      max-width: 800px;
+      margin-left:10%;
+      margin-right:10%;
+      padding:auto;
+      }
+      .figurePlotBox{
+      margin-bottom:10px;
+      }
+      #figDownloadFormat{
+      float:right;
+      margin-right:0;
+      font-weight:bolder;
+      }
+      #figDownload{
+      float:left;
+      margin-left:0;
+      font-weight:bolder;
+      }
+      #figHeight, #figWidth{
+      margin:0;
+      text-color:green;
+      }
+      .figHWDFluidRow{
+      margin:0;
+      }
+      .figDownloadDiv{
+      /*background-color: rgba(247, 79, 114, 0.2);*/
+      background-image:linear-gradient(360deg, white, rgba(247, 79, 114, 0.2), white);
+      margin-bottom:7px;
+      padding: auto;
+      }
+      
+      /*Plot figures: END*/
+      
+      /*reshape*/
+      #goAction{
+      margin:auto;
+      font-weight:bold;
+      }
+      
+      /*input and transform table*/
+      #textInputTable{
+      font-weight:bold;
+      font-size:120%;
+      text-align:center;
+      background:#f2f2f2
+      }
+      
+      #textTransformTable{
+      font-weight:bold;
+      font-size:120%;
+      text-align:center;
+      background:#f2f2f2
+      }
+      
+      /*aesthetic setting*/
+      #UiColorSet{
+      margin-top:0;
+      padding-top:0;
+      }
+      #UiShapeLine{
+      margin-bottom:20px
+      }
+      
+      
+      /*statistic*/
+      
+      #UiChooseSignif{
+      margin:0;
+      padding:0;
+      align:left
+      }
+      #UiChooseSignifMethod{
+      margin:0;
+      padding:0;
+      align:left
+      }
+      #UiPairedData{
+      /*text-align:center;*/
+      margin-top:0px;
+      margin-bottom:10%;
+      padding-top:0;
+      }
+      
+      #UiDependentVar, #UiIndependentVar{
+      text-align:center;
+      margin-bottom:0
+      }
+      #formulaAll{
+      padding-top:5px;
+      padding-bottom:1px;
+      }
+      #formulaAll:hover{
+      background:#f2f2f2;
+      }
+     
+      /*#formulaAll > *{
+      text-align:center;
+      margin-top:0;
+      margin-right:1%;
+      margin-bottom:1%;
+      margin-left:1%;
+      border-color:#eee;
+      border-left:dotted;
+      border-right:dotted;
+      }
+      
+      #formulaOnly{
+      border-color:#eee;
+      border-top:dotted;
+      }
+      #formula{
+      border-color:#eee;
+      border-bottom:dotted;
+      }*/
+     
+      #UiChooseSignifLabel{
+      /*text-align:center;*/
+      font-weight:bold;
+      margin-top:5%
+      }
+      #UiPairwiseComparison{
+      text-align:center
+      }
+      
+      #showListGroup{
+      background:white
+      }
+      
+      .help-block{
+      margin-top:0;
+      margin-bottom:30px
+      }
+      
+      
+      .summaryPanel{
+      max-width: 1200px;
+      padding-left:5%;
+      padding-right:5%;
+      background-color:transparent;
+      }
+      
+      .helpPanel{
+      max-width: 1200px;
+      margin-left:5%;
+      margin-right:5%;
+      background-color:transparent;
       }
            ")
     )
@@ -105,7 +384,7 @@ ui <- fluidPage(
         )#end HTML
         
         
-      ),#end instruction tab
+      ) %>% tagAppendAttributes(class="instructionPanel"),#end instruction tab
       
       #Analyze & visualize-------------------
       tabPanel(
@@ -459,9 +738,9 @@ ui <- fluidPage(
                                             
                                             #Ui for pariwise comparison: Yes or no
                                             uiOutput("UiPairwiseComparison")
-                                          )#end of div for statistic test-----------------------
+                                          )#end of div for statistic test
                          ), #end of conditional panel for stat
-                         #ui for facet-------
+                         #ui for facet
                          map(1:2, function(.) uiOutput(paste0("UiFacet_",.))),
                          conditionalPanel(condition = "input.facet != 'none'",
                                           
@@ -521,36 +800,11 @@ ui <- fluidPage(
                   width = 12,
                   # style= "position:fixed;width:inherit",
                   height = '400px',
-                  
-                  # column(6,
-                  #        fluidRow(
-                  #          column(8, 
-                  #                 fluidRow(
-                  #                   tags$div(
-                  #                     tags$label(class= "col-sm-4 control-label", `for`="figHeight", br(), "Height"),
-                  #                     column(5, textInput(inputId = "figHeight", label = NULL))), #in inch 3.3 default for 1 coulmn wide (https://www.elsevier.com/__data/promis_misc/JBCDigitalArtGuidelines.pdf),
-                  #                   tags$div(
-                  #                     tags$label(class ="col-sm-4 control-label", `for`="figWidth", "Width"),
-                  #                     column(5, textInput(inputId = "figWidth", label = NULL)))
-                  #                 )
-                  #          ),
-                  #          column(4, downloadButton("figDownload")),
-                  #        )
-                  # ),
-                  # column(6, 
-                  #        fluidRow(
-                  #          column(5, textInput(inputId = "figHeight", label = "Height")) in inch 3.3 default for 1 coulmn wide (https://www.elsevier.com/__data/promis_misc/JBCDigitalArtGuidelines.pdf),
-                  #          column(5, textInput(inputId = "figWidth", label = "Width")),
-                  #          column(2, downloadButton("figDownload")),
-                  #        )
-                  #        )
-                  
                   plotOutput(outputId = "figurePlot")
                 ) %>% tagAppendAttributes(class = "figurePlotBox"),
+                
                 #box for figure settings:theme  
                 box(
-                  #title = span("Additional settings:", style="font-weight:bold"),
-                  # style="overflow-y:auto; position:fixed; width:inherit",
                   width = 12,
                   collapsible = TRUE,
                   #font size
@@ -578,8 +832,7 @@ ui <- fluidPage(
                     fluidRow(
                       uiOutput("UiRemoveBracket"),
                       uiOutput("UiStripBackground")
-                      # column(3, uiOutput("UiRemoveBracket")),
-                      # column(4, uiOutput("UiStripBackground"))
+                      
                     )
                   )#end for legend
                 ) %>% tagAppendAttributes(class="figureTheme")#end figure box
