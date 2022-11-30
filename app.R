@@ -58,10 +58,10 @@ ui <- fluidPage(
       #projectTitle{
       overflow: hidden;
       border-radius:50%;
-      width:70px;
-      height:70px;
-      background-image: radial-gradient(at 80% 20%,  white, #45D7FA);
-      box-shadow: 10px -5px 10px #06BBE7 inset,  3px 2px 10px white;
+      width:100px;
+      height:100px;
+      background-image: radial-gradient(at 90% 20%,  white, #45D7FA);
+      box-shadow: 12px -9px 17px #06BBE7 inset,  3px 2px 10px white;
       margin-bottom:5px;
       }
       
@@ -72,10 +72,10 @@ ui <- fluidPage(
       text-align:center;
       color: #057C94 ; /*;0890AB*/
       font-weight:bold;
-      font-size:25px;
+      font-size:37px;
       font-family:'Times New Roman', Times, serif, Arial, Helvetica, sans-serif;
-      padding: 3% 0 0 10%;
-      text-shadow:2px 4px 2px #45D7FA, 2px 0 10px white;
+      padding: 5% 0 0 10%;
+      text-shadow:2px 4px 1px #45D7FA, 2px 0 10px white;
       }
       
       #detailDiv{
@@ -84,13 +84,13 @@ ui <- fluidPage(
       
       
       /*Main content*/
-      
-      #content{
-      margin:auto;
+ 
+      #plotTabset{
+      display:flex !important;
+      flex-direction:row;
       justify-content:center;
-      /*display:flex;*/
+      margin:auto;
       }
-      
       
       hr{
         border:solid 0.4px;
@@ -112,12 +112,7 @@ ui <- fluidPage(
       align-item:center;
       justify-content:center;
       }
-      #plotTabset{
-      display:flex !important;
-      flex-direction:row;
-      justify-content:center;
-      margin:auto;
-      }
+      
       
       
       /*analyze and visualyze*/
