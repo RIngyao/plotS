@@ -6,12 +6,10 @@ ui <- fluidPage(
     tags$style(
       HTML("
       /*general*/
-      body:not(.analyzeTabBox){ 
+      body{ 
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
       font-size:17px;
-      justify-content:center;
-      display:flex;
       }
       
       .shiny-output-error-validation {
@@ -87,9 +85,12 @@ ui <- fluidPage(
       
       /*Main content*/
       
-      #content {
+      #content{
       margin:auto;
+      justify-content:center;
+      /*display:flex;*/
       }
+      
       
       hr{
         border:solid 0.4px;
@@ -123,7 +124,7 @@ ui <- fluidPage(
       .col-sm-12 > .nav-tabs-custom > .nav{
         background-image:linear-gradient(white 50%, rgba(56, 168, 249, 0.2))
         }
-       
+      
       /*Tables*/
       .tableMainPanel{
       margin:auto
@@ -168,6 +169,7 @@ ui <- fluidPage(
       min-height: 200px
       }
      
+     
       /*Plot figures: start*/
       .figureMainPanel{
       margin:auto;
@@ -190,6 +192,7 @@ ui <- fluidPage(
       float:right;
       margin-right:0;
       font-weight:bolder;
+      color:black;
       }
       #figDownload{
       float:left;
@@ -266,34 +269,7 @@ ui <- fluidPage(
       text-align:center;
       margin-bottom:0
       }
-      #formulaAll{
-      padding-top:5px;
-      padding-bottom:1px;
-      }
-      #formulaAll:hover{
-      background:#f2f2f2;
-      }
-     
-      /*#formulaAll > *{
-      text-align:center;
-      margin-top:0;
-      margin-right:1%;
-      margin-bottom:1%;
-      margin-left:1%;
-      border-color:#eee;
-      border-left:dotted;
-      border-right:dotted;
-      }
       
-      #formulaOnly{
-      border-color:#eee;
-      border-top:dotted;
-      }
-      #formula{
-      border-color:#eee;
-      border-bottom:dotted;
-      }*/
-     
       #UiChooseSignifLabel{
       /*text-align:center;*/
       font-weight:bold;
@@ -318,6 +294,7 @@ ui <- fluidPage(
       padding-left:5%;
       padding-right:5%;
       background-color:transparent;
+      display:flex;
       }
       
       .helpPanel{
@@ -325,7 +302,19 @@ ui <- fluidPage(
       margin-left:5%;
       margin-right:5%;
       background-color:transparent;
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
       }
+      
+      .chartPanel{
+      flex:1;
+      }
+      .analyzeTabBox{
+      flex:1;
+      }
+      
+      
            ")
     )
   ), #end of css-----------------
@@ -846,6 +835,7 @@ ui <- fluidPage(
             title = span("Summary", style = "font-weight:bold; font-family: 'Times New Roman',Times, Georgia, Serif, sans-serif; text-shadow:1px 4px 5px #C1BEBD;"),
             id = "statSummary",
             # icon=icon("list-alt"),
+            div( class="summaryDiv",
             #display the summary table of statistical computation
             h3("Summary of data and statistical analysis", style = "text-align:center; font-weight:bold;"),
             
@@ -909,7 +899,7 @@ ui <- fluidPage(
                              uiOutput("UiPostHocCaption"),
                              uiOutput("UiPostHoc")
             )
-            
+            )#end of summary div
           ) %>% tagAppendAttributes(class= "summaryPanel")#end of summary tab panel
         ) %>% tagAppendAttributes(class="analyzeTabBox") #end of tabBox
         
