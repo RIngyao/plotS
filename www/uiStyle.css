@@ -1,0 +1,308 @@
+
+body{ 
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      
+      }
+      .help-block{
+      margin-top:0;
+      margin-bottom:30px
+      }
+      .shiny-output-error-validation {
+        /*position:fixed;*/
+        color: #ff0000;
+        font-weight: bold;
+        /*top: calc(50%);*/
+        /*left: calc(50%);*/
+        padding:10%;
+        font-size: 130%;
+        background-color:white;
+        margin:10%;
+      }
+      .shiny-notification {
+             position:fixed;
+             top: calc(50%);
+             left: calc(50%);
+             color: black;
+             font-weight:bold;
+             font-size:25px;
+      }
+      .box{
+      -moz-box-shadow:none !important;
+      -webkit-box-shadow:none !important;
+      -goog-ms-box-shadow:none !important;
+      box-shadow:none !important;
+      }
+      .nav-tabs,li,a{
+      font-size:20px;
+      }
+      
+      
+      
+      /*Header*/
+      
+      .header{
+        overflow: hidden;
+       /* background-image:linear-gradient(to bottom, rgba(69, 215, 250, 0.3), white);*/
+        /*background-image:linear-gradient(70deg, white, rgba(69, 215, 250, 0.3), white);*/
+        background-image:radial-gradient(rgba(12, 191, 227, 1), white, white);
+        text-align:center;
+      }
+      
+      .projectLogo{
+      overflow: hidden;
+      border-radius:50%;
+      width:100px;
+      height:100px;
+      background-image: radial-gradient(at 90% 20%,  white, #45D7FA);
+      box-shadow: 12px -9px 17px #06BBE7 inset,  3px 2px 10px white;
+      margin-bottom:5px;
+      }
+      
+      /*perfect 90% 90%  45D7FA
+      box-shadow: 10px 2px 10px #45D7FA inset,  3px 2px 10px white*/
+      
+      .projectLogo h1{
+      text-align:center;
+      color: #057C94 ; /*;0890AB*/
+      font-weight:bold;
+      font-size:37px;
+      font-family:'Times New Roman', Times, serif, Arial, Helvetica, sans-serif;
+      padding: 5% 0 0 10%;
+      text-shadow:-7px 7px 1px #45D7FA, 2px 0 10px white;
+      }
+      
+      /*Main body: it has 3 sections (column1, column2 and column3)*/
+      .column{
+      float: left;
+      padding: 10px;
+      text-color:black;
+      }
+      /*allocate space: middle column will occupy largest space*/
+      .column1, .column3{
+      width:15%;
+      }
+      .column2{
+      align-items:center;
+      width:70%;
+      }
+      /* Clear floats after the columns */
+      .mainContent:after{
+      content: '';
+      display: table;
+      clear: both;
+      }
+      /* Responsive layout*/
+      @media screen and (max-width: 1600px) {
+      .column2{
+        width:100% !important;
+      }
+      .column1, .column3{
+      display:none !important;
+      }
+      }
+      
+      /*About*/
+      hr{
+        border:solid 0.4px;
+      }
+      .inst p{
+        font-size:17px;
+      }
+      .inst li{
+       font-size:15px;
+      }
+      
+      /*analyze and visualyze*/
+      
+      #chartBox > .tabbable > .nav {
+      background-image:linear-gradient(white 50%, rgba(56, 168, 249, 0.3))
+      }
+      /*.col-sm-12 > .nav-tabs-custom > .nav{
+        background-image:linear-gradient(white 50%, rgba(56, 168, 249, 0.2))
+        }*/
+      /*Tables*/
+      .tableMainPanel{
+      margin:auto
+      }
+      .tableSidePanel{
+      max-width:400px;
+      }
+      
+      .rawTable, .organizedTable{
+      text-align:center;
+      text-color:black;
+      margin:center;
+      }
+      .rawTable h3{
+      font-weight:bold;
+      color:#025A9E
+      }
+      
+      .rawTable{
+      overflow-y:auto;
+      max-width: 1000px;
+      margin-left: 10%;
+      margin-right: 10%;
+      margin-bottom: 50px;
+      margin-top: 10px;
+      min-height: 30px;
+      box-shadow:none;
+      border-top: solid;
+      border-color:#025A9E;
+      }
+      #pShowTable, #pShowTransform{
+      overflow-y:auto;
+      }
+      #organizedDownload{
+      float:right;
+      }
+      .organizedTable h3{
+      font-weight:bold;
+      size:15;
+      color:#3ABCF4;
+      }
+      .organizedTable{
+      max-width: 1000px;
+      margin-left: 10%;
+      margin-right:10%;
+      min-height: 200px;
+      border-top: solid;
+      border-color:#3ABCF4;
+      }
+      /*reshape*/
+      #goAction{
+      margin:auto;
+      font-weight:bold;
+      }
+      /*input and transform table*/
+      #textInputTable{
+      font-weight:bold;
+      font-size:120%;
+      text-align:center;
+      background:#f2f2f2
+      }
+      #textTransformTable{
+      font-weight:bold;
+      font-size:120%;
+      text-align:center;
+      background:#f2f2f2
+      }
+      /*Graph*/
+      .figureMainPanel{
+      margin:auto;
+      /*color:#F4F4F4;*/
+      }
+      
+      .figureSidebarPanel{
+      max-width:600px;
+      }
+      .figurePlotBox, .figureTheme{
+      max-width: 800px;
+      margin-left:10%;
+      margin-right:10%;
+      padding:auto;
+      text-color:black;
+      }
+      .figurePlotBox{
+      margin-bottom:10px;
+      }
+      #figDownloadFormat{
+      float:right;
+      margin-right:0;
+      font-weight:bolder;
+      color:black;
+      padding-top: 10px;
+      }
+      #figDownload{
+      float:left;
+      margin-left:0;
+      font-weight:bolder;
+      }
+      #figHeight, #figWidth{
+      margin:0;
+      text-color:green;
+      }
+      .figHWDFluidRow{
+      margin:0;
+      }
+      .figDownloadDiv{
+      /*background-color: rgba(247, 79, 114, 0.2);*/
+      /*background-image:linear-gradient(360deg, white, rgba(247, 79, 114, 0.2), white);*/
+      /*background-image:linear-gradient(to top, rgba(255,0,0,0.7), white, white);*//*padding-top: px;*/
+      margin-bottom:15px;
+      padding-top: 5px;
+      border-bottom:solid;
+      border-color:red;
+      }
+      /*aesthetic setting*/
+      #UiColorSet{
+      margin-top:0;
+      padding-top:0;
+      }
+      #UiShapeLine{
+      margin-bottom:20px
+      }
+      
+      /*statistic*/
+      #UiChooseSignif{
+      margin:0;
+      padding:0;
+      align:left
+      }
+      #UiChooseSignifMethod{
+      margin:0;
+      padding:0;
+      align:left
+      }
+      #UiPairedData{
+      /*text-align:center;*/
+      margin-top:0px;
+      margin-bottom:10%;
+      padding-top:0;
+      }
+      #UiChooseSignifLabel{
+      /*text-align:center;*/
+      font-weight:bold;
+      margin-top:5%
+      }
+      #showListGroup{
+      background:white
+      }
+      
+      .summaryPanel{
+      max-width: 1200px;
+      padding-left:5%;
+      padding-right:5%;
+      display:flex;
+      }
+      
+      #UiStatSummaryTable, #UiEffectSize, #UiStatSubCaption, #UiSubCapEffectSize{
+      overflow-y:auto;
+      margin:auto;
+      text-align:center;
+      }
+      
+      .statSummaryDownload{
+      margin-bottom:5px;
+      padding-top: 15px;
+      padding-bottom: 0;
+      border-bottom:solid;
+      border-color:red;
+      }
+      #UiStatSumDownList, #UiStatSumDownFormat{
+      float:right;
+      }
+      #UiStatSumDownFormat{
+      padding-top:5px;
+      }
+      #downloadStatSummary{
+      float:left;
+      }
+      
+      .helpPanel{
+      max-width: 1200px;
+      margin-left:5%;
+      margin-right:5%;
+      background-color:transparent;
+      }

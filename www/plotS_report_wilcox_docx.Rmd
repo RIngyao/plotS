@@ -1,0 +1,45 @@
+---
+title: "PlotS: web-based application for data analysis and visualization"
+subtitle: "Statistical analysis summary"
+author: ''
+date: ''
+output: word_document
+params:
+  table1: NA
+  table2: NA
+  caption: NA
+  table3: NA
+  table4: NA
+---
+```{r setup, include=FALSE, echo=FALSE} 
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+**_Note_: For transparency and credibility of your research analysis, always report the statistical method and a description of its appropriateness for the data. Record the result in accepted scientific standard, not just p-value. Report effect size in addition to p-value.** 
+
+
+# Table 1. Summary of the input data
+```{r}
+params$table1
+```
+# Table 2. Descriptive statistics
+```{r}
+knitr::kable(params$table2)
+```
+
+# Table 3. Summary for t-test (`r if(params$caption == "welch"){"Welch's test"}else{"Student's test"} `).
+
+'.y.' is the variable used in y-axis; 'group 1 & 2' are the groups compared in the test; 'n' are the sample counts; 'statistic' is the test used to compute the p-value; 'p' is the p-value
+```{r }
+knitr::kable(params$table3)
+```
+
+# Table 4. Table of effect size. Measures the strength of relationship between variables.
+
+
+Effect size is computed using z statistic (of Wilcoxon test) and divided by square root of the sample size.
+```{r}
+knitr::kable(params$table4)
+
+```
+

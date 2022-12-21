@@ -1,0 +1,137 @@
+
+
+
+<p><br></p>
+<p><br></p>
+<div id="type-of-file-format-supported-in-plots" class="section level4">
+<h4><strong>Type of file format supported in plotS</strong></h4>
+<p>It support comma separated file (csv), tab delimited (tsv) and excel
+sheet file (xls and xlsx)</p>
+<p><br></p>
+</div>
+<div id="must-the-input-data-be-of-only-numeric-columns" class="section level4">
+<h4><strong>Must the input data be of only numeric
+columns?</strong></h4>
+<p>No, data can be a combination of numeric and categorical
+variables.</p>
+<p><br></p>
+</div>
+<div id="why-and-when-to-reshape-the-data" class="section level4">
+<h4><strong>Why and when to reshape the data?</strong></h4>
+<!-- Depending on the input data, reshape is necessary so that comparison can be made between variables. Graphics in plotS is drawn using [Ggplot2](https://ggplot2.tidyverse.org/). To represent and compare between variables in ggplot require the input data in long format rather than wide format (example below). Table 1 represents wide format and table 2 represents long format.  -->
+<p>Reshaping is required depending on the input data so that variables
+can be compared. In order to represent and compare variables in plotS,
+the input data must be in <strong>long format</strong> rather than
+<strong>wide format</strong>. In the below example, <em>Table 1</em>
+shows the wide format, while <em>Table 2</em> represent the long format.
+You need to reshape your data if it is in wide format and want to
+compare between variables (control, treatment1 and treatment2).
+<!-- PlotS graphics are created with [Ggplot2](https://ggplot2.tidyverse.org/), so it inherit the same property.  --></p>
+<p><em>Example</em></p>
+<template id="e2ef82ab-00f0-418a-b0b3-cf2f5a2ba87f"><style>
+.tabwid table{
+border-spacing:0px !important;
+border-collapse:collapse;
+line-height:1;
+margin-left:auto;
+margin-right:auto;
+border-width: 0;
+border-color: transparent;
+caption-side: top;
+}
+.tabwid-caption-bottom table{
+caption-side: bottom;
+}
+.tabwid_left table{
+margin-left:0;
+}
+.tabwid_right table{
+margin-right:0;
+}
+.tabwid td, .tabwid th {
+padding: 0;
+}
+.tabwid a {
+text-decoration: none;
+}
+.tabwid thead {
+background-color: transparent;
+}
+.tabwid tfoot {
+background-color: transparent;
+}
+.tabwid table tr {
+background-color: transparent;
+}
+.katex-display {
+margin: 0 0 !important;
+}
+</style><div class="tabwid"><style>.cl-e28a4f54{}.cl-e284c50c{font-family:'Helvetica';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-e287054c{margin:0;text-align:center;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-e2870556{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-e2870560{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-e2871564{width:0.863in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e287156e{width:0.744in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e287156f{width:1.016in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e2871578{width:0.863in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e2871579{width:0.744in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e287157a{width:1.016in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e2871582{width:0.863in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e2871583{width:0.744in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e287158c{width:1.016in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e287158d{width:0.863in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e287158e{width:0.744in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e2871596{width:1.016in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table class="cl-e28a4f54"><thead><tr style="overflow-wrap:break-word;"><th colspan="4" class="cl-e2871564"><p class="cl-e287054c"><span class="cl-e284c50c">Table 1. Typical data with wide format.</span></p></th></tr><tr style="overflow-wrap:break-word;"><th class="cl-e2871578"><p class="cl-e2870556"><span class="cl-e284c50c">sample</span></p></th><th class="cl-e2871579"><p class="cl-e2870560"><span class="cl-e284c50c">control</span></p></th><th class="cl-e287157a"><p class="cl-e2870560"><span class="cl-e284c50c">treatment1</span></p></th><th class="cl-e287157a"><p class="cl-e2870560"><span class="cl-e284c50c">treatment2</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-e2871582"><p class="cl-e2870556"><span class="cl-e284c50c">sample1</span></p></td><td class="cl-e2871583"><p class="cl-e2870560"><span class="cl-e284c50c">32</span></p></td><td class="cl-e287158c"><p class="cl-e2870560"><span class="cl-e284c50c">31</span></p></td><td class="cl-e287158c"><p class="cl-e2870560"><span class="cl-e284c50c">34</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e2871582"><p class="cl-e2870556"><span class="cl-e284c50c">sample2</span></p></td><td class="cl-e2871583"><p class="cl-e2870560"><span class="cl-e284c50c">25</span></p></td><td class="cl-e287158c"><p class="cl-e2870560"><span class="cl-e284c50c">20</span></p></td><td class="cl-e287158c"><p class="cl-e2870560"><span class="cl-e284c50c">43</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e287158d"><p class="cl-e2870556"><span class="cl-e284c50c">sample3</span></p></td><td class="cl-e287158e"><p class="cl-e2870560"><span class="cl-e284c50c">26</span></p></td><td class="cl-e2871596"><p class="cl-e2870560"><span class="cl-e284c50c">27</span></p></td><td class="cl-e2871596"><p class="cl-e2870560"><span class="cl-e284c50c">37</span></p></td></tr></tbody></table></div></template>
+<div class="flextable-shadow-host" id="9771b4ad-b745-4972-887d-f05d0815bd2e"></div>
+<script>
+var dest = document.getElementById("9771b4ad-b745-4972-887d-f05d0815bd2e");
+var template = document.getElementById("e2ef82ab-00f0-418a-b0b3-cf2f5a2ba87f");
+var fantome = dest.attachShadow({mode: 'open'});
+var templateContent = template.content;
+fantome.appendChild(templateContent);
+</script>
+
+<p><br> <br> <em>Data in the table 1, which is in a wide format,
+reshaped to long format in table 2.</em></p>
+<p><br></p>
+<template id="74314a04-276c-4dad-aaff-883c4bc7f4d5"><style>
+.tabwid table{
+border-spacing:0px !important;
+border-collapse:collapse;
+line-height:1;
+margin-left:auto;
+margin-right:auto;
+border-width: 0;
+border-color: transparent;
+caption-side: top;
+}
+.tabwid-caption-bottom table{
+caption-side: bottom;
+}
+.tabwid_left table{
+margin-left:0;
+}
+.tabwid_right table{
+margin-right:0;
+}
+.tabwid td, .tabwid th {
+padding: 0;
+}
+.tabwid a {
+text-decoration: none;
+}
+.tabwid thead {
+background-color: transparent;
+}
+.tabwid tfoot {
+background-color: transparent;
+}
+.tabwid table tr {
+background-color: transparent;
+}
+.katex-display {
+margin: 0 0 !important;
+}
+</style><div class="tabwid"><style>.cl-e29f33e2{}.cl-e29a0d22{font-family:'Helvetica';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-e29c02f8{margin:0;text-align:center;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-e29c0302{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-e29c0303{margin:0;text-align:right;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-e29c0f46{width:0.863in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e29c0f47{width:1.016in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e29c0f50{width:0.65in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e29c0f51{width:0.863in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e29c0f5a{width:1.016in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e29c0f5b{width:0.65in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e29c0f64{width:0.863in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e29c0f65{width:1.016in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e29c0f6e{width:0.65in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e29c0f6f{width:0.863in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e29c0f78{width:1.016in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-e29c0f79{width:0.65in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table class="cl-e29f33e2"><thead><tr style="overflow-wrap:break-word;"><th colspan="3" class="cl-e29c0f46"><p class="cl-e29c02f8"><span class="cl-e29a0d22">Table 2. Data in table 1 reshaped to long format.</span></p></th></tr><tr style="overflow-wrap:break-word;"><th class="cl-e29c0f51"><p class="cl-e29c0302"><span class="cl-e29a0d22">sample</span></p></th><th class="cl-e29c0f5a"><p class="cl-e29c0302"><span class="cl-e29a0d22">treatments</span></p></th><th class="cl-e29c0f5b"><p class="cl-e29c0303"><span class="cl-e29a0d22">value</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-e29c0f64"><p class="cl-e29c0302"><span class="cl-e29a0d22">sample1</span></p></td><td class="cl-e29c0f65"><p class="cl-e29c0302"><span class="cl-e29a0d22">control</span></p></td><td class="cl-e29c0f6e"><p class="cl-e29c0303"><span class="cl-e29a0d22">32</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e29c0f64"><p class="cl-e29c0302"><span class="cl-e29a0d22">sample1</span></p></td><td class="cl-e29c0f65"><p class="cl-e29c0302"><span class="cl-e29a0d22">treatment1</span></p></td><td class="cl-e29c0f6e"><p class="cl-e29c0303"><span class="cl-e29a0d22">31</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e29c0f64"><p class="cl-e29c0302"><span class="cl-e29a0d22">sample1</span></p></td><td class="cl-e29c0f65"><p class="cl-e29c0302"><span class="cl-e29a0d22">treatment2</span></p></td><td class="cl-e29c0f6e"><p class="cl-e29c0303"><span class="cl-e29a0d22">34</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e29c0f64"><p class="cl-e29c0302"><span class="cl-e29a0d22">sample2</span></p></td><td class="cl-e29c0f65"><p class="cl-e29c0302"><span class="cl-e29a0d22">control</span></p></td><td class="cl-e29c0f6e"><p class="cl-e29c0303"><span class="cl-e29a0d22">25</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e29c0f64"><p class="cl-e29c0302"><span class="cl-e29a0d22">sample2</span></p></td><td class="cl-e29c0f65"><p class="cl-e29c0302"><span class="cl-e29a0d22">treatment1</span></p></td><td class="cl-e29c0f6e"><p class="cl-e29c0303"><span class="cl-e29a0d22">20</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e29c0f64"><p class="cl-e29c0302"><span class="cl-e29a0d22">sample2</span></p></td><td class="cl-e29c0f65"><p class="cl-e29c0302"><span class="cl-e29a0d22">treatment2</span></p></td><td class="cl-e29c0f6e"><p class="cl-e29c0303"><span class="cl-e29a0d22">43</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e29c0f64"><p class="cl-e29c0302"><span class="cl-e29a0d22">sample3</span></p></td><td class="cl-e29c0f65"><p class="cl-e29c0302"><span class="cl-e29a0d22">control</span></p></td><td class="cl-e29c0f6e"><p class="cl-e29c0303"><span class="cl-e29a0d22">26</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e29c0f64"><p class="cl-e29c0302"><span class="cl-e29a0d22">sample3</span></p></td><td class="cl-e29c0f65"><p class="cl-e29c0302"><span class="cl-e29a0d22">treatment1</span></p></td><td class="cl-e29c0f6e"><p class="cl-e29c0303"><span class="cl-e29a0d22">27</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-e29c0f6f"><p class="cl-e29c0302"><span class="cl-e29a0d22">sample3</span></p></td><td class="cl-e29c0f78"><p class="cl-e29c0302"><span class="cl-e29a0d22">treatment2</span></p></td><td class="cl-e29c0f79"><p class="cl-e29c0303"><span class="cl-e29a0d22">37</span></p></td></tr></tbody></table></div></template>
+<div class="flextable-shadow-host" id="a5524f80-74db-4522-bb14-b5667afb73cf"></div>
+<script>
+var dest = document.getElementById("a5524f80-74db-4522-bb14-b5667afb73cf");
+var template = document.getElementById("74314a04-276c-4dad-aaff-883c4bc7f4d5");
+var fantome = dest.attachShadow({mode: 'open'});
+var templateContent = template.content;
+fantome.appendChild(templateContent);
+</script>
+
+<p><br></p>
+</div>
+<div id="multiple-headers" class="section level4">
+<h4><strong>Multiple headers</strong></h4>
+</div>
+<div id="aesthetic-option" class="section level4">
+<h4><strong>Aesthetic option</strong></h4>
+</div>

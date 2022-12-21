@@ -1,30 +1,75 @@
 ---
 title: ""
-author: "Ringyao Jajo"
-date: '2022-11-15'
-output: html_document
+author: ""
+date: ""
+output: html_fragment
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+library(flextable)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+<br>
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+<br>
 
-```{r cars}
-summary(cars)
+#### **Type of file format supported in plotS**
+
+ It support comma separated file (csv), tab delimited (tsv) and excel sheet file (xls and xlsx)
+
+<br>
+
+#### **Must the input data be of only numeric columns?**
+
+No, data can be a combination of numeric and categorical variables.
+
+<br>
+
+
+#### **Why and when to reshape the data?**
+
+<!-- Depending on the input data, reshape is necessary so that comparison can be made between variables. Graphics in plotS is drawn using [Ggplot2](https://ggplot2.tidyverse.org/). To represent and compare between variables in ggplot require the input data in long format rather than wide format (example below). Table 1 represents wide format and table 2 represents long format.  -->
+
+Reshaping is required depending on the input data so that variables can be compared. In order to represent and compare variables in plotS, the input data must be in **long format** rather than **wide format**. In the below example, _Table 1_ shows the wide format, while _Table 2_ represent the long format. You need to reshape your data if it is in wide format and want to compare between variables (control, treatment1 and treatment2).
+<!-- PlotS graphics are created with [Ggplot2](https://ggplot2.tidyverse.org/), so it inherit the same property.  -->
+
+_Example_
+
+
+```{r}
+table1 <- data.frame(sample = c( paste0(rep("sample", 3), 1:3) ), control = c(sample(20:50, 3)),
+                     treatment1 = c(sample(10:40, 3)), treatment2 = c(sample(30:60, 3)))
+# knitr::kable(table1
+
+table1 %>% flextable() %>% autofit() %>% 
+add_header(., sample = "Table 1. Typical data with wide format.", top = TRUE) %>%
+  merge_at(., i = 1, j = 1:ncol(table1), part = "header") %>%
+    align(., i = 1, j = 1:ncol(table1), align = "center", part = "header")
+
 ```
 
-## Including Plots
+<br>
+<br>
+_Data in the table 1, which is in a wide format, reshaped to long format in table 2._
 
-You can also embed plots, for example:
+<br>
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+table2 <- pivot_longer(table1, cols = !sample, names_to = "treatments", values_to = "value")
+
+table2 %>% flextable() %>% autofit() %>% 
+add_header(., sample = "Table 2. Data in table 1 reshaped to long format.", top = TRUE) %>%
+  merge_at(., i = 1, j = 1:ncol(table2), part = "header") %>%
+    align(., i = 1, j = 1:ncol(table2), align = "center", part = "header")
+
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+<br>
+
+#### **Multiple headers**
+
+#### **Aesthetic option**
+

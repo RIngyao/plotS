@@ -1,0 +1,68 @@
+---
+title: "PlotS: web-based application for data analysis and visualization"
+subtitle: "Statistical analysis summary"
+author: ''
+date: ''
+output: pdf_document
+params:
+  table1: NA
+  table2: NA
+  caption: NA
+  table3: NA
+  table4: NA
+  figure1: NA
+  figure2: NA
+  figure3: NA
+  statment1: NA
+  statment2: NA
+---
+```{r setup, include=FALSE, echo=FALSE} 
+knitr::opts_chunk$set(echo = TRUE)
+par(mfrow = c(1,3))
+```
+
+**_Note_: For transparency and credibility of your research analysis, always report the statistical method and a description of its appropriateness for the data. Record the result in accepted scientific standard, not just p-value. Report effect size in addition to p-value.** 
+
+
+# Table 1. Summary of the input data
+```{r echo=FALSE}
+params$table1
+```
+# Table 2. Descriptive statistics
+```{r echo=FALSE}
+knitr::kable(params$table2)
+```
+
+# Testing assumptions for the parametric test
+```{r echo=FALSE, fig.width=4, fig.height=4}
+params$figure1
+
+params$figure2
+
+params$figure3
+
+```
+
+
+The p-value (rounded to 3 decimal places) for Levene's homoscedasticity test is `r params$statment1`, and Kolmogrov-Smirnov's normality test is `r params$statment2`.
+
+
+**Note: Higher the p-value (generally greater than 0.05), the more likely it satisfy the parametric assumptions.**
+
+
+# Table 3. Summary for t-test (`r if(params$caption == "welch"){"Welch's test"}else{"Student's test"} `).
+
+
+'.y.' is the variable used in y-axis; 'group 1 & 2' are the groups compared in the test; 'n' are the sample counts; 'statistic' is the test used to compute the p-value; 'p' is the p-value.
+```{r echo=FALSE}
+knitr::kable(params$table3)
+```
+
+# Table 4. Table of effect size. Measures the strength of relationship between variables.
+
+Effect size computed using Cohen's d.
+```{r echo=FALSE}
+knitr::kable(params$table4)
+
+```
+

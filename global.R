@@ -1,14 +1,9 @@
-# path2 <- "~/Documents/Temporary/git/srlab_database"
-path2 <- "~/Documents/Jajo/git/srlab_database/"
 
-path <- "/Volumes/Dr_Saurabh_epigenome/bis-files/jajo/analysis/repository/"
-#library--------------------------------
 options(shiny.maxRequestSize = 50*1024^2)
-# library(coin)
-# library(rcompanion)
-# install.packages("Hmisc")
-# install.packages("skimr")
-# install.packages("svglite")
+#library--------------------------------
+library(reactable)
+library(flextable)
+library(openxlsx)
 library(svglite)
 library(MASS)
 library(skimr)
@@ -27,9 +22,9 @@ library(readxl)
 library(shinyFeedback)
 library(shinyvalidate)
 library(shinyauthr)
+library(markdown)
 library(rstatix)
 #remotes::install_github("paulc91/shinyauthr")
-library(shinyauthr)
 if(!require(ggpubr)){
   # install.packages("ggpubr")
   require(ggpubr)
@@ -37,248 +32,12 @@ if(!require(ggpubr)){
 if(!require(multcompView)){
   # install.packages("multcompView")
   require(multcompView)
-}else{require(multcompView)}
+}
 
-# install.packages("multcompView")
-# library(sodium) #implement later
-#file path
-
-# path <- "/repository/"
-#Methylation--------------------------------------------------------
-
-#single:IR64
-si_ir_panicle_c <- paste0(path,"methylation/single_ir64_panicle_control.rds")
-si_ir_flag_c <- paste0(path,"methylation/single_ir64_flagLeaf_control.rds")
-si_ir_root_c <- paste0(path,"methylation/single_ir64_root_control.rds")
-si_ir_panicle_s <- paste0(path,"methylation/single_ir64_panicle_stress.rds")
-si_ir_flag_s <- paste0(path,"methylation/single_ir64_flagLeaf_stress.rds")
-si_ir_root_s <- paste0(path,"methylation/single_ir64_root_stress.rds")
-#single:N22
-si_n_panicle_c <- paste0(path,"methylation/single_n22_panicle_control.rds")
-si_n_flag_c <- paste0(path,"methylation/single_n22_flagLeaf_control.rds")
-si_n_root_c <- paste0(path,"methylation/single_n22_root_control.rds")
-si_n_panicle_s <- paste0(path,"methylation/single_n22_panicle_stress.rds")
-si_n_flag_s <- paste0(path,"methylation/single_n22_flagLeaf_stress.rds")
-si_n_root_s <- paste0(path,"methylation/single_n22_root_stress.rds")
-#DMR:IR64
-dmr_ir_panicle <- paste0(path,"methylation/dmr_ir_panicle.rds")
-dmr_ir_flag <- paste0(path,"methylation/dmr_ir_flagLeaf.rds")
-dmr_ir_root <- paste0(path,"methylation/dmr_ir_root.rds")
-#DMR:N22
-dmr_n_panicle <- paste0(path,"methylation/dmr_n22_panicle.rds")
-dmr_n_flag <- paste0(path,"methylation/dmr_n22_flagLeaf.rds")
-dmr_n_root <- paste0(path,"methylation/dmr_n22_root.rds")
-
-#Histone----------------------------------------------------
-#significant:H3k4
-k4_ir_panicle_c <- paste0(path,"histone/h3k4me3_ir_panicle_c.txt") #sheet=7
-k4_ir_flag_c <- paste0(path,"histone/h3k4me3_ir_flag_c.txt")#sheet=5
-k4_n_panicle_c <- paste0(path,"histone/h3k4me3_n_panicle_c.txt") #sheet=3
-k4_n_flag_c <- paste0(path,"histone/h3k4me3_n_flag_c.txt")#sheet=1
-
-k4_ir_panicle_s <- paste0(path,"histone/h3k4me3_ir_panicle_s.txt") #sheet=8
-k4_ir_flag_s <- paste0(path,"histone/h3k4me3_ir_flag_s.txt")#sheet=6
-k4_n_panicle_s <- paste0(path,"histone/h3k4me3_n_panicle_s.txt") #sheet=4
-k4_n_flag_s <- paste0(path,"histone/h3k4me3_n_flag_s.txt")#sheet=2
-
-#significant: H3K9
-k9_ir_panicle_c <- paste0(path,"histone/h3k9ac_ir_panicle_c.txt")#sheet =7
-k9_ir_flag_c <- paste0(path,"histone/h3k9ac_ir_flag_c.txt")#sheet =5
-k9_n_panicle_c <- paste0(path,"histone/h3k9ac_n_panicle_c.txt")#sheet =3
-k9_n_flag_c <- paste0(path,"histone/h3k9ac_n_flag_c.txt")#sheet =1
-
-k9_ir_panicle_s <- paste0(path,"histone/h3k9ac_ir_panicle_s.txt")#sheet =8
-k9_ir_flag_s <- paste0(path,"histone/h3k9ac_ir_flag_s.txt")#sheet =6
-k9_n_panicle_s <- paste0(path,"histone/h3k9ac_n_panicle_s.txt")#sheet =4
-k9_n_flag_s <- paste0(path,"histone/h3k9ac_n_flag_s.txt")#sheet =2
-
-#significant: H3k27
-k27_ir_panicle_c <- paste0(path,"histone/h3k27me3_ir_panicle_c.txt")#sheet =7
-k27_ir_flag_c <- paste0(path,"histone/h3k27me3_ir_flag_c.txt")#sheet =5
-k27_n_panicle_c <- paste0(path,"histone/h3k27me3_n_panicle_c.txt")#sheet =3
-k27_n_flag_c <- paste0(path,"histone/h3k27me3_n_flag_c.txt")#sheet =1
-
-k27_ir_panicle_s <- paste0(path,"histone/h3k27me3_ir_panicle_s.txt")#sheet =8
-k27_ir_flag_s <- paste0(path,"histone/h3k27me3_ir_flag_s.txt")#sheet =6
-k27_n_panicle_s <- paste0(path,"histone/h3k27me3_n_panicle_s.txt")#sheet =4
-k27_n_flag_s <- paste0(path,"histone/h3k27me3_n_flag_s.txt")#sheet =2
-
-#differential
-hist_diff <- paste0(path,"histone/DIFF-PEAKS-FOR-DATABASE.xlsx") 
-
-#Transcriptome------------------------------------------------------------
-fpkm <- paste0(path,"transcriptome/transcriptome-data-for-database.xlsx")
-
-
-#miRNA notation list------------------------------------------------------
-#store this in mysql
-miRlist <- structure(list(name = c("miR156a", "miR156b-5p", "miR156b-3p", 
-                                   "miR156c-5p", "miR156c-3p", "miR156d", "miR156e", "miR156f-5p", 
-                                   "miR156f-3p", "miR156g-5p", "miR156g-3p", "miR156h-5p", "miR156h-3p", 
-                                   "miR156i", "miR156j-5p", "miR156j-3p", "miR160a-5p", "miR160a-3p", 
-                                   "miR160b-5p", "miR160b-3p", "miR160c-5p", "miR160c-3p", "miR160d-5p", 
-                                   "miR160d-3p", "miR162a", "miR164a", "miR164b", "miR166a-5p", 
-                                   "miR166a-3p", "miR166b-5p", "miR166b-3p", "miR166c-5p", "miR166c-3p", 
-                                   "miR166d-5p", "miR166d-3p", "miR166e-5p", "miR166e-3p", "miR166f", 
-                                   "miR167a-5p", "miR167a-3p", "miR167b", "miR167c-5p", "miR167c-3p", 
-                                   "miR169a", "miR171a", "miR393a", "miR394", "miR395b", "miR395d", 
-                                   "miR395e", "miR395g", "miR395h", "miR395i", "miR395j", "miR395k", 
-                                   "miR395l", "miR395s", "miR395t", "miR395c", "miR395a", "miR395f", 
-                                   "miR395u", "miR396a-5p", "miR396a-3p", "miR396b-5p", "miR396b-3p", 
-                                   "miR396c-5p", "miR396c-3p", "miR397a", "miR397b", "miR398a", 
-                                   "miR398b", "miR399a", "miR399b", "miR399c", "miR399d", "miR399e", 
-                                   "miR399f", "miR399g", "miR399h", "miR399i", "miR399j", "miR399k", 
-                                   "miR156k", "miR156l-5p", "miR156l-3p", "miR159a.2", "miR159a.1", 
-                                   "miR159b", "miR159c", "miR159d", "miR159e", "miR159f", "miR319a-5p", 
-                                   "miR319a-3p", "miR319a-3p.2-3p", "miR319b", "miR160e-5p", "miR160e-3p", 
-                                   "miR160f-5p", "miR160f-3p", "miR162b", "miR164c", "miR164d", 
-                                   "miR164e", "miR166k-5p", "miR166k-3p", "miR166l-5p", "miR166l-3p", 
-                                   "miR167d-5p", "miR167d-3p", "miR167e-5p", "miR167e-3p", "miR167f", 
-                                   "miR167g", "miR167h-5p", "miR167h-3p", "miR167i-5p", "miR167i-3p", 
-                                   "miR168a-5p", "miR168a-3p", "miR168b", "miR169b", "miR169c", 
-                                   "miR169d", "miR169e", "miR169f.2", "miR169f.1", "miR169g", "miR169h", 
-                                   "miR169i-5p.2", "miR169i-5p.1", "miR169i-3p", "miR169j", "miR169k", 
-                                   "miR169l", "miR169m", "miR169n", "miR169o", "miR169p", "miR169q", 
-                                   "miR171b", "miR171c-5p", "miR171c-3p", "miR171d-5p", "miR171d-3p", 
-                                   "miR171e-5p", "miR171e-3p", "miR171f-5p", "miR171f-3p", "miR171g", 
-                                   "miR172a", "miR172b", "miR172c", "miR166g-5p", "miR166g-3p", 
-                                   "miR166h-5p", "miR166h-3p", "miR166i-5p", "miR166i-3p", "miR171h", 
-                                   "miR393b-5p", "miR393b-3p", "miR408-5p", "miR408-3p", "miR172d-5p", 
-                                   "miR172d-3p", "miR171i-5p", "miR171i-3p", "miR167j", "miR166m", 
-                                   "miR166j-5p", "miR166j-3p", "miR164f", "miR413", "miR414", "miR415", 
-                                   "miR416", "miR417", "miR418", "miR419", "miR426", "miR435", "miR437", 
-                                   "miR438", "miR390-5p", "miR390-3p", "miR439a", "miR439b", "miR439c", 
-                                   "miR439d", "miR439e", "miR439f", "miR439g", "miR439h", "miR439i", 
-                                   "miR440", "miR396e-5p", "miR396e-3p", "miR443", "miR444a-5p", 
-                                   "miR444a-3p.2", "miR444a-3p.1", "miR528-5p", "miR528-3p", "miR529a", 
-                                   "miR530-5p", "miR530-3p", "miR531a", "miR535-5p", "miR535-3p", 
-                                   "miR395m", "miR395n", "miR395o", "miR395p", "miR395q", "miR395v", 
-                                   "miR395w", "miR395r", "miR810a", "miR812a", "miR812b", "miR812c", 
-                                   "miR812d", "miR812e", "miR814a", "miR814b", "miR814c", "miR815a", 
-                                   "miR815b", "miR815c", "miR816", "miR817", "miR818a", "miR818b", 
-                                   "miR818c", "miR818d", "miR818e", "miR820a", "miR820b", "miR820c", 
-                                   "miR821a", "miR821b", "miR821c", "miR529b", "miR1423-5p", "miR1423-3p", 
-                                   "miR1424", "miR1425-5p", "miR1425-3p", "miR1426", "miR1427", 
-                                   "miR1428a-5p", "miR1428a-3p", "miR1429-5p", "miR1429-3p", "miR1430", 
-                                   "miR1431", "miR1432-5p", "miR1432-3p", "miR169r-5p", "miR169r-3p", 
-                                   "miR444b.2", "miR444b.1", "miR444c.2", "miR444c.1", "miR444d.3", 
-                                   "miR444d.2", "miR444d.1", "miR444e", "miR444f", "miR810b.1", 
-                                   "miR810b.2", "miR1435", "miR1436", "miR1437a", "miR1438", "miR1440a", 
-                                   "miR1441", "miR1442", "miR1439", "miR531b", "miR1846d-5p", "miR1846d-3p", 
-                                   "miR1847.1", "miR1847.2", "miR1848", "miR1849", "miR1850.1", 
-                                   "miR1850.2", "miR1850.3", "miR1851", "miR1852", "miR1853-5p", 
-                                   "miR1853-3p", "miR1854-5p", "miR1854-3p", "miR1855", "miR1856", 
-                                   "miR1857-5p", "miR1857-3p", "miR1428b", "miR1428c", "miR1428d", 
-                                   "miR1428e-5p", "miR1428e-3p", "miR1858a", "miR1858b", "miR1846a-5p", 
-                                   "miR1846a-3p", "miR1846b-5p", "miR1846b-3p", "miR1859", "miR1860-5p", 
-                                   "miR1860-3p", "miR1861a", "miR1861b", "miR1861c", "miR1861d", 
-                                   "miR1861e", "miR1861f", "miR1861g", "miR1861h", "miR1861i", "miR1861j", 
-                                   "miR1861k", "miR1861l", "miR1861m", "miR1861n", "miR1862a", "miR1862b", 
-                                   "miR1862c", "miR1863a", "miR1864", "miR1865-5p", "miR1865-3p", 
-                                   "miR1866-5p", "miR1866-3p", "miR1868", "miR812f", "miR1869", 
-                                   "miR1870-5p", "miR1870-3p", "miR1871", "miR1872", "miR1873", 
-                                   "miR1874-5p", "miR1874-3p", "miR1875", "miR1862d", "miR1876", 
-                                   "miR1862e", "miR1877", "miR1878", "miR1879", "miR1880", "miR1881", 
-                                   "miR1882a", "miR1882b", "miR1882c", "miR1882d", "miR1882e-5p", 
-                                   "miR1882e-3p", "miR1882f", "miR1882g", "miR1882h", "miR812g", 
-                                   "miR812h", "miR812i", "miR812j", "miR1883a", "miR1883b", "miR1319a", 
-                                   "miR1320-5p", "miR1320-3p", "miR1846c-5p", "miR1846c-3p", "miR2055", 
-                                   "miR827", "miR1846e", "miR1428f-5p", "miR1428g-5p", "miR2090", 
-                                   "miR2091-5p", "miR2091-3p", "miR2092-5p", "miR2092-3p", "miR2093-5p", 
-                                   "miR2093-3p", "miR2094-5p", "miR2094-3p", "miR2095-5p", "miR2095-3p", 
-                                   "miR2096-5p", "miR2096-3p", "miR2097-5p", "miR2097-3p", "miR2098-5p", 
-                                   "miR2098-3p", "miR2099-5p", "miR2099-3p", "miR2100-5p", "miR2100-3p", 
-                                   "miR2101-5p", "miR2101-3p", "miR2102-5p", "miR2102-3p", "miR396f-5p", 
-                                   "miR396f-3p", "miR2103", "miR2104", "miR2105", "miR2106", "miR2120", 
-                                   "miR2121a", "miR2121b", "miR2122", "miR2118a", "miR2118b", "miR2118c", 
-                                   "miR2118d", "miR2118e", "miR2118f", "miR2118g", "miR2118h", "miR2118i", 
-                                   "miR2118j", "miR2118k", "miR2118l", "miR2118m", "miR2118n", "miR2118o", 
-                                   "miR2118p", "miR2118q", "miR2118r", "miR2275a", "miR2275b", "miR2863a", 
-                                   "miR2864.1", "miR2864.2", "miR2865", "miR2866", "miR2867-5p", 
-                                   "miR2867-3p", "miR2868", "miR2869", "miR2870", "miR2863b", "miR2905", 
-                                   "miR2871a-5p", "miR2871a-3p", "miR2871b-5p", "miR2871b-3p", "miR2872", 
-                                   "miR2873a", "miR2874", "miR2875", "miR2876-5p", "miR2876-3p", 
-                                   "miR2877", "miR2878-5p", "miR2878-3p", "miR1863c", "miR2879", 
-                                   "miR2880", "miR396g", "miR396h", "miR396d", "miR1863b", "miR1863b.2", 
-                                   "miR2907a", "miR2907b", "miR2907c", "miR2907d", "miR2918", "miR2919", 
-                                   "miR2920", "miR2921", "miR2922", "miR2923", "miR2924", "miR2925", 
-                                   "miR2926", "miR2927", "miR2928", "miR2929", "miR2930", "miR2931", 
-                                   "miR2932", "miR395x", "miR395y", "miR812k", "miR812l", "miR812m", 
-                                   "miR1862f", "miR1862g", "miR3979-5p", "miR3979-3p", "miR3980a-5p", 
-                                   "miR3980a-3p", "miR3980b-5p", "miR3980b-3p", "miR812n-5p", "miR812n-3p", 
-                                   "miR812o-5p", "miR812o-3p", "miR3981-5p", "miR3981-3p", "miR2873b", 
-                                   "miR3982-5p", "miR3982-3p", "miR5071", "miR5072", "miR5073", 
-                                   "miR5074", "miR5075", "miR5076", "miR5077", "miR5078", "miR5079a", 
-                                   "miR5080", "miR5081", "miR5082", "miR5083", "miR5143a", "miR5144-5p", 
-                                   "miR5144-3p", "miR5145", "miR5146", "miR5147", "miR2863c", "miR5148a", 
-                                   "miR5148b", "miR5148c", "miR5149", "miR5150-5p", "miR5150-3p", 
-                                   "miR5151", "miR5152-5p", "miR5152-3p", "miR5153", "miR5154", 
-                                   "miR5155", "miR5156", "miR5157a-5p", "miR5157a-3p", "miR5157b-5p", 
-                                   "miR5157b-3p", "miR5158", "miR5159", "miR5160", "miR5161", "miR5162", 
-                                   "miR5337a", "miR5338", "miR5339", "miR5340", "miR5484", "miR5485", 
-                                   "miR5486", "miR5487", "miR5488", "miR5489", "miR5490", "miR5491", 
-                                   "miR5492", "miR5493", "miR5494", "miR5495", "miR5496", "miR5497", 
-                                   "miR5498", "miR5499", "miR5500", "miR5501", "miR5502", "miR5503", 
-                                   "miR5504", "miR5505", "miR5506", "miR5507", "miR5508", "miR5509", 
-                                   "miR5510", "miR5511", "miR5512a", "miR5513", "miR2275c", "miR5514", 
-                                   "miR5515", "miR5516a", "miR5517", "miR5518", "miR5519", "miR5521", 
-                                   "miR5522", "miR5523", "miR2275d", "miR5524", "miR5525", "miR5526", 
-                                   "miR5527", "miR5528", "miR5529", "miR5530", "miR5531", "miR5532", 
-                                   "miR5533", "miR5534a", "miR5534b", "miR5535", "miR5536", "miR5537", 
-                                   "miR5538", "miR5539a", "miR5540", "miR5541", "miR5542", "miR5543", 
-                                   "miR5544", "miR5788", "miR812p", "miR812q", "miR5789", "miR5790", 
-                                   "miR5791", "miR5792", "miR5793", "miR5794", "miR812r", "miR5795", 
-                                   "miR5796", "miR5797", "miR5798", "miR812s", "miR5799", "miR5800", 
-                                   "miR5801a", "miR5802", "miR812t", "miR812u", "miR5803", "miR5804", 
-                                   "miR5805", "miR5806", "miR812v", "miR5807", "miR5801b", "miR5809", 
-                                   "miR5810", "miR5811", "miR5812", "miR5813", "miR5814", "miR5815", 
-                                   "miR5816", "miR5143b", "miR5817", "miR5818", "miR5819", "miR5820", 
-                                   "miR5821", "miR5822", "miR5823", "miR5824", "miR1319b", "miR5825", 
-                                   "miR5826", "miR5827", "miR5828", "miR5829", "miR5830", "miR5831", 
-                                   "miR5179", "miR5832", "miR5833", "miR5834", "miR5835", "miR2873c", 
-                                   "miR5836", "miR5837.2", "miR5837.1", "miR5516b", "miR6245", "miR1440b", 
-                                   "miR6246", "miR6247", "miR6248", "miR5337b", "miR6249a", "miR5512b", 
-                                   "miR6250", "miR6251", "miR6252", "miR6253", "miR6254", "miR6255", 
-                                   "miR6256", "miR818f", "miR1437b-5p", "miR1437b-3p", "miR7692-5p", 
-                                   "miR7692-3p", "miR7693-5p", "miR7693-3p", "miR7694-5p", "miR7694-3p", 
-                                   "miR7695-5p", "miR7695-3p", "miR1861o", "miR5079b", "miR5539b", 
-                                   "miR6249b", "miR531c", "miR11336-5p", "miR11336-3p", "miR11337-5p", 
-                                   "miR11337-3p", "miR11338-5p", "miR11338-3p", "miR11339-5p", "miR11339-3p", 
-                                   "miR11340-5p", "miR11340-3p", "miR11341-5p", "miR11341-3p", "miR11342-5p", 
-                                   "miR11342-3p", "miR11343-5p", "miR11343-3p", "miR11344-5p", "miR11344-3p", 
-                                   "miR2120b-5p", "miR2120b-3p", "miR5801c-5p", "miR5801c-3p", "miR6245b-5p", 
-                                   "miR6245b-3p")), class = "data.frame", row.names = c(NA, -738L
-                                   ))
-
-#prefix 'osa-' to the name
-miRlist$name <- paste0("osa-",miRlist$name)
-
-#upload size permission
-shiny.maxRequestSize = 50 * 1024^2 #50MB
-
-
-head(miRlist)
-#attendance table------------
-# createAttendance <- function(){
-#   colname2 <- c("name","date","month","entry time","exit time", "year")
-#   attendanceFile <- data.frame(matrix(nrow = 1, ncol = length(colname2)))
-#   colnames(attendanceFile) <- colname2
-#   saveRDS(attendanceFile, paste0(path2,"/www/attendanceFile.rds"))
-# }
-# createAttendance()
-# createStudent <- function(){
-#   colname1 <- c("name", "uid", "pid")
-#   student <- data.frame(matrix(nrow = 1, ncol = length(colname1)))
-#   colnames(student) <- colname1
-#   saveRDS(student, paste0(path2,"/www/student.rds"))
-# }
-#  createStudent()
-student <- readRDS(paste0(path2,"/www/student.rds"))
-attendanceFile <- readRDS(paste0(path2,"/www/attendanceFile.rds"))
 
 #Objects necesary to create---------------
 #plot that require x and y-axis
-xyRequire <- c("box", "bar", "line", "scatter", "Violine plot") 
+xyRequire <- c(  "box plot", "bar plot", "line", "scatter plot", "Violine plot") 
 NS_methods <- list(Normalization= c("log2", "log10", "square-root", "box-cox"), Standardization = c("scale","") )
 
 #stat object
@@ -291,6 +50,8 @@ meanLabPos_a2 <- NULL
 newPlt <- NULL #plot collector used inside function
 reshapedDone <- NULL #used in table caption for reshaped
 barData <- NULL # bar data for stat summary: may not have implemented
+sdError <- NULL
+
 #function to get all variables: numeric and characters----------------------------------
 #get all numeric or character variables
 "
@@ -300,13 +61,15 @@ data = dataframe.
 "
 #i have use data.table (fread), so it will be integer, instead of numeric
 allNumCharVar <- function(checks = "integer", data = "ptable()"){
+  
   #get the data types of the column in the data frame
   varClass <- sapply(data, class)
+  message(varClass)
   #filter the df based on the provided data type
   if(checks %in% c("integer", "numeric", "double")){
     var <- data[ varClass %in% c("integer", "numeric", "double") ]
   }else{
-    var <- data[varClass == checks]
+    var <- data[varClass %in% c("character", "factor")]
   }
   
   colnames(var)
@@ -336,17 +99,81 @@ selectedVar2 <- function(data = "ptable()", check = "character", index = 1){ #in
     ifelse(length(var) >= 2, var[index], var[1])
   }
 }
-# 
-# x <- fread("~/Desktop/temp/bar_data.csv") %>% as.data.frame()
-# x <- read_csv("~/Desktop/temp/bar_data.csv") 
-# str(x)
-# sapply(x, class)
-# selectedVar2(data= x, check = "", index = 1)
-# head(ToothGrowth)
-# ins <- 1
-# x[4]
-# y <- c(1,2,3)
-# y[4]
+
+#function for downloading figure-------------------
+"arguments:
+fig = output plot object.
+filename = output file path.
+format = output format.
+"
+figureDowFunc <- function(fig, filename, format){
+  # browser()
+  if(format == "pdf"){
+    pdf(file = filename, width = 7, height = 7)
+    print(fig)
+    dev.off()
+  }else if(format == "png"){
+    png(filename, width = 4, height = 4, units = "in", res = 300)
+    print(fig)
+    dev.off()
+  }else if(format == "tiff"){
+    tiff(filename, width = 4, height = 4, units = "in", res = 300)
+    print(fig)
+    dev.off()
+  }else if(format == "bmp"){
+    bmp(filename, width = 4, height = 4, units = "in", res = 300)
+    print(fig)
+    dev.off()
+  }
+}
+#function for descriptive statistics----------------
+#alert message for error, if require
+stopAll <- reactiveVal(0)
+"
+arguments:
+df = data frame.
+xA = character. Variables selected for group by. It can be single or vector or character.
+yA = character. variables selected for y-axis. It is numeric variables.
+Output will be dataframe.
+"
+descriptiveStatFunc <- function(df, xA, yA){
+  #unique variables present in x-axis
+  uqVarLen <- df %>% distinct(!!!rlang::syms(xA)) %>% nrow()
+  
+  #check whether sd and se can be determine or not
+  # case 1: cannot determine sd and se - unbalanced data and some variables have only one data point
+  # case 2: can determine sd and se - variables have more than one data point.
+  ct <-  df %>% count(!!!rlang::syms(xA)) #count of each variable data point
+  if(uqVarLen == nrow(df) || any(ct$n == 1)){
+    #case 1:
+    #SD and SE cannot be determine
+    ds_df <- df %>% group_by(!!!rlang::syms(xA)) %>% summarise(
+      #count
+      count = n(),
+      #min, Q1, mean, median, Q3, max, sd
+      min = min(.data[[yA]]), Q1 = quantile(.data[[yA]], probs = 0.25), mean = round(mean(.data[[yA]]),3), median = median(.data[[yA]]), 
+      Q3 = quantile(.data[[yA]], probs = 0.75), max = max(.data[[yA]])
+    )
+  }else if(uqVarLen != nrow(df) && all(ct$n > 1)){
+    #include se
+    ds_df <- df %>% group_by(!!!rlang::syms(xA)) %>% summarise(
+      #count
+      count = n(),
+      #min, Q1, mean, median, Q3, max
+      min = min(.data[[yA]]), Q1 = quantile(.data[[yA]], probs = 0.25), mean = round(mean(.data[[yA]]), 3), median = median(.data[[yA]]), 
+      Q3 = quantile(.data[[yA]], probs = 0.75), max = max(.data[[yA]]), IQR = IQR(.data[[yA]]),
+      #sd
+      standard_deviation = round(sd(.data[[yA]]),3)
+    ) %>% mutate(standard_error = round(standard_deviation/sqrt(count),3)) 
+    
+  }else{
+    stopAll(1)
+    ds_df <- data.frame(NULL)
+    # "stop proceeding all the program! Important!!!!!!!!!!!!!!!"
+  }
+  
+  return(ds_df)
+}
 #function for normalization and standardization of data------------------
 "
 function for normalization and standardization
@@ -357,6 +184,10 @@ x = character. variable of x-axis. Require only for box-cox.
 y = chharacter. variable of y-axis.
 "
 ns_func <- function(data, ns_method, x=NULL, y){
+  #if data has 0 than add +1
+  if(any(data[, y] == 0)){
+    data[, y] <- data[y]+1
+  }
   if(ns_method == "log2"){ 
   
     new_df <- data %>% mutate( log2 = log2(.data[[y]]) )
@@ -473,7 +304,7 @@ Function to re-arrange replicates of each group/variable provided by the user.
 It will processed the replicates only for one group at a time, not multiple groups.
 
 arguments:
-x = dataframe. data with both non-replicate and replicate column
+x = dataframe. data with both non-replicate and replicate column i.e. whole data.
 y = dataframe. data with only non-replicate column. 
 colName = character. Column name. To be used for the  tidied data
 headerNo = numeric. row index of header used in the table. numeric sequence.
@@ -484,11 +315,17 @@ stp = numeric. range from 0 to 1. 0 to process and 1 to stop processing
 #colNo = numeric. column index for the replicates of each group. It can be range or vector
 tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = c(2,3), stp=0){
   #First process the data for non replicate column and then for replicate column
-  # browser()
   #non-replicate column: May not always be in character column when in proper format
   # later some column may have to be converted to numeric
   # and tidied data will be appended to this data
-  # browser()
+  
+  #check for addition of header by R: V1, V2, .....Vn
+  # removed the header if present. R will add header only if need (not always)
+  if(all( str_detect(x[1,], regex("^V[:digit:]")) )){
+    x <- x[-1, ]
+    y <- y[-1, ] 
+  }
+  
   if(stp == 0){
     
     #get column name from the header 
@@ -651,6 +488,7 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
   colnames(newDf)
   newDf2 <- pivot_longer(newDf, cols = colnames(onlyNumeric), names_to = "replicates", values_to = colName)
   message("reshape done inside replicate func")
+  message(colnames(newDf2))
   message(head(newDf2))
   rownames(newDf2) <- NULL
   
@@ -658,253 +496,70 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
   
 }
 
-# "
-# Old version: 
-# Reason for rejection: some columns were missing after the final output
 
-# Function to re-arrange replicates of each group/variable provided by the user.
-# It will processed the replicates only for one group at a time, not multiple groups.
-# 
-# arguments:
-# x = dataframe. data to apply the function
-# colName = character. Column name. To be used for the  tidied data
-# headerNo = numeric. row index of header used in the table.
-# colNo = numeric. column index for the replicates of each group. It can be range or vector
-# "
-# tidyReplicate <- function(x=data, headerNo = 1:2, colName= "column_name", colNo=2:4){
-#   
-#   #For now, every elements in the data are in character
-#   #remove the header
-#   message("inside func3")
-#   headerRemoved <- x[-c(headerNo),] %>% as.data.frame() # all columns will be present
-#   message("headerRemoved")
-#   message(glue::glue("headerRemoved: {head(headerRemoved)}"))
-#   
-#   #non-replicate column: It will be a character column when in proper format
-#   # later tidied data will be appended to this data
-#   message("nonnumeric")
-#   #empty data frame to catch the character column
-#   noNumeric <- data.frame()
-#   colIndx <- 0 #empty index to get the header name later
-#   
-#   #Check whether the character columns should be a character or numeric
-#   # and keep only the column that has to be character.
-#   for(i in seq_len(ncol(headerRemoved))){
-#     if( any(str_detect( headerRemoved[,i],regex('[a-zA-Z]') ) ) ){
-#       if(length(colIndx) == 1 && colIndx == 0){
-#         colIndx <- i
-#       }else{
-#         colIndx <- c(colIndx, i)
-#       }
-#       
-#       if(is_empty(noNumeric)){
-#         noNumeric <- headerRemoved[,i, drop=FALSE]  
-#       }else{
-#         col_n <- colnames(headerRemoved[,i, drop =FALSE])
-#         noNumeric[, col_n] <- headerRemoved[,i]
-#       }
-#       
-#     }
-#   }
-#   
-#   message(head(noNumeric))
-#   #get column name from the header 
-#   if(!is_empty(noNumeric)){
-#     
-#     #get the header
-#     headr <- x[headerNo, c(colIndx)] %>% as.data.frame()
-#     message("if statment")
-#     if(all(is.na(headr))){
-#       
-#       #if all is na i.e. no header name was given in the table.
-#       #generate new column name
-#       col_n <- ncol(noNumeric)
-#       message("inside if")
-#       colnames(noNumeric) <- paste0("variable",1:col_n)
-#       message(head(noNumeric))
-#       
-#     }else{
-#       message("header present")
-#       #if header is included in the table, use the name and re-format in proper order
-#       getName <- headr[!is.na(headr)]
-#       colnames(noNumeric) <- getName[1]
-#       
-#     }
-#     
-#   }
-#   
-#   message("replicate selection")
-#   #select only the column specified as replicates: colNo
-#   df <- headerRemoved[, c(colNo)]
-#   message(colnames(df))
-#   # convert to numeric
-#   message("converting to numeric")
-#   onlyNumeric <- df %>% as.data.frame() %>% mutate_if(is.character, as.numeric)  #%>% as_tibble()
-#   
-#   message("converted to numeric")
-#   message(head(onlyNumeric))
-#   message(str(onlyNumeric))
-#   # browser()
-#   #generate and add column names
-#   nn <- ncol(onlyNumeric)
-#   colnames(onlyNumeric) <- paste0("Replicate_",1:nn)
-#   message("merge")
-#   #merge the noNumeric (character column) and onlyNumeric (replicate column)
-#   if(!is_empty(noNumeric)){
-#     newDf <- cbind(noNumeric, onlyNumeric)
-#   }else{
-#     newDf <- onlyNumeric
-#   }
-#   
-#   message("merge done")
-#   #Reshape the data: keep replicate row-wise i.e. longer format (pivot_longer())
-#   newDf2 <- pivot_longer(newDf, cols = colnames(onlyNumeric), names_to = "replicates", values_to = colName)
-#   message("reshape done inside replicate func")
-#   message(head(newDf2))
-#   rownames(newDf2) <- NULL
-#   
-#   return(newDf2)
-#   
-# }
-# 
-# "
-# Function to determine mean and median of replicates of each group/variable provided by the user.
-# Mean and median will be determined row-wise.
-# It will processed the replicates only for one group at a time, not multiple groups.
-# 
-# arguments:
-# x = dataframe. data to apply the function
-# colName = character. Column name for the  tidied data
-# headerNo = numeric. row index of header used in the table.
-# colNo = numeric. column index for the replicates of each group. It can be range or vector
-# stat = character. 'mean' or 'median'
-# "
-# replicateMeanMedian_perGroup <- function(x=data, headerNo = 1:2, colName= "column_name", colNo=1:4, stat = "mean"){
-#   
-#   #For now, every elements in the data are in character
-#   #remove the header
-#   message("inside func3")
-#   headerRemoved <- x[-c(headerNo),] %>% as.data.frame() # all columns will be present
-#   message("headerRemoved")
-#   message(glue::glue("headerRemoved: {head(headerRemoved)}"))
-#   
-#   #non-replicate column. It will be a character column when in proper format
-#   # later tidied data will be appended to this data
-#   message("nonnumeric")
-#   #empty data frame to catch the character column
-#   noNumeric <- data.frame()
-#   colIndx <- 0 #empty index to get the header name later
-#   
-#   #Check whether the character columns should be a character or numeric
-#   # and keep only the column that has to be character.
-#   for(i in seq_len(ncol(headerRemoved))){
-#     if( any(str_detect( headerRemoved[,i],regex('[a-zA-Z]') ) ) ){
-#       if(length(colIndx) == 1 && colIndx == 0){
-#         colIndx <- i
-#       }else{
-#         colIndx <- c(colIndx, i)
-#       }
-#       if(is_empty(noNumeric)){
-#         noNumeric <- headerRemoved[,i, drop=FALSE]  
-#       }else{
-#         col_n <- colnames(headerRemoved[,i, drop =FALSE])
-#         noNumeric[, col_n] <- headerRemoved[,i]
-#       }
-#       
-#     }
-#   }
-#   
-#   message(noNumeric)
-#   #get column name of the above column or non-replicates from the header 
-#   if(!is_empty(noNumeric)){
-#     
-#     #get the header
-#     headr <- x[1:2, c(colIndx)] %>% as.data.frame()
-#     message("if statment")
-#     if(all(is.na(headr))){
-#       
-#       #if all is na i.e. no header name was given in the table.
-#       #generate new column name
-#       col_n <- ncol(noNumeric)
-#       message("inside if")
-#       colnames(noNumeric) <- paste0("variable",1:col_n)
-#       message(head(noNumeric))
-#       
-#     }else{
-#       message("header present")
-#       #if header is included in the table, use the name and re-format in proper order
-#       getName <- headr[!is.na(headr)]
-#       colnames(noNumeric) <- getName[1]
-#       
-#     }
-#     
-#   }
-#   message("replicate selection")
-#   #select only the column specified for replicates: colNo
-#   df <- headerRemoved[, c(colNo)]
-#   message(colnames(df))
-#   # convert to numeric
-#   message("converting to numeric")
-#   onlyNumeric <- df %>% mutate_if(is.character, as.numeric)  #%>% as_tibble()
-#   message("converted to numeric")
-#   message(str(onlyNumeric))
-#   #generate and add column names
-#   nn <- ncol(onlyNumeric)
-#   colnames(onlyNumeric) <- paste0("Replicate_",1:nn)
-#   
-#   #determine mean or median and sd
-#   if(tolower(stat) == "mean"){
-#     message("entering mean")
-#     group_mean <- onlyNumeric %>% rowMeans(na.rm = TRUE)
-#     message("calculated mean")
-#     m_stat <- data.frame(mean = group_mean)
-#     colnames(m_stat) <- colName
-#     
-#     message("mean finished")
-#     #compute sd 
-#     s <-apply(onlyNumeric, 1, sd)
-#     #merge the mean and sd
-#     nam <- paste0("sd_",colName)
-#     m_stat[, nam]<- s
-#   }else{
-#     
-#     #sort the replicates row-wise
-#     group_sort <- t(apply(onlyNumeric,1,sort))
-#     colnames(group_sort) <- colnames(onlyNumeric)
-#     #determine median
-#     group_median <- apply(group_sort, 1, median, na.rm=TRUE)
-#     m_stat <- data.frame(median=group_median)
-#     colnames(m_stat) <- colName
-#     
-#     #compute sd or mad
-#     s <-apply(onlyNumeric, 1, mad)
-#     #merge the mean and sd
-#     nam <- paste0("mad_",colName)
-#     m_stat[, nam]<- s
-#   }
-#   
-#   
-#   #append the mean or median value back to the original data
-#   message("merge")
-#   # message(glue::glue("noNumeric: {head(noNumeric)}, {head(onlyNumeric)}, {head(m_stat)}"))
-#   message("merge2")
-#   final <- cbind(noNumeric, onlyNumeric, m_stat) 
-#   row.names(final) <- NULL
-#   
-#   return(final)
-#   
-# }
+#function to determine mean or median from replicates
+"
+arguments:
+x = Single character. Column names to get the mean or median.
+df = data frame. Data frame that has all the columns that need to be process.
+stat = character. Specify 'mean' or 'median'.
+grp = character. Specify column name to use for grouping to determine mean or median.
+varNum = numeric. Number of variables. 
+repNum = numeric. Number of replicates for each variables.
+return one column data frame
+"
+getMeanMedian <- function(x, df, stat='none', grp = NULL, varNum = NULL, repNum = NULL){
+  #get the columns for which mean and median are to be determine
+  df2 <- df[, c(x), drop = FALSE]
+  final <- NULL
+  
+  if(is.null(grp)){
+    #user provide no column to group by
+    
+    #add unique id to each sample to be used in group by
+    message(varNum)
+    message(repNum)
+    
+    df2$newId <- rep(1:varNum, each = repNum)
+    message(df2$newId)
+    #group by based on the ID
+    if(stat == "mean"){
+      gb_df <- df2 %>% group_by(newId) %>% summarise(mean= mean(.data[[x]])) %>% as.data.frame() 
+      message(gb_df)
+      
+      #proper name for calculated stat
+      gb_df[, paste0(x,"_mean")] <- gb_df$mean
+      final <- gb_df[, paste0(x,"_mean"), drop=FALSE]
+    }else if(stat == "median"){
+      gb_df <- df2 %>% group_by(newId) %>% summarise(mean= median(.data[[x]])) %>% as.data.frame()
+      #proper name for calculated stat
+      gb_df[, paste0(x,"_median")] <- gb_df$mean
+      final <- gb_df[, paste0(x,"_median"), drop=FALSE]
+    }
+    
+  }else if(!is.null(grp)){
+    #user provide column to group by
+    
+    #group by based on the specified column
+    if(stat == "mean"){
+      gb_df <- df %>% group_by( !!!rlang::syms(grp) ) %>% summarise(mean= mean(.data[[x]])) %>% as.data.frame() 
+      #proper name for calculated stat
+      gb_df[, paste0(x,"_mean")] <- gb_df$mean
+      final <- gb_df[, paste0(x,"_mean"), drop=FALSE]
+    }else if(stat == "median"){
+      gb_df <- df %>% group_by( !!!rlang::syms(grp) ) %>% summarise(mean= median(.data[[x]])) %>% as.data.frame()
+      #proper name for calculated stat
+      gb_df[, paste0(x,"_median")] <- gb_df$mean
+      final <- gb_df[, paste0(x,"_median"), drop=FALSE]
+    }
+    
+  }
+  
+  
+  return(final)
+}
 
-#function to add, or delete groups for comparison: output is lists
-# grpAddDel <- function(lst = list(), grp = "givenGrp", act = "addOrDelete"){
-#   index <- length(lst)
-#   if(act == "add"){
-#     lst[index+1] <- list(grp)
-#   }else if(act == "delete"){
-#     lst <- lst[-index]
-#   }
-#   return(lst)
-# }
+
 "
   arguments for the function
   lst = list of characters provided by the user to compare or reference.
@@ -1031,14 +686,16 @@ aovInFunc <- function(x = "categoricalVar", model){
     var
   }
 }
-#
-
+#objects------------------------
 #require table for summary
 testTable <- reactiveValues(df=NULL) #statistic table
 postHoc_table <- reactiveValues(df = NULL) #post-hoc analysis table
 effectSize <- reactiveValues(df=NULL) #effect size table
 
 #statistical computation function:
+# compute error message
+computeFuncError <- reactiveVal(0)
+computeFuncErrorMsg <- reactiveVal(NULL)
 "arguments:
   data = a data frame
   method = character. chosen statistic method
@@ -1074,7 +731,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
   }
   
   #get the list for comparison and reference group
-  if(method %in% c("t.test", "wilcox.test")){
+  if(method %in% c("t.test", "wilcoxon.test")){
     
     message("312wreference")
     message(glue::glue("referencegr3: {compRef}"))
@@ -1116,15 +773,18 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     message(str(ref))
     message(unlist(ref))
     # browser()
+    message(pAdjustMethod) 
     test <- rstatix::t_test(data, formula = forml,
            ref.group = unlist(ref), #if(!is.null(cRf[[1]])) .data[[cRf[[1]]]] else NULL,
            comparisons = cmp, p.adjust.method = pAdjustMethod,
            paired = pairedD, var.equal = ttestMethod #welch's =FALSE, or student's test = TRUE
     )
+    
     message("ttest done2 ")
     message(test)
+    message(str(test))
     #global
-    testTable$df <<- test 
+    testTable$df <<- test %>% as.data.frame()
     #compute effect size
     effectSize$df <<- cohens_d(data, formula = forml,
                                ref.group = unlist(ref),
@@ -1134,7 +794,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     
     return(test)
     
-  }else if(method == "wilcox.test"){
+  }else if(method == "wilcoxon.test"){
     message("formlw=-=--")
     message(glue::glue("forml13w:{forml}"))
     message(str(data))
@@ -1150,7 +810,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
                 p.adjust.method = pAdjustMethod)
     message("done------")
     #global
-    testTable$df <<- test
+    testTable$df <<- test %>% as.data.frame()
     #effect size: global. Display in the summary
     effectSize$df <<- rstatix::wilcox_effsize(data = data, formula = forml,
                                               ref.group = unlist(ref), 
@@ -1166,25 +826,28 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     #formula for one-way and two-way is prepared by aovInFunc and reformulate
     message(glue::glue("running anova--=-="))
     if(anovaType == "one"){
-      anova <- anova_test(data=data, formula=forml, type = ssType) #Default sum of square type = 2
+      av <- aov(data=data, formula=forml)
+      anova <- car::Anova(av, type = ssType) #Default sum of square type = 2
     }else{
-      anova <- anova_test(data=data, formula=forml)
+      anova <- aov(data=data, formula=forml)
     }
-    anovaTable <- anova %>% as.data.frame() 
+    
+    anovaTable <- parameters::model_parameters(anova) %>% as.data.frame() 
     message(glue::glue("anovaTable: {anovaTable}"))
     
     #rename the column. Global data
     message(glue::glue("renaming anova table------"))
     #This will be used as summary data and for further analysis
-    testTable$df <<- rename(anovaTable,"DFn" = "Df", "DFd" = "Df_residual") 
-    
+    # testTable$df <<- rename(anovaTable,"DFn" = "Df", "DFd" = "Df_residual") 
+    testTable$df <<- anovaTable
+    #effect size
+    effectSize$df <<- effectsize::eta_squared(anova, generalized = TRUE)
     message(glue::glue("------catVar: {catVar}-------"))
     message(glue::glue("model==========={model}"))
     
     #conduct post-hoc analysis for one-way and two-way ANOVA
     #one-way anova----------------------------
     if(anovaType == "one"){
-      
       
       message(glue::glue("post hoc test----"))
       #post-hoc test: Tukey HSD test
@@ -1200,8 +863,8 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
       meanLabPos <- data %>% group_by(!!!rlang::syms(catVar)) %>% 
         summarise(mean = mean(!!!rlang::syms(numericVar)), quantl = quantile(!!!rlang::syms(numericVar), probs =1, na.rm=TRUE))
       
-      #add mean to the new_tk and sort it based on the mean: this is require so that letter is in the order of mean (ascending)
-      new_tk_join <- left_join(new_tk, meanLabPos, by = c("group1" = unlist(catVar))) %>% arrange(mean)
+      #add mean to the new_tk and sort it based on the mean: #####not for aov this is require so that letter is in the order of mean (ascending)
+      new_tk_join <- left_join(new_tk, meanLabPos, by = c("group1" = unlist(catVar))) #%>% arrange(mean)
       pval <- new_tk_join$p.adj
       names(pval) <- new_tk_join$name
       
@@ -1226,9 +889,25 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
       if(model == "non-additive"){
         
         #non-additive----------
-        message("entering non-aditive))))))")
+        message("entering non-aditive2))))))")
         #using base aov
         av <- aov(data=data, formula=forml) 
+        
+        #compare the mean: using base TukeyHSD()
+        tukey_df <- TukeyHSD(av) 
+        #get compact letter
+        # check for error: any error in name arguments will occur here (Estimated effects may be unbalanced)
+        tryCatch({
+          clt <- multcompLetters4(av, tukey_df)
+          computeFuncError(0)
+        }, error= function(e){ 
+          computeFuncError(1)
+          computeFuncErrorMsg(e)
+          validate(
+            need(isolate(computeFuncError()) == 0, glue::glue(e))
+          )
+          
+        })
         
         #Determine the mean and position for labeling: interaction, group1 and group2
         #interaction
@@ -1255,14 +934,8 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
           #placed the groups in the first column
           select(!!!rlang::syms(catVar[2]), everything())
         
-        
         message(glue::glue("meanLabPos: {meanLabPos}"))
-        #compare the mean: using base TukeyHSD()
-        tukey_df <- TukeyHSD(av) 
-        
-        
-        #get compact letter
-        clt <- multcompLetters4(av, tukey_df)
+         
         
         #global save for additive figure for different groups
         # aovFigure_1_2 <<- av #anova
@@ -1392,7 +1065,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     }
     
     
-  }else if (method == 'Kruskal test'){
+  }else if (method == "kruskal-wallis"){
     #Kruskal test------------------
     message("Kruskal test on2")
     allMean <- data %>% group_by(!!!rlang::syms(catVar)) %>% 
@@ -1415,7 +1088,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     }
     
     #global
-    testTable$df <<- kstat
+    testTable$df <<- kstat %>% as.data.frame()
     postHoc_table$df <<- posthoc %>% as.data.frame()
     #effect size
     effectSize$df <- kruskal_effsize(data=data, formula = forml, ci = FALSE) #ci = TRUE is too slow
@@ -1437,27 +1110,6 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     return(df_final)
     
   }
-  
-  # if(method == "t.test"){
-  #   t_test(data, formula = forml, ref.group = .data[[cRf[[1]]]], #if(!is.null(cRf[[1]])) .data[[cRf[[1]]]] else NULL,
-  #          comparisons =.data[[cRf[[2]]]], paired = pairedD)
-  # }else if(method == "wilcox.text"){
-  #   wilcox_test(data, formula = forml, ref.group = .data[[cRf[[1]]]], #if(!is.null(cRf[[1]])) .data[[cRf[[1]]]] else NULL,
-  #               comparisons = .data[[cRf[[2]]]], paired = pairedD)
-  # }else if(method == "anova"){
-  #   switch(anovaType,
-  #          #instead of anova_test(), i will use aov() and apply post hoc test
-  #          #one way anova
-  #          "one" = aov(data, .data[[numericVar]] ~ statInp),
-  #          #two way anova
-  #          "two" = aov(data, .data[[numericVar]] ~ eval(str2expression(statInp))),
-  #          #repeated measures two-way anova: not implemented
-  #          "three" = anova_test(data, .data[[numericVar]] ~ eval(str2expression(statInp)))
-  #      )
-  # }else if (method == 'sign test'){
-  #   #needs to implement further
-  #   #sign_test(data, .data[[numericVar]]~.data[[catVar]])
-  # }
   
 }
 
@@ -1485,7 +1137,7 @@ generateStatData <- function(data = "ptable()", groupStat = "groupStat()", group
   
   #for anova, every independent variable has to be a factor
   #for other tests, it will depend on the type of computation
-  if(method %in% c("anova", "Kruskal test")){
+  if(method %in% c("anova", "kruskal-wallis")){
     message(glue::glue("anova is converted to factor::======"))
     # message(glue::glue("catVar: {unlist(catVar)}"))
     data <- data %>% mutate(across(unlist(catVar), factor))
@@ -1528,7 +1180,7 @@ generateStatData <- function(data = "ptable()", groupStat = "groupStat()", group
   
   
   
-  if(!method %in% c("anova", "Kruskal test")){
+  if(!method %in% c("anova", "kruskal-wallis")){
     
     #add p adjusted value column to the data frame: by default, but user can omit
     sData2 <- if(isTRUE(pAdjust)){
@@ -1551,7 +1203,7 @@ generateStatData <- function(data = "ptable()", groupStat = "groupStat()", group
   }#end of stat data for plots other than anova and krukal test
   
   #provide the output as list of computed data and user's choice for label
-  if(method %in% c("anova", "Kruskal test")){
+  if(method %in% c("anova", "kruskal-wallis")){
     list(sData1, NULL)
   }else{
     list(sData2, labelSignif)
@@ -1575,18 +1227,8 @@ plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "g
     gp <- ggplot(data = data, aes(...))
   }
   
-  # if(types == "none"){
-  #   gp <- ggplot(data = NULL)
-  # }else if(isFALSE(lineParam[[1]])){
-  #   gp <- ggplot(data = data, aes(...))
-  # }else{
-  #   #if TRUE, than it is for line and bar graph, which require sd computed data
-  #   gp <- ggplot(data = data, aes(...)) + 
-  #     #adding geom_errorbar
-  #     lineParam[[3]]
-  # }
-  # typeFig <- reactive(req(input$plotType, cancelOutput = TRUE))
-  if(types == "box"){
+ 
+  if(types ==   "box plot"){
     #only for plot that require errorbar
     plt <- gp + 
       stat_boxplot(geom = "errorbar", width = barSize) +
@@ -1611,7 +1253,7 @@ plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "g
   
   #add layer
   if(layer != "none"){
-    cal <- ifelse(types %in% c("box", "Violine plot"), "median", "mean")
+    cal <- ifelse(types %in% c(  "box plot", "Violine plot"), "median", "mean")
     plt <- switch(layer,
                   "line" = plt + stat_summary(fun = cal, geom = 'line', aes(group = 1), size = layerSize),
                   "smooth" = plt + geom_smooth(size = layerSize),
@@ -1643,7 +1285,7 @@ plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "g
   #inner function to add more setting if user need
   #arguments for the inner function will be provided by setFig() later. Not a recommended way of writing function.
   "
-  Inner function to add more advance settings
+  Inner function to add more advance settings:
   arguments:
     advance = logical, TRUE whenever aesthetic or statistical method are applied
     varSet = variable for filling color
@@ -1664,15 +1306,16 @@ plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "g
            removeBracket=FALSE,
            statData,#= "statData",
            anovaType,
-           aovX=aovX#This is require for two-way anova
+           aovX=aovX,#This is require for two-way anova
+           xTextLabel #label of x-axis
   ){ #="anovaType" 
     #no need to provide function parameters for basic plot: the default will be used
     message("inner function")
-    
+    # browser()
     if(isFALSE(advance)){
       #basic plot: default
       message("display basic")
-      plt
+      plt 
     }else if (isTRUE(advance)){
       # advance settings
       message("display advance")
@@ -1719,7 +1362,7 @@ plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "g
           }else if(length(editC) == countVar){
             message(glue::glue("editC final color: {editC}"))
             #add color to the plot
-            if(types %in% c("line", "frequency polygon", "scatter")){
+            if(types %in% c("line", "frequency polygon", "scatter plot")){
               plt <- plt + scale_color_manual(values = tolower(editC))
             }else{
               plt <- plt + scale_fill_manual(values = tolower(editC))
@@ -1733,7 +1376,7 @@ plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "g
       if(methodSt != "none"){
         
         message("label inside function22--------")
-        if(!methodSt %in% c("anova", "Kruskal test")){
+        if(!methodSt %in% c("anova", "kruskal-wallis")){
           message("not anova------")
           message(glue::glue("stat4:{methodSt}"))
           message("statData[[2]]")
@@ -1780,7 +1423,7 @@ plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "g
                                                       label = eval(str2expression(letr))), position= position_dodge2(0.9), size = 7, vjust=-0.25, na.rm = TRUE)
           }#end of two-way anova
           #end of anova
-        }else if(methodSt == "Kruskal test"){
+        }else if(methodSt == "kruskal-wallis"){
           message("entering Kruskal test=00000000")
           message(glue::glue("data: {statData[[1]]}"))
           textData <- statData[[1]] %>% as.data.frame()
@@ -1798,12 +1441,10 @@ plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "g
         
       }#end of statistics
     }#end of advance setting
-    message("geom_text added====")
+    message("geom_text added33====")
     message("after condition:inner")
-    # gp <- plt
-    # gp2 <<- ggplot_build(gp)
-    # message(glue::glue("ggp: {gp2}"))
-    plt
+    
+    plt + scale_x_discrete(labels =xTextLabel) 
   }#end of inner function
 }#end of outer function
 
@@ -1878,6 +1519,7 @@ setFig <- function(data,# = "ptable()",
                    #additional layer
                    layer = "none",
                    layerSize = layerSize,
+                   xTextLabel = NULL, 
                    ...){ #dis is for applying the advance option: TRUE for apply and FALSE for don't apply
   #data need to be changed based on the type of plots
   if(isFALSE(lineParam[[1]])){
@@ -1894,41 +1536,16 @@ setFig <- function(data,# = "ptable()",
   }
   #convert the x-axis into factor: this is necessary especially if user provide numerical variables for x-axis
   #this conversion will take place only for certain figType(), not for all
-  if(figType %in% c("box","Violine plot", "line")){
+  if(figType %in% c(  "box plot","Violine plot", "line")){
     message("-------------1. Reminder: check the factor of x and y axis---------------------")
     # data <- as.data.frame(data)
     message(glue::glue("xy1[1:{xy}"))
     data[[xy[[1]]]] <- as.factor(data[[xy[[1]]]])
-  }else{ #if(figType %in% c("line", "scatter")){
+  }else{ #if(figType %in% c("line", "scatter plot")){
     message("-------------2. Reminder: check the factor of x and y axis---------------------")
     data
   }
-  # #convert all aesthetic to factor
-  # if(varSet != "none" && shapeLine != "none"){
-  #   
-  #   data1 <- data %>% mutate(across(varSet, factor))
-  #   
-  #   if(shapeSet != "reactive(isTruthy(input$shapeSet)" && lineSet != "reactive(isTruthy(input$lineSet)"){
-  #     data1 <- data1 %>% mutate(across(c(shapeSet, lineSet), factor))
-  #   }else if (shapeSet != "reactive(isTruthy(input$shapeSet)" && lineSet == "reactive(isTruthy(input$lineSet)"){
-  #     data1 <- data1 %>% mutate(across(shapeSet, factor))
-  #   }else if (shapeSet == "reactive(isTruthy(input$shapeSet)" && lineSet != "reactive(isTruthy(input$lineSet)"){
-  #     data1 <- data1 %>% mutate(across(lineSet, factor))
-  #   }
-  #   
-  #   data <- data1
-  #   
-  # }else if(varSet == "none" && shapeLine != "none"){
-  #   
-  #   if(shapeSet != "reactive(isTruthy(input$shapeSet)" && lineSet != "reactive(isTruthy(input$lineSet)"){
-  #     data <- data %>% mutate(across(c(shapeSet, lineSet), factor))
-  #   }else if (shapeSet != "reactive(isTruthy(input$shapeSet)" && lineSet == "reactive(isTruthy(input$lineSet)"){
-  #     data <- data %>% mutate(across(shapeSet, factor))
-  #   }else if (shapeSet == "reactive(isTruthy(input$shapeSet)" && lineSet != "reactive(isTruthy(input$lineSet)"){
-  #     data <- data %>% mutate(across(lineSet, factor))
-  #   }
-  #   
-  # }
+ 
   #first plot the type of figure: geom_
   #Here, i've added the aethetic of shape and line type: For color it will be implemented later
   #hard coded
@@ -2029,16 +1646,18 @@ setFig <- function(data,# = "ptable()",
     }
     
   }
+  
   #use inner function for more details
   if(isFALSE(dis)){
     #basic plot
-    pltSet(advance = dis)+ #addThemes
+    pltSet(advance = dis, 
+           xTextLabel= xTextLabel)+ #addThemes
       axisLabs(x =xyLable[[1]], y = xyLable[[2]])+
       themeF(thme = themes)+
       otherTheme
   }else if(isTRUE(dis)){
     #advance plot
-    message("advance----------")
+    
     pltSet(advance = dis,
            varSet = varSet,
            autoCust = autoCust,
@@ -2047,7 +1666,8 @@ setFig <- function(data,# = "ptable()",
            removeBracket=removeBracket,
            statData = statData,
            anovaType = anovaType, 
-           aovX=aovX)+ 
+           aovX=aovX,
+           xTextLabel=xTextLabel)+ 
       #addThemes
       axisLabs(x =xyLable[[1]], y = xyLable[[2]])+
       themeF(thme = themes)+
@@ -2056,480 +1676,3 @@ setFig <- function(data,# = "ptable()",
 } # end of display plot function
 
 
-
-
-
-
-
-#rough---------------
-# plotFig_original <- function(data = x, types = "reactive(input$plotType)", geom_type = "geom_", histLine = "meanLine",  useValueAsIs = FALSE, 
-#                     lineParam = lineParam,
-#                     facet = FALSE, facetType = 'grid_wrap', varRow = NULL, varColumn = NULL, nRow = NULL, nColumn = NULL, scales = "fixed",  
-#                     layer = "none", layerSize = layerSize, ...){ #if y axis is required specifically mention in function parameter
-#   #outer: for setting of geom
-#   #inner: for further setting, apart from geom
-#   #outer
-#   if(types == "none"){
-#     gp <- ggplot(data = NULL)
-#   }else if(isFALSE(lineParam[[1]])){
-#     gp <- ggplot(data = data, aes(...))
-#   }else{
-#     #if TRUE, than it is for line graph, which require sd computed data
-#     gp <- ggplot(data = data, aes(...)) + 
-#       #adding geom_errorbar
-#       lineParam[[3]]
-#   }
-#   # typeFig <- reactive(req(input$plotType, cancelOutput = TRUE))
-#   if(types == "box"){
-#     #only for plot that require errorbar
-#     plt <- gp + 
-#       stat_boxplot(geom = "errorbar")+
-#       geom_type
-#   }else if(types == "histogram"){
-#     plt <- gp + geom_type + histLine
-#   }else{
-#     #other than boxplot
-#     plt <- gp +
-#       geom_type
-#   }
-#   
-#   #add layer
-#   if(layer != "none"){
-#     cal <- ifelse(types %in% c("box"), "median", "mean")
-#     plt <- switch(layer,
-#                   "line" = plt + stat_summary(fun = cal, geom = 'line', aes(group = 1), size = layerSize),
-#                   "smooth" = plt + geom_smooth(size = layerSize),
-#                   "point" = plt + geom_point(size = layerSize),
-#                   "jitter" = plt + geom_jitter(size = layerSize)
-#     )
-#   }
-#   #facet
-#   if(isTRUE(facet)){
-#     if(facetType == "grid"){
-#       #I've used .data[[]] here, because I couldn't used in setFig(). This is not recommended!!
-#       if(is.null(varRow)){
-#         #plt <- plt+facet_grid(rows = vars(NULL), cols = vars(unlist(map(1:length(varColumn), .data[[varColumn]]))), scale = tolower(scales))
-#         plt <- plt+facet_grid(rows = vars(NULL), cols = vars(.data[[varColumn]]), scale = tolower(scales))
-#       }else if(is.null(varColumn)){
-#         plt <- plt+facet_grid(rows = vars(.data[[varRow]]), cols = vars(NULL), scale = tolower(scales))
-#       }else{
-#         plt <- plt+facet_grid(rows = vars(.data[[varRow]]), cols = vars(.data[[varColumn]]), scale = tolower(scales))
-#       }
-#     }else if(facetType == "wrap"){
-#       if(is.null(varRow)){
-#         plt <- plt + facet_wrap(facets = vars(NULL), nrow = nRow, ncol = nColumn, scale = tolower(scales))
-#       }else{
-#         plt <- plt + facet_wrap(facets = vars(.data[[varRow]]), nrow = nRow, ncol = nColumn, scale = tolower(scales))
-#       }
-#     }else{plt}
-#   }
-#   
-#   #inner function to add more setting if user need
-#   function(advance = FALSE,
-#            #color parameters
-#            varSet = "reactive(req(input$colorSet, cancelOutput = TRUE))",
-#            autoCust = "reactive(req(input$autoCustome, cancelOutput = TRUE))",
-#            colorTxt = "reactive(input$colorAdd)", 
-#            #argument for stat data
-#            statData = "statData"
-#            # methodSt = "reactive(req(input$stat))",
-#            # labelSt = "reactive(input$chooseFormat)",
-#            # compareOrReference = "input$compareOrReference",
-#            #get the list of grouping for statistic: this would be available in global env
-#            cmpGrpList = "cmpGrpList()",
-#            switchGrpList = "switchGrpList()"){ 
-#     #no need to provide function parameters for basic plot: the default will be used
-#     message("inner function")
-#     
-#     if(isFALSE(advance)){
-#       #basic plot: default
-#       message("display basic")
-#       plt
-#     }else if (isTRUE(advance)){
-#       # advance settings
-#       message("display advance")
-#       if(varSet != "none"){
-#         message("color")
-#         #User choice to auto fill or customize the color
-#         if(autoCust == "auto filled"){
-#           newPlt <<- plt #Make it global, to be used just before customization
-#           #coloring will be implemented while using the function
-#           plt
-#         }
-#         #this will execute only if the customize option is selected
-#         else if(autoCust == "customize"){
-#           message(colorTxt)
-#           #get number of variables
-#           countVar <- data %>%
-#             distinct(.data[[varSet]], .keep_all = T) %>% nrow()
-#           
-#           editC <- if(colorTxt == ""){
-#             "not provided" #if no color is provided
-#           }else{
-#             #process the given color input by removing space and comma
-#             inputC <- strsplit(str_trim(gsub(" |,", " ", colorTxt))," +")[[1]]
-#             #Select only the required number of colors if user provide more than 
-#             #the required number.
-#             if(length(inputC) > countVar){
-#               inputC[1:countVar]
-#             }else{ inputC }
-#           }
-#           
-#           if(length(editC) < countVar){
-#             #display the color of the global plot
-#             message(editC)
-#             newPlt
-#           }else if(length(editC) == countVar){
-#             message(inputC)
-#             #add color to the plot
-#             if(types %in% c("histogram", "line", "frequency polygon")){
-#               plt <- plt + scale_color_manual(values = tolower(inputC))
-#             }else{
-#               plt <- plt + scale_fill_manual(values = tolower(inputC))
-#             }
-#             newPlt <<- plt #save global
-#           }else{validate(glue::glue("Provide only {countVar} colors"))}
-#         }#end of customizing color
-#       }#end for color setting
-#       message("length of grpList")
-#       message(length(grpList))
-#       #check for requirement of statistics: data and method for computing statistic will be provided as one arguments
-#       if(methodSt != "none"){
-#         if(compareOrReference == "none"){
-#           message("none-----------------")
-#           plt <- plt + stat_compare_means(method = methodSt, label = labelSt, vjust = -0.5) 
-#         }else{
-#           myCompareGroup <- cmpGrpList
-#           message("not none:switch-----------------")
-#           message(switchGrpList)
-#           #check for empty list, even if options is shown for comparison or reference
-#           if(switchGrpList == 0){
-#             #if empty i.e. 0, than no need to compare
-#             message("0 off")
-#             plt <- plt + stat_compare_means(method = methodSt, label = labelSt, vjust = -0.5)
-#           }else{
-#             message("not 0: on")
-#             plt <- switch(compareOrReference,
-#                           "comparison" = plt + stat_compare_means(method = methodSt, label = labelSt, vjust = -0.5, comparisons = myCompareGroup),
-#                           "reference group" = plt + stat_compare_means(method = methodSt, label = labelSt, vjust = -0.5, ref.group = myCompareGroup[[1]])
-#             )#end switch 
-#           }
-#         }#end group comparisons or referencing
-#       }#end of statistics
-#     }#end of advance setting
-#     message("after condition:inner")
-#     plt
-#   }#end of inner function
-# }#end of outer function
-# setFig_original <- function(data = ptable(),
-#                    figType = "reactive(req(input$plotType, cancelOutput = TRUE))",
-#                    geomType = geom_boxplot(),
-#                    histLine = NULL,
-#                    dis = FALSE,
-#                    xy = "reactive(input$xAxis) and reactive(input$yAxis)", 
-#                    lineParam = lineParam,
-#                    textSize = "reactive(input$textSize)",
-#                    titleSize = "reactive(input$titleSize)",
-#                    xyLable = xyLable(),
-#                    themes = "reactive(input$theme)",
-#                    #parameters to add color
-#                    varSet = "reactive(req(input$colorSet, cancelOutput = TRUE))",
-#                    autoCust = "reactive(req(input$autoCustome, cancelOutput = TRUE))",
-#                    colorTxt = "reactive(input$colorAdd)", #color
-#                    #more aesthetic
-#                    shapeLine = "reactive(input$shapeLine)",
-#                    shapeSet = "reactive(isTruthy(input$shapeSet)",
-#                    lineSet= "reactive(isTruthy(input$lineSet)",
-#                    #parameters for statistic
-#                    methodSt = "reactive(req(input$stat))",
-#                    labelSt = "reactive(input$chooseFormat)",
-#                    compareOrReference = "input$compareOrReference",
-#                    cmpGrpList = "cmpGrpList",
-#                    switchGrpList = "switchGrpList()",
-#                    #legend parameter
-#                    legendPosition = "legendPosition",
-#                    legendDirection = "legendDirection",
-#                    legendTitle = "legendTitle",
-#                    legendSize = "legendSize",
-#                    #other theme
-#                    stripBackground = FALSE, #for facet
-#                    #facet parameter
-#                    facet = FALSE,
-#                    faceType = NULL,#grid or wrap
-#                    varRow = NULL,
-#                    varColumn = NULL,
-#                    nRow = NULL, 
-#                    nColumn = NULL, 
-#                    scales = NULL, #fixed or free
-#                    #additional layer
-#                    layer = "none",
-#                    layerSize = layerSize,
-#                    ...){ #dis is for applying the advance option: TRUE for apply and FALSE for don't apply
-#   #data need to be changed based on the type of plots
-#   if(isFALSE(lineParam[[1]])){
-#     #no change in data from ptable()
-#     data <- data
-#   }else{
-#     #for line graph
-#     data <- lineParam[[2]]
-#   }
-#   #convert the x-axis into factor: this is necessary especially if user provide numerical variables for x-axis
-#   data[[xy[[1]]]] <- as.factor(data[[xy[[1]]]])
-#   #first plot the type of figure: geom_
-#   #Here, i've added the aethetic of shape and line type: For color it will be implemented later
-#   if(shapeLine == "Shape"){
-#     if(!is.null(xy[[1]]) && !is.null(xy[[2]])){
-#       #require x- and y-axis and must be reactive
-#       pltSet <- plotFig(data = data, types = figType, geom_type = geomType, histLine = histLine, x = .data[[xy[[1]]]], y = .data[[xy[[2]]]], shape = .data[[shapeSet]],
-#                         lineParam = lineParam, facet = facet, facetType = faceType, varRow = varRow, varColumn = varColumn, nRow = nRow, nColumn = nColumn, scales = scales, 
-#                         layer, layerSize = layerSize,...)#.data[[x]], y = .data[[y]], ...)
-#     }else{
-#       #set only x axis for other plots
-#       pltSet <- plotFig(data = data, types = figType, geom_type = geomType, histLine = histLine, x = .data[[xy[[1]]]], shape = .data[[shapeSet]],
-#                         lineParam = lineParam, facet = facet, facetType = faceType, varRow = varRow, varColumn = varColumn, nRow = nRow, nColumn = nColumn, scales = scales, 
-#                         layer, layerSize = layerSize,...)#.data[[x]], ...)
-#     }
-#   }else if(shapeLine == "Line type"){
-#     if(!is.null(xy[[1]]) && !is.null(xy[[2]])){
-#       #require x- and y-axis and must be reactive
-#       pltSet <- plotFig(data = data, types = figType, geom_type = geomType, histLine = histLine, x = .data[[xy[[1]]]], y = .data[[xy[[2]]]], linetype = .data[[lineSet]],
-#                         lineParam = lineParam, facet = facet, facetType = faceType, varRow = varRow, varColumn = varColumn, nRow = nRow, nColumn = nColumn,  scales = scales, 
-#                         layer= layer,  layerSize = layerSize,...)#.data[[x]], y = .data[[y]], ...)
-#     }else{
-#       #set only x axis for other plots
-#       pltSet <- plotFig(data = data, types = figType, geom_type = geomType, histLine = histLine, x = .data[[xy[[1]]]], linetype = .data[[lineSet]],
-#                         lineParam = lineParam, facet = facet, facetType = faceType, varRow = varRow, varColumn = varColumn, nRow = nRow, nColumn = nColumn,  scales = scales, 
-#                         layer = layer, layerSize = layerSize,...)#.data[[x]], ...)
-#     }
-#   }else if (all(shapeLine %in% c("Shape","Line type"))){
-#     if(!is.null(xy[[1]]) && !is.null(xy[[2]])){
-#       #require x- and y-axis and must be reactive
-#       pltSet <- plotFig(data = data, types = figType, geom_type = geomType,histLine = histLine, x = .data[[xy[[1]]]], y = .data[[xy[[2]]]], shape = .data[[shapeSet]], linetype = .data[[lineSet]],
-#                         lineParam = lineParam, facet = facet, facetType = faceType, varRow = varRow, varColumn = varColumn, nRow = nRow, nColumn = nColumn, scales = scales, 
-#                         layer = layer, layerSize = layerSize,...)#.data[[x]], y = .data[[y]], ...)
-#     }else{
-#       #set only x axis for other plots
-#       pltSet <- plotFig(data = data, types = figType, geom_type = geomType, histLine = histLine, x = .data[[xy[[1]]]], shape = .data[[shapeSet]], linetype = .data[[lineSet]],
-#                         lineParam = lineParam, facet = facet, facetType = faceType, varRow = varRow, varColumn = varColumn, nRow = nRow, nColumn = nColumn, scales = scales, 
-#                         layer = layer, layerSize = layerSize,...)#.data[[x]], ...)
-#     }
-#   }else{
-#     if(!is.null(xy[[1]]) && !is.null(xy[[2]])){
-#       #require x- and y-axis and must be reactive
-#       pltSet <- plotFig(data = data, types = figType, geom_type = geomType, histLine = histLine, x = .data[[xy[[1]]]], y = .data[[xy[[2]]]],
-#                         lineParam = lineParam, facet = facet, facetType = faceType, varRow = varRow, varColumn = varColumn, nRow = nRow, nColumn = nColumn, scales = scales, 
-#                         layer = layer, layerSize = layerSize,...)#.data[[x]], y = .data[[y]], ...)
-#     }else{
-#       #set only x axis for other plots
-#       pltSet <- plotFig(data = data, types = figType, geom_type = geomType, histLine = histLine, x = .data[[xy[[1]]]],
-#                         lineParam = lineParam, facet = facet, facetType = faceType, varRow = varRow, varColumn = varColumn, nRow = nRow, nColumn = nColumn, scales = scales, 
-#                         layer = layer, layerSize = layerSize,...)#.data[[x]], ...)
-#     }
-#   }
-#   
-#   #handle user choice to remove legend title
-#   otherTheme <- if(isTRUE(legendTitle)){
-#     if(isTRUE(stripBackground)){
-#       theme(
-#         axis.text = element_text(size = textSize),
-#         axis.title = element_text(size = titleSize, face = "bold"),
-#         legend.position = legendPosition,
-#         legend.direction = legendDirection,
-#         legend.title = element_blank(),
-#         legend.text = element_text(size = legendSize, face = "bold"),
-#         strip.text = element_text(size = textSize, face = "bold"),
-#         strip.background = element_blank())
-#     }else{
-#       theme(
-#         axis.text = element_text(size = textSize),
-#         axis.title = element_text(size = titleSize, face = "bold"),
-#         legend.position = legendPosition,
-#         legend.direction = legendDirection,
-#         legend.title = element_blank(),
-#         legend.text = element_text(size = legendSize, face = "bold"),
-#         strip.text = element_text(size = textSize, face = "bold"))
-#     }
-#   }else{
-#     if(isTRUE(stripBackground)){
-#       theme(
-#         axis.text = element_text(size = textSize),
-#         axis.title = element_text(size = titleSize, face = "bold"),
-#         legend.position = legendPosition,
-#         legend.direction = legendDirection,
-#         legend.title = element_text(size = legendSize, face = "bold"),
-#         legend.text = element_text(size = legendSize, face = "bold"),
-#         strip.text = element_text(size = textSize, face = "bold"),
-#         strip.background = element_blank())
-#     }else{
-#       theme(
-#         axis.text = element_text(size = textSize),
-#         axis.title = element_text(size = titleSize, face = "bold"),
-#         legend.position = legendPosition,
-#         legend.direction = legendDirection,
-#         legend.title = element_text(size = legendSize, face = "bold"),
-#         legend.text = element_text(size = legendSize, face = "bold"),
-#         strip.text = element_text(size = textSize, face = "bold"))
-#     }
-#     
-#   }
-#   #use inner function for more details
-#   if(isFALSE(dis)){
-#     #basic plot
-#     pltSet(advance = dis)+ #addThemes
-#       axisLabs(x =xyLable[[1]], y = xyLable[[2]])+
-#       themeF(thme = themes)+
-#       otherTheme
-#   }else if(isTRUE(dis)){
-#     #advance plot
-#     pltSet(advance = dis,
-#            varSet = varSet,
-#            autoCust = autoCust,
-#            colorTxt = colorTxt,
-#            methodSt = methodSt,
-#            labelSt = labelSt,
-#            cmpGrpList = cmpGrpList,
-#            switchGrpList = switchGrpList,
-#            compareOrReference = compareOrReference)+ #addThemes
-#       axisLabs(x =xyLable[[1]], y = xyLable[[2]])+
-#       themeF(thme = themes)+
-#       otherTheme
-#   }
-# } # end of display plot function
-
-# structure(list(name = c("miR156a", "miR156b-5p", "miR156b-3p", 
-#                         "miR156c-5p", "miR156c-3p", "miR156d", "miR156e", "miR156f-5p", 
-#                         "miR156f-3p", "miR156g-5p", "miR156g-3p", "miR156h-5p", "miR156h-3p", 
-#                         "miR156i", "miR156j-5p", "miR156j-3p", "miR160a-5p", "miR160a-3p", 
-#                         "miR160b-5p", "miR160b-3p", "miR160c-5p", "miR160c-3p", "miR160d-5p", 
-#                         "miR160d-3p", "miR162a", "miR164a", "miR164b", "miR166a-5p", 
-#                         "miR166a-3p", "miR166b-5p", "miR166b-3p", "miR166c-5p", "miR166c-3p", 
-#                         "miR166d-5p", "miR166d-3p", "miR166e-5p", "miR166e-3p", "miR166f", 
-#                         "miR167a-5p", "miR167a-3p", "miR167b", "miR167c-5p", "miR167c-3p", 
-#                         "miR169a", "miR171a", "miR393a", "miR394", "miR395b", "miR395d", 
-#                         "miR395e", "miR395g", "miR395h", "miR395i", "miR395j", "miR395k", 
-#                         "miR395l", "miR395s", "miR395t", "miR395c", "miR395a", "miR395f", 
-#                         "miR395u", "miR396a-5p", "miR396a-3p", "miR396b-5p", "miR396b-3p", 
-#                         "miR396c-5p", "miR396c-3p", "miR397a", "miR397b", "miR398a", 
-#                         "miR398b", "miR399a", "miR399b", "miR399c", "miR399d", "miR399e", 
-#                         "miR399f", "miR399g", "miR399h", "miR399i", "miR399j", "miR399k", 
-#                         "miR156k", "miR156l-5p", "miR156l-3p", "miR159a.2", "miR159a.1", 
-#                         "miR159b", "miR159c", "miR159d", "miR159e", "miR159f", "miR319a-5p", 
-#                         "miR319a-3p", "miR319a-3p.2-3p", "miR319b", "miR160e-5p", "miR160e-3p", 
-#                         "miR160f-5p", "miR160f-3p", "miR162b", "miR164c", "miR164d", 
-#                         "miR164e", "miR166k-5p", "miR166k-3p", "miR166l-5p", "miR166l-3p", 
-#                         "miR167d-5p", "miR167d-3p", "miR167e-5p", "miR167e-3p", "miR167f", 
-#                         "miR167g", "miR167h-5p", "miR167h-3p", "miR167i-5p", "miR167i-3p", 
-#                         "miR168a-5p", "miR168a-3p", "miR168b", "miR169b", "miR169c", 
-#                         "miR169d", "miR169e", "miR169f.2", "miR169f.1", "miR169g", "miR169h", 
-#                         "miR169i-5p.2", "miR169i-5p.1", "miR169i-3p", "miR169j", "miR169k", 
-#                         "miR169l", "miR169m", "miR169n", "miR169o", "miR169p", "miR169q", 
-#                         "miR171b", "miR171c-5p", "miR171c-3p", "miR171d-5p", "miR171d-3p", 
-#                         "miR171e-5p", "miR171e-3p", "miR171f-5p", "miR171f-3p", "miR171g", 
-#                         "miR172a", "miR172b", "miR172c", "miR166g-5p", "miR166g-3p", 
-#                         "miR166h-5p", "miR166h-3p", "miR166i-5p", "miR166i-3p", "miR171h", 
-#                         "miR393b-5p", "miR393b-3p", "miR408-5p", "miR408-3p", "miR172d-5p", 
-#                         "miR172d-3p", "miR171i-5p", "miR171i-3p", "miR167j", "miR166m", 
-#                         "miR166j-5p", "miR166j-3p", "miR164f", "miR413", "miR414", "miR415", 
-#                         "miR416", "miR417", "miR418", "miR419", "miR426", "miR435", "miR437", 
-#                         "miR438", "miR390-5p", "miR390-3p", "miR439a", "miR439b", "miR439c", 
-#                         "miR439d", "miR439e", "miR439f", "miR439g", "miR439h", "miR439i", 
-#                         "miR440", "miR396e-5p", "miR396e-3p", "miR443", "miR444a-5p", 
-#                         "miR444a-3p.2", "miR444a-3p.1", "miR528-5p", "miR528-3p", "miR529a", 
-#                         "miR530-5p", "miR530-3p", "miR531a", "miR535-5p", "miR535-3p", 
-#                         "miR395m", "miR395n", "miR395o", "miR395p", "miR395q", "miR395v", 
-#                         "miR395w", "miR395r", "miR810a", "miR812a", "miR812b", "miR812c", 
-#                         "miR812d", "miR812e", "miR814a", "miR814b", "miR814c", "miR815a", 
-#                         "miR815b", "miR815c", "miR816", "miR817", "miR818a", "miR818b", 
-#                         "miR818c", "miR818d", "miR818e", "miR820a", "miR820b", "miR820c", 
-#                         "miR821a", "miR821b", "miR821c", "miR529b", "miR1423-5p", "miR1423-3p", 
-#                         "miR1424", "miR1425-5p", "miR1425-3p", "miR1426", "miR1427", 
-#                         "miR1428a-5p", "miR1428a-3p", "miR1429-5p", "miR1429-3p", "miR1430", 
-#                         "miR1431", "miR1432-5p", "miR1432-3p", "miR169r-5p", "miR169r-3p", 
-#                         "miR444b.2", "miR444b.1", "miR444c.2", "miR444c.1", "miR444d.3", 
-#                         "miR444d.2", "miR444d.1", "miR444e", "miR444f", "miR810b.1", 
-#                         "miR810b.2", "miR1435", "miR1436", "miR1437a", "miR1438", "miR1440a", 
-#                         "miR1441", "miR1442", "miR1439", "miR531b", "miR1846d-5p", "miR1846d-3p", 
-#                         "miR1847.1", "miR1847.2", "miR1848", "miR1849", "miR1850.1", 
-#                         "miR1850.2", "miR1850.3", "miR1851", "miR1852", "miR1853-5p", 
-#                         "miR1853-3p", "miR1854-5p", "miR1854-3p", "miR1855", "miR1856", 
-#                         "miR1857-5p", "miR1857-3p", "miR1428b", "miR1428c", "miR1428d", 
-#                         "miR1428e-5p", "miR1428e-3p", "miR1858a", "miR1858b", "miR1846a-5p", 
-#                         "miR1846a-3p", "miR1846b-5p", "miR1846b-3p", "miR1859", "miR1860-5p", 
-#                         "miR1860-3p", "miR1861a", "miR1861b", "miR1861c", "miR1861d", 
-#                         "miR1861e", "miR1861f", "miR1861g", "miR1861h", "miR1861i", "miR1861j", 
-#                         "miR1861k", "miR1861l", "miR1861m", "miR1861n", "miR1862a", "miR1862b", 
-#                         "miR1862c", "miR1863a", "miR1864", "miR1865-5p", "miR1865-3p", 
-#                         "miR1866-5p", "miR1866-3p", "miR1868", "miR812f", "miR1869", 
-#                         "miR1870-5p", "miR1870-3p", "miR1871", "miR1872", "miR1873", 
-#                         "miR1874-5p", "miR1874-3p", "miR1875", "miR1862d", "miR1876", 
-#                         "miR1862e", "miR1877", "miR1878", "miR1879", "miR1880", "miR1881", 
-#                         "miR1882a", "miR1882b", "miR1882c", "miR1882d", "miR1882e-5p", 
-#                         "miR1882e-3p", "miR1882f", "miR1882g", "miR1882h", "miR812g", 
-#                         "miR812h", "miR812i", "miR812j", "miR1883a", "miR1883b", "miR1319a", 
-#                         "miR1320-5p", "miR1320-3p", "miR1846c-5p", "miR1846c-3p", "miR2055", 
-#                         "miR827", "miR1846e", "miR1428f-5p", "miR1428g-5p", "miR2090", 
-#                         "miR2091-5p", "miR2091-3p", "miR2092-5p", "miR2092-3p", "miR2093-5p", 
-#                         "miR2093-3p", "miR2094-5p", "miR2094-3p", "miR2095-5p", "miR2095-3p", 
-#                         "miR2096-5p", "miR2096-3p", "miR2097-5p", "miR2097-3p", "miR2098-5p", 
-#                         "miR2098-3p", "miR2099-5p", "miR2099-3p", "miR2100-5p", "miR2100-3p", 
-#                         "miR2101-5p", "miR2101-3p", "miR2102-5p", "miR2102-3p", "miR396f-5p", 
-#                         "miR396f-3p", "miR2103", "miR2104", "miR2105", "miR2106", "miR2120", 
-#                         "miR2121a", "miR2121b", "miR2122", "miR2118a", "miR2118b", "miR2118c", 
-#                         "miR2118d", "miR2118e", "miR2118f", "miR2118g", "miR2118h", "miR2118i", 
-#                         "miR2118j", "miR2118k", "miR2118l", "miR2118m", "miR2118n", "miR2118o", 
-#                         "miR2118p", "miR2118q", "miR2118r", "miR2275a", "miR2275b", "miR2863a", 
-#                         "miR2864.1", "miR2864.2", "miR2865", "miR2866", "miR2867-5p", 
-#                         "miR2867-3p", "miR2868", "miR2869", "miR2870", "miR2863b", "miR2905", 
-#                         "miR2871a-5p", "miR2871a-3p", "miR2871b-5p", "miR2871b-3p", "miR2872", 
-#                         "miR2873a", "miR2874", "miR2875", "miR2876-5p", "miR2876-3p", 
-#                         "miR2877", "miR2878-5p", "miR2878-3p", "miR1863c", "miR2879", 
-#                         "miR2880", "miR396g", "miR396h", "miR396d", "miR1863b", "miR1863b.2", 
-#                         "miR2907a", "miR2907b", "miR2907c", "miR2907d", "miR2918", "miR2919", 
-#                         "miR2920", "miR2921", "miR2922", "miR2923", "miR2924", "miR2925", 
-#                         "miR2926", "miR2927", "miR2928", "miR2929", "miR2930", "miR2931", 
-#                         "miR2932", "miR395x", "miR395y", "miR812k", "miR812l", "miR812m", 
-#                         "miR1862f", "miR1862g", "miR3979-5p", "miR3979-3p", "miR3980a-5p", 
-#                         "miR3980a-3p", "miR3980b-5p", "miR3980b-3p", "miR812n-5p", "miR812n-3p", 
-#                         "miR812o-5p", "miR812o-3p", "miR3981-5p", "miR3981-3p", "miR2873b", 
-#                         "miR3982-5p", "miR3982-3p", "miR5071", "miR5072", "miR5073", 
-#                         "miR5074", "miR5075", "miR5076", "miR5077", "miR5078", "miR5079a", 
-#                         "miR5080", "miR5081", "miR5082", "miR5083", "miR5143a", "miR5144-5p", 
-#                         "miR5144-3p", "miR5145", "miR5146", "miR5147", "miR2863c", "miR5148a", 
-#                         "miR5148b", "miR5148c", "miR5149", "miR5150-5p", "miR5150-3p", 
-#                         "miR5151", "miR5152-5p", "miR5152-3p", "miR5153", "miR5154", 
-#                         "miR5155", "miR5156", "miR5157a-5p", "miR5157a-3p", "miR5157b-5p", 
-#                         "miR5157b-3p", "miR5158", "miR5159", "miR5160", "miR5161", "miR5162", 
-#                         "miR5337a", "miR5338", "miR5339", "miR5340", "miR5484", "miR5485", 
-#                         "miR5486", "miR5487", "miR5488", "miR5489", "miR5490", "miR5491", 
-#                         "miR5492", "miR5493", "miR5494", "miR5495", "miR5496", "miR5497", 
-#                         "miR5498", "miR5499", "miR5500", "miR5501", "miR5502", "miR5503", 
-#                         "miR5504", "miR5505", "miR5506", "miR5507", "miR5508", "miR5509", 
-#                         "miR5510", "miR5511", "miR5512a", "miR5513", "miR2275c", "miR5514", 
-#                         "miR5515", "miR5516a", "miR5517", "miR5518", "miR5519", "miR5521", 
-#                         "miR5522", "miR5523", "miR2275d", "miR5524", "miR5525", "miR5526", 
-#                         "miR5527", "miR5528", "miR5529", "miR5530", "miR5531", "miR5532", 
-#                         "miR5533", "miR5534a", "miR5534b", "miR5535", "miR5536", "miR5537", 
-#                         "miR5538", "miR5539a", "miR5540", "miR5541", "miR5542", "miR5543", 
-#                         "miR5544", "miR5788", "miR812p", "miR812q", "miR5789", "miR5790", 
-#                         "miR5791", "miR5792", "miR5793", "miR5794", "miR812r", "miR5795", 
-#                         "miR5796", "miR5797", "miR5798", "miR812s", "miR5799", "miR5800", 
-#                         "miR5801a", "miR5802", "miR812t", "miR812u", "miR5803", "miR5804", 
-#                         "miR5805", "miR5806", "miR812v", "miR5807", "miR5801b", "miR5809", 
-#                         "miR5810", "miR5811", "miR5812", "miR5813", "miR5814", "miR5815", 
-#                         "miR5816", "miR5143b", "miR5817", "miR5818", "miR5819", "miR5820", 
-#                         "miR5821", "miR5822", "miR5823", "miR5824", "miR1319b", "miR5825", 
-#                         "miR5826", "miR5827", "miR5828", "miR5829", "miR5830", "miR5831", 
-#                         "miR5179", "miR5832", "miR5833", "miR5834", "miR5835", "miR2873c", 
-#                         "miR5836", "miR5837.2", "miR5837.1", "miR5516b", "miR6245", "miR1440b", 
-#                         "miR6246", "miR6247", "miR6248", "miR5337b", "miR6249a", "miR5512b", 
-#                         "miR6250", "miR6251", "miR6252", "miR6253", "miR6254", "miR6255", 
-#                         "miR6256", "miR818f", "miR1437b-5p", "miR1437b-3p", "miR7692-5p", 
-#                         "miR7692-3p", "miR7693-5p", "miR7693-3p", "miR7694-5p", "miR7694-3p", 
-#                         "miR7695-5p", "miR7695-3p", "miR1861o", "miR5079b", "miR5539b", 
-#                         "miR6249b", "miR531c", "miR11336-5p", "miR11336-3p", "miR11337-5p", 
-#                         "miR11337-3p", "miR11338-5p", "miR11338-3p", "miR11339-5p", "miR11339-3p", 
-#                         "miR11340-5p", "miR11340-3p", "miR11341-5p", "miR11341-3p", "miR11342-5p", 
-#                         "miR11342-3p", "miR11343-5p", "miR11343-3p", "miR11344-5p", "miR11344-3p", 
-#                         "miR2120b-5p", "miR2120b-3p", "miR5801c-5p", "miR5801c-3p", "miR6245b-5p", 
-#                         "miR6245b-3p")), class = "data.frame", row.names = c(NA, -738L
-#                         ))

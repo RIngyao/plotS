@@ -1,0 +1,50 @@
+---
+title: "PlotS: web-based application for data analysis and visualization"
+author: ''
+date: ''
+output: pdf_document
+subtitle: Statistical analysis summary
+params:
+  table1: NA
+  table2: NA
+  table3: NA
+  table4: NA
+  table5: NA
+---
+```{r setup, include=FALSE, echo=FALSE} 
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+**_Note_: For transparency and credibility of your research analysis, always report the statistical method and a description of its appropriateness for the data. Record the result in accepted scientific standard, not just p-value. Report effect size in addition to p-value.** 
+
+
+# Table 1. Summary of the input data
+```{r}
+params$table1
+```
+# Table 2. Descriptive statistics
+```{r}
+knitr::kable(params$table2)
+```
+
+# Table 3. Summary for Kruskal-Wallis test
+
+'.y.' is the y-axis variable; 'n' is the count of sample; 'statistic' is the test used to compute the p-value; 'df' is the degree of freedom; 'p' is the p-value.
+```{r }
+knitr::kable(params$table3)
+```
+
+# Table 4. Table of effect size. Measures the strength of relationship between variables.
+
+Eta-squared based on the H-statistic used as the measure of effect size.
+```{r}
+knitr::kable(params$table4)
+
+```
+
+
+# Table 5. Post-hoc analysis using Dunnett's method
+```{r}
+knitr::kable(params$table5)
+```
+
