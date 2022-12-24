@@ -69,7 +69,8 @@ add_header(., sample = "Table 2. Data in table 1 reshaped to long format.", top 
 
 <br>
 
-#### **Multiple headers**
 
-#### **Aesthetic option**
+#### **What is aesthetic option?**
+
+Aesthetic options mapped the variables to visual properties - color, shape or line type. It let user customize the visual properties as well as differentiate between variables. 
 

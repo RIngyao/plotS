@@ -24,13 +24,10 @@ library(shinyvalidate)
 library(shinyauthr)
 library(markdown)
 library(rstatix)
-#remotes::install_github("paulc91/shinyauthr")
 if(!require(ggpubr)){
-  # install.packages("ggpubr")
   require(ggpubr)
 }
 if(!require(multcompView)){
-  # install.packages("multcompView")
   require(multcompView)
 }
 

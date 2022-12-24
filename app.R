@@ -33,7 +33,7 @@ ui <- fluidPage(
                     <div class = "inst">
                       <hr></hr>
                       <p>
-                      <b>PlotS</b> is a web-based application for data analysis and visualization (under development stage). It is free and easy to use. You can analyze your data in an engaging way by running statistical tests while plotting the graphs. We hope that it will be a useful tool for performing quick analysis.
+                      <b>PlotS</b> is a web-based application for data analysis and visualization. It is free and easy to use. You can analyze your data in an engaging way by running statistical tests while plotting the graphs. We hope that it will be a useful tool for performing quick analysis.
                       </p>
                       
                       <p> 
@@ -98,7 +98,7 @@ ui <- fluidPage(
                       #panel for input parameters of table
                       #This parameter will have option for choosing the data
                       h3("", br(), align = "center", style = "color:green"), #just in case if i want to add text
-                      selectInput(inputId = "pInput", label = "Input data", choices = list("example","query result","upload data"), selected = ""),
+                      selectInput(inputId = "pInput", label = "Input data", choices = list("example","upload data"), selected = ""),
                       #ui for uploading the data, 
                       uiOutput(outputId = "pUpload"),
                       #ui explanation for example
@@ -194,7 +194,6 @@ ui <- fluidPage(
                         # height = '500px',
                         title = "Input table",
                         status = "primary",
-                        collapsible = TRUE,
                         #show text
                         # textOutput("textInputTable"),
                         #show table here when input data is choosen
@@ -543,7 +542,7 @@ ui <- fluidPage(
                         #title = span("Additional settings:", style="font-weight:bold"),
                         # style="overflow-y:auto; position:fixed; width:inherit",
                         width = 12,
-                        collapsible = TRUE,
+                        
                         #text label for x-axis
                         uiOutput("uiXAxisTextLabel"),
                         #font size
@@ -629,7 +628,7 @@ ui <- fluidPage(
                   reactableOutput("UiDescriptiveTable"),
                   #Ui for parametric test
                   #Display normality and homogeneity test for parametric statistic
-                  conditionalPanel(condition = "input.stat.includes('t.test')| input.stat.includes('anova')",
+                  conditionalPanel(condition = "input.stat == 't.test' | input.stat == 'anova'",
                                    #ui for testing the assumptions of parametric tests
                                    uiOutput("UiAssumptionTitle"),
                                    fluidRow(
@@ -785,10 +784,6 @@ server <- function(input, output){
       })
       
       
-    }else if (input$pInput == "query result"){
-      #sepcify the result (the last query result will be chosen)
-      #...........
-      message("Implement later")
     }else if(input$pInput == "example"){
       if(req(input$pFile) == "long format"){
         df <- PlantGrowth
@@ -1803,11 +1798,11 @@ server <- function(input, output){
   
   #data type of the selected axes variable
   xVarType <- reactive({
-    req(pltType() != 'none', xVar())
+    req(pltType() != 'none', input$xAxis, xVar())
     sapply(xVar(), class)
   })
   yVarType <- reactive({
-    req(pltType() != 'none', yVar())
+    req(pltType() != 'none', yVar(), input$yAxis)
     sapply(yVar(), class)
   })
   
@@ -1838,7 +1833,7 @@ server <- function(input, output){
     
     output$uiXAxisTextLabel <- renderUI({
       if( req(input$plotType) != "none" ){
-        textAreaInput(inputId = "xTextLabel", label = glue::glue("Change name of x-axis (enter {nVar} names):"), height = "35px", placeholder = "Comma or space separated")
+        textAreaInput(inputId = "xTextLabel", label = glue::glue("Change name of x-axis (enter {nVar} names):"), placeholder = "Comma or space separated",  height = "35px", width = "650px")
       }
     })
   })
@@ -2117,7 +2112,7 @@ server <- function(input, output){
   observeEvent(req(pltType() == "histogram"),{
     # req(refresh_2())
     output$UiHistMean <- renderUI({
-      req(ptable(), input$xAxis)
+      req(ptable(), input$xAxis, xVarType())
       # xVar <- ptable() %>% dplyr::select(.data[[input$xAxis]]) :  #type(xVar()[1]) == "double") 
       if(pltType() == "histogram" & xVarType()[1] %in% c("integer", "numeric", "double")) selectInput(inputId = "histMean", label = "Add mean line", choices = c("none","mean", "group mean", "median"), selected = "none")
     })
