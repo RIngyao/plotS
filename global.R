@@ -1,36 +1,42 @@
 
 options(shiny.maxRequestSize = 50*1024^2)
 #library--------------------------------
-library(reactable)
+#can't use this method for loading library: shinyapps.io
+# libraries <- c("flextable", "openxlsx", "svglite",
+#                "MASS", "skimr", "coin", "DT", "data.table", 
+#                "readxl", "markdown", "shinydashboard","ggpubr","multcompView",
+#                "rstatix", "shiny", "tidyverse", "reactable")
+# lapply(libraries, library, character.only = TRUE)
+# 
+library(vroom)
+library(car)
+library(glue)
 library(flextable)
 library(openxlsx)
 library(svglite)
 library(MASS)
 library(skimr)
-library(shiny)
 library(coin)
 library(DT)
 library(data.table)
-library(shinydashboard)
-library(tidyverse)
-library(shinyjs)
-library(reactable)
-library(GenomicRanges)
-library(bslib)
-library(shinyWidgets)
 library(readxl)
-library(shinyFeedback)
-library(shinyvalidate)
-library(shinyauthr)
 library(markdown)
+library(shinydashboard)
+require(ggpubr)
+require(multcompView)
 library(rstatix)
-if(!require(ggpubr)){
-  require(ggpubr)
-}
-if(!require(multcompView)){
-  require(multcompView)
-}
+library(shiny)
+library(tidyverse)
+library(reactable)
 
+#May use later
+# library(GenomicRanges)
+# library(bslib)
+# library(shinyWidgets) #useful
+# library(shinyjs)
+# library(shinyFeedback)
+# library(shinyvalidate)
+# library(shinyauthr)
 
 #Objects necesary to create---------------
 #plot that require x and y-axis

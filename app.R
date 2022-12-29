@@ -1,7 +1,7 @@
 
 source("global.R", local = TRUE)
 ui <- fluidPage(
-  #CSS----------------
+  #link to CSS----------------
   includeCSS("www/uiStyle.css"),
   
   #header-------------
@@ -31,17 +31,23 @@ ui <- fluidPage(
             # HTML instruction---------------
             HTML('
                     <div class = "inst">
-                      <hr></hr>
+                      
+                      <br></br>
                       <p>
-                      <b>PlotS</b> is a web-based application for data analysis and visualization. It is free and easy to use. You can analyze your data in an engaging way by running statistical tests while plotting the graphs. We hope that it will be a useful tool for performing quick analysis.
+                      <b>PlotS</b> is a web-based application for data analysis and visualization. It is free and simple to use. 
+                      You can analyze your data in an engaging way by running statistical tests while plotting the graphs. We hope that it will be a useful tool for performing quick analysis.
                       </p>
+                      
+                      <br></br>
                       
                       <p> 
                       Go to <strong>Analyze & visualize</strong> section for data analysis. There are three sub-sections - <strong>Data</strong>, <strong>Graph</strong> and <strong>Summary</strong>. The <strong>Data</strong> section allows you to upload data, manage replicates or header, reshape and apply transformation. The <strong>Graph</strong> section is for plotting and statistical analysis. All statistical results will be displayed in the <strong>Summary</strong>, and you will be able to download them as a report or as individual tables and figures.
                       </p>
+                      
                       <p>
-                      Data can be either all numerical or a combination of numerical and category variables. For better comparisons between variables, it is recommended that your data be in a long format rather than a wide format. If it doesn\'t, use the reshape options to reshape it. More information can be found in the <strong>Help</strong> section.
+                      Data can be either all numerical or a combination of numerical and categorical variables. For comparisons between variables, it is recommended that data be in a long format rather than a wide format. If it doesn\'t, use the reshape options to reshape it. More information can be found in the <strong>Help</strong> section.
                       </p>
+                      
                       <p>
                       The list of graphs currently available for plotting:
                       <ul>
@@ -68,6 +74,11 @@ ui <- fluidPage(
                         <li>Wilcoxon test</li>
                         <li>Kruskal-Wallis test</li>
                        </ul>
+                      </p>
+                      
+                      <br></br>
+                      <p>
+                      This application is developed using <a href="https://www.r-project.org/">R  programming language</a>. Refer the Help section for R packages used in the application.
                       </p>
                     </div>'
           )#end HTML
@@ -103,7 +114,7 @@ ui <- fluidPage(
                       uiOutput(outputId = "pUpload"),
                       #ui explanation for example
                       conditionalPanel(condition = "input.pInput == 'example'",
-                                       helpText("Data for 'long' and 'wide' formats are the same. Wide format data need to be reshaped to compare between variables - ctrl (control), tr1 (treatment1), tr2 (treatment2).",
+                                       helpText("Data for 'long' and 'wide' formats are the same. Wide format data need to be reshaped to compare between variables - ctrl, tr1, tr2.",
                                                 style = "text-align:center")
                       ),
                       #ui for alerting invalid file type
@@ -699,8 +710,19 @@ ui <- fluidPage(
     ),
     div(class = "column column3")
     
-  )
-)
+  ),
+  
+  #add footer note
+  tags$footer(
+    HTML('<p>  </p>'), 
+    align = "center",
+    style = "
+  height: 100px; 
+  background-color: #ffffff"#f2f2f2;" #d9d9d9
+    #bottom: 10%;padding = 10px;
+  )#end of footer
+  
+)# end of fluidPage for UI
 
 
 #server------------------------
