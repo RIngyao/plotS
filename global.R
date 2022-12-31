@@ -1218,41 +1218,81 @@ generateStatData <- function(data = "ptable()", groupStat = "groupStat()", group
 #Plot figure function--------------------------
 #For appropriate parameters, theme, coloring, application of statistic of the figures: basic and advance
 #Its a function factory
-plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "geom_", histLine = "meanLine",  useValueAsIs = FALSE, 
+plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "geom_",
+                    histLine = "meanLine",  useValueAsIs = FALSE, 
                     lineParam = lineParam,
                     facet = FALSE, facetType = 'grid_wrap', varRow = NULL, varColumn = NULL, nRow = NULL, nColumn = NULL, scales = "fixed",  
                     layer = "none", layerSize = layerSize, barSize = 0.2, ...){ #if y axis is required specifically mention in function parameter
   #inner: for further setting, apart from geom
   #outer
+  # browser()
   if(types == "none"){
-    gp <- ggplot(data = NULL)
+    # gp <- ggplot(data = NULL)
+    break
   }else {
     gp <- ggplot(data = data, aes(...))
+    
   }
   
- 
-  if(types ==   "box plot"){
+  # if(types == "none"){
+  #   gp <- ggplot(data = NULL)
+  # }else if(isFALSE(lineParam[[1]])){
+  #   gp <- ggplot(data = data, aes(...))
+  # }else{
+  #   #if TRUE, than it is for line and bar graph, which require sd computed data
+  #   gp <- ggplot(data = data, aes(...)) + 
+  #     #adding geom_errorbar
+  #     lineParam[[3]]
+  # }
+  # typeFig <- reactive(req(input$plotType, cancelOutput = TRUE))
+  
+  if(types == "box plot"){
     #only for plot that require errorbar
     plt <- gp + 
       stat_boxplot(geom = "errorbar", width = barSize) +
       geom_type
+    
   }else if(types == "histogram"){
     plt <- gp + geom_type + histLine
   }else{
-    #other than boxplot
-    plt <- gp +
-      geom_type
+    #other plot
+    if(isFALSE(lineParam[[1]])){
+      plt <- gp +geom_type 
+      #checking 
+      checkPlt1 <<- plt
+    }else{
+      #if TRUE, than it is for line and bar graph, which require sd computed data
+      plt <- gp + geom_type +
+        #adding geom_errorbar
+        lineParam[[3]]
+      #checking 
+      checkPlt3 <<- gp + geom_type
+      checkPlt2 <<- plt
+    }
   }
-  message(glue::glue("lineParam: {lineParam[[1]]}"))
-  #Add error bar for line and bar graph
-  if(isFALSE(lineParam[[1]])){
-    plt <- plt
-  }else{
-    #if TRUE, than it is for line and bar graph, which require sd computed data
-    plt <- plt + 
-      #adding geom_errorbar
-      lineParam[[3]]
-  }
+  
+  # if(types == "box plot"){
+  #   #only for plot that require errorbar
+  #   plt1 <- gp + 
+  #     stat_boxplot(geom = "errorbar", width = barSize) +
+  #     geom_type
+  # }else if(types == "histogram"){
+  #   plt1 <- gp + geom_type + histLine
+  # }else{
+  #   #other than boxplot
+  #   plt1 <- gp +
+  #     geom_type
+  # }
+  # message(glue::glue("lineParam: {lineParam[[1]]}"))
+  # #Add error bar for line and bar graph
+  # if(isFALSE(lineParam[[1]])){
+  #   plt <- plt1
+  # }else{
+  #   #if TRUE, than it is for line and bar graph, which require sd computed data
+  #   plt <- plt1 +
+  #     #adding geom_errorbar
+  #     lineParam[[3]]
+  # }
   
   #add layer
   if(layer != "none"){
@@ -1530,7 +1570,7 @@ setFig <- function(data,# = "ptable()",
     data <- data
   }else{
     #for line graph
-    if(figType == 'scatter'){
+    if(figType == "scatter plot"){
       data <- data
     }else{
       data <- lineParam[[2]]

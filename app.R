@@ -77,6 +77,7 @@ ui <- fluidPage(
                       </p>
                       
                       <br></br>
+                      
                       <p>
                       This application is developed using <a href="https://www.r-project.org/">R  programming language</a>. Refer the Help section for R packages used in the application.
                       </p>
@@ -277,6 +278,12 @@ ui <- fluidPage(
                                  column(6, uiOutput("UiHistBarColor")),
                                  column(6, uiOutput("UiHistBarFill"))
                                ),
+                               #line size for frequency polygon and line
+                               uiOutput("UiFreqPolySize"),
+                               #control transparency of scatter plot
+                               conditionalPanel(condition = "input.plotType == 'scatter plot'",
+                                            sliderInput(inputId = "scatterAlpha", label = "Transparency", min = 0.1, max = 1, value = 1)
+                                            ),
                                #Ui to select variable to connect the path
                                uiOutput("UiLineConnectPath"),
                                #Ui for scatter plot, jitter the points
@@ -293,10 +300,12 @@ ui <- fluidPage(
                                uiOutput("UilineComputeSd"),
                                #Ui to group by for computing standard deviation 
                                uiOutput("UiLineGroupVar"),
+                               #ui for error bar size
+                               uiOutput("UiErrorBarSize"),
                                #Ui to add color for error bar
                                uiOutput("UiErrorBarColor"),
-                               #line size for frequency polygon and line
-                               uiOutput("UiFreqPolySize"),
+                               #line size for error bar
+                               uiOutput("UiErrorBarLineSize"), 
                                #mean for histogram
                                uiOutput("UiHistMean"),
                                #variables for group mean
@@ -2007,10 +2016,20 @@ server <- function(input, output){
   
   output$UiErrorBarColor <- renderUI({
     if(req(pltType() %in% c("line", "bar plot", "scatter plot")) && req(isTruthy(input$lineErrorBar)) ){
-      selectInput( inputId = "errorBarColor", label = "Error bar color", choices = sort(c("black", "red", "blue", "green")) )
+      selectInput( inputId = "errorBarColor", label = "Error bar color", choices = c("default", sort(c("black", "red", "blue", "green"))), selected = "default")
     }
   })
-  
+  #error bar size
+  observe({
+    req(isTruthy(input$lineErrorBar))
+    output$UiErrorBarSize <- renderUI({
+      if(isTruthy(input$lineErrorBar) && pltType() %in% c("line", "bar plot", "scatter plot")){
+        sliderInput(inputId = "errorBarSize", label = "Error bar size", min = 0.5, max = 5, value = 1)
+      }
+    })
+    
+  })
+
   #variable to update the variable of x-axis
   xVarChoice <- reactive({
     req(refresh_3(), pltType() %in% c("line", "bar plot"), ptable()) 
@@ -2382,7 +2401,7 @@ server <- function(input, output){
   # * color is given higher precedence over other aesthetics
   
   observe({
-    req( pltType() %in% c("scatter plot", "bar plot"), isTruthy(input$lineErrorBar) )
+    req( pltType() %in% c("scatter plot", "bar plot"), isTruthy(input$lineErrorBar), xVar() )
     if( isTruthy(input$lineErrorBar) && !input$colorSet %in% c("none", colnames(xVar())) ){
       
       if(pltType() == "scatter plot"){
@@ -3942,7 +3961,7 @@ server <- function(input, output){
              }else{
                geom_line(aes(group=.data[[connectVar()]]), size = freqPolySize())
              },
-             "scatter plot" = geom_point(position = handleOverplot(), size = freqPolySize()),
+             "scatter plot" = geom_point(position = handleOverplot(), size = freqPolySize(), alpha = req(input$scatterAlpha)),
              "density" = if(isTRUE(trueVarSet())){
                #if user provides additional setting
                if(densityPos() == "default"){
@@ -4219,14 +4238,27 @@ server <- function(input, output){
             ebs <- "ci"
           }
           #geom_errorbar
-          geom_erbar <- switch(figType(),
-                               "line" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
-                                                      width = 0.2, position = position_dodge(0.03), size = freqPolySize(), color = errorBarColor()),
-                               "bar plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
-                                                          width = 0.2, position = position_dodge(width = 0.9), color = errorBarColor()),
-                               "scatter plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
-                                                              width = 0.2, position = position_dodge(width = 0.9), size = freqPolySize(), color = errorBarColor())
-          )
+          if(errorBarColor() == "default"){
+            #default color is appropriate when user provide color aesthetics
+            geom_erbar <- switch(figType(),
+                                 "line" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
+                                                        width = 0.2, position = position_dodge(0.03), size = freqPolySize()),
+                                 "bar plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
+                                                            width = 0.2, position = position_dodge(width = 0.9)),
+                                 "scatter plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
+                                                                width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize))
+            )
+          }else{
+            #not default
+            geom_erbar <- switch(figType(),
+                                 "line" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
+                                                        width = 0.2, position = position_dodge(0.03), size = freqPolySize(), color = errorBarColor()),
+                                 "bar plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
+                                                            width = 0.2, position = position_dodge(width = 0.9), color = errorBarColor()),
+                                 "scatter plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
+                                                                width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize), color = errorBarColor())
+            )
+          }
           
           #end of compute sd
         }else{
@@ -4236,16 +4268,29 @@ server <- function(input, output){
             # #convert the lineGroupVar to factor
             # newData <- newData %>% mutate(across(lineGroupVar(), factor))
             #geom_errorbar
-            geom_erbar <- switch(figType(),
-                                 "line" = geom_errorbar(data = newData, aes(ymin = .data[[ colnm ]] - .data[[ lineGroupVar() ]],
-                                                                            ymax = .data[[ colnm ]] + .data[[ lineGroupVar() ]]),  width = 0.1,
-                                                        position = position_dodge(0.03), size = freqPolySize(), color = errorBarColor()),
-                                 "bar plot" = geom_errorbar(data = newData, aes(ymin = .data[[ colnm ]] - .data[[ lineGroupVar() ]],
-                                                                                ymax = .data[[ colnm ]] + .data[[ lineGroupVar() ]]),  width = 0.2,
-                                                            position = position_dodge(width = 0.9), color = errorBarColor()), #position will always be dodge for error_bar
-                                 "scatter plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - sd, ymax = .data[[colnm]] + sd), 
-                                                                width = 0.2, position = position_dodge(width = 0.9), size = freqPolySize(), color = errorBarColor())
-            )
+            if(errorBarColor() == "default"){
+              geom_erbar <- switch(figType(),
+                                   "line" = geom_errorbar(data = newData, aes(ymin = .data[[ colnm ]] - .data[[ lineGroupVar() ]],
+                                                                              ymax = .data[[ colnm ]] + .data[[ lineGroupVar() ]]),  width = 0.1,
+                                                          position = position_dodge(0.03), size = freqPolySize()),
+                                   "bar plot" = geom_errorbar(data = newData, aes(ymin = .data[[ colnm ]] - .data[[ lineGroupVar() ]],
+                                                                                  ymax = .data[[ colnm ]] + .data[[ lineGroupVar() ]]),  width = 0.2,
+                                                              position = position_dodge(width = 0.9)), #position will always be dodge for error_bar
+                                   "scatter plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - sd, ymax = .data[[colnm]] + sd), 
+                                                                  width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize))
+              )
+            }else{
+              geom_erbar <- switch(figType(),
+                                   "line" = geom_errorbar(data = newData, aes(ymin = .data[[ colnm ]] - .data[[ lineGroupVar() ]],
+                                                                              ymax = .data[[ colnm ]] + .data[[ lineGroupVar() ]]),  width = 0.1,
+                                                          position = position_dodge(0.03), size = freqPolySize(), color = errorBarColor()),
+                                   "bar plot" = geom_errorbar(data = newData, aes(ymin = .data[[ colnm ]] - .data[[ lineGroupVar() ]],
+                                                                                  ymax = .data[[ colnm ]] + .data[[ lineGroupVar() ]]),  width = 0.2,
+                                                              position = position_dodge(width = 0.9), color = errorBarColor()), #position will always be dodge for error_bar
+                                   "scatter plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - sd, ymax = .data[[colnm]] + sd), 
+                                                                  width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize), color = errorBarColor())
+              )
+            }
           }else{
             geom_erbar <- NULL
           }
