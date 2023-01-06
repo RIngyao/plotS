@@ -8,6 +8,7 @@ options(shiny.maxRequestSize = 50*1024^2)
 #                "rstatix", "shiny", "tidyverse", "reactable")
 # lapply(libraries, library, character.only = TRUE)
 # 
+library(effectsize)
 library(vroom)
 library(car)
 library(glue)
@@ -843,8 +844,8 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     #This will be used as summary data and for further analysis
     # testTable$df <<- rename(anovaTable,"DFn" = "Df", "DFd" = "Df_residual") 
     testTable$df <<- anovaTable
-    #effect size
-    effectSize$df <<- effectsize::eta_squared(anova, generalized = TRUE)
+    #effect size: partial eta_squared
+    effectSize$df <<- effectsize::eta_squared(anova, partial = TRUE)
     message(glue::glue("------catVar: {catVar}-------"))
     message(glue::glue("model==========={model}"))
     
@@ -1186,22 +1187,19 @@ generateStatData <- function(data = "ptable()", groupStat = "groupStat()", group
   if(!method %in% c("anova", "kruskal-wallis")){
     
     #add p adjusted value column to the data frame: by default, but user can omit
-    sData2 <- if(isTRUE(pAdjust)){
-       
-      sData1 %>%
+    pAdj <- if(isTRUE(pAdjust)){
+      pAdjustMethod
+    }else{"none"}
+      
+    sData2 <- sData1 %>%
         #add p adjusted value column 
-        adjust_pvalue(method = pAdjustMethod) %>%
+        adjust_pvalue(method = pAdj) %>%
         #add significance to the data frame column: default - p-adjusted value; user can opt for p-value
         add_significance(p.col = "p.adj") %>%
         #determine and add x and y position for labeling significance
         add_xy_position(x = xVar, dodge = 0.8)
-    }else{
-      sData1 %>%
-        #add significance to the data frame column: default - p-adjusted value; user can opt for p-value
-        add_significance(p.col = "p") %>%
-        #determine and add x and y position for labeling significance
-        add_xy_position(x = xVar, dodge = 0.8)
-    }
+    
+    sData2$p.adj <- round(sData2$p.adj, 3)
     
   }#end of stat data for plots other than anova and krukal test
   
@@ -1421,11 +1419,11 @@ plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "g
         message("label inside function22--------")
         if(!methodSt %in% c("anova", "kruskal-wallis")){
           message("not anova------")
-          message(glue::glue("stat4:{methodSt}"))
+          message(glue::glue("stat4.  :{methodSt}"))
           message("statData[[2]]")
           message(str(statData) )
           message(statData)
-          plt <- plt + stat_pvalue_manual(statData[[1]], label = statData[[2]], tip.length = 0.01, remove.bracket = removeBracket, bracket.size = 0.4, bracket.nudge.y = 5, inherit.aes=FALSE)
+          plt <- plt + stat_pvalue_manual(statData[[1]], label = statData[[2]], tip.length = 0.01, remove.bracket = removeBracket, bracket.size = 0.4, step.increase = 0.03, bracket.nudge.y = 0.02, inherit.aes=FALSE, fontface = "bold")  
         }else if(methodSt == "anova"){
           message("Anova stat method 2====")
           #get the details for labeling the plot

@@ -3735,11 +3735,11 @@ server <- function(input, output){
         subCaption <- "Effect size computed using Cohen's d."
       }else if(input$stat == "kruskal-wallis"){
         # subCaption <- "Eta-squared based on the H-statistic used as the measure of effect size. 'conf.low' and 'conf.high' represents lower and upper bound of the effect size confidence interval (95% confidence level)."
-        subCaption <- "Eta-squared based on the H-statistic used as the measure of effect size."
+        subCaption <- "Eta-squared based on the H-statistic (of Kruskal-Wallis test) used as the measure of effect size."
       }else if(input$stat == "wilcoxon.test"){
         subCaption <- "Effect size is computed using z statistic (of Wilcoxon test) and divided by square root of the sample size."
       }else if(input$stat == "anova"){
-        subCaption <- "Eta2 is the Generalized eta squared (Eta2); CI is the confidence interval; CI_low and CI_high are the upper and lower bound."
+        subCaption <- "Eta2 is the partial eta squared (Eta2); CI is the confidence interval; CI_low and CI_high are the upper and lower bound."
       }
       
       if(input$stat != 'none'){
