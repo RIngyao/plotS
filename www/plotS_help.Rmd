@@ -73,6 +73,19 @@ add_header(., sample = "Table 2. Data in table 1 reshaped to long format.", top 
 > Aesthetic options mapped the variables to visual properties - color, shape or line type. It let user customize the visual properties and differentiate between variables. 
 
 
+#### **How was effect size estimated?**
+
+> Effect size is estimated using different methods based on the statistical test applied.
+
+
+> - T-test: cohen's d of rstatix package is used for the test.
+
+> - ANOVA : partial eta squared from effectsize package
+
+> - wilcoxon test: the effect size is measured as `z` statistic, derived from the wilcoxon test, divided by square root of the sample size. It is implemented using rstatix package. 
+
+> - Kruskal-Wallis test: measured as eta squared based on H-statistic derived from the Kruskal-Wallis test. It is given as `eta2[H] = (H - k + 1)/(n - k)`. Where, `k` is the number of groups and `n` is the total number of observations. It is implemented using rstatix package.
+
 
 #### **R packages used for the application**
 
@@ -88,7 +101,7 @@ add_header(., sample = "Table 2. Data in table 1 reshaped to long format.", top 
 
 - other packages:
     - [reactable](https://glin.github.io/reactable/), [flextable](https://cran.r-project.org/web/packages/flextable/index.html),
-    [openxlsx](https://ycphs.github.io/openxlsx/), [readxl](https://readxl.tidyverse.org/), [svglite](https://www.tidyverse.org/blog/2021/02/svglite-2-0-0/), [MASS](https://cran.r-project.org/web/packages/MASS/index.html), [skimr](https://github.com/ropensci/skimr), [coin](https://cran.r-project.org/web/packages/coin/index.html), [DT](https://rstudio.github.io/DT/), [data.table](https://cran.r-project.org/web/packages/data.table/index.html),  [shinydashboard](https://rstudio.github.io/shinydashboard/), [ggpubr](https://cran.r-project.org/web/packages/ggpubr/index.html), [multcompView](https://cran.r-project.org/web/packages/multcompView/index.html), [glue](https://glue.tidyverse.org/), [rlang](https://rlang.r-lib.org/), [car](https://cran.r-project.org/web/packages/car/index.html), [vroom](https://www.tidyverse.org/blog/2019/05/vroom-1-0-0/).
+    [openxlsx](https://ycphs.github.io/openxlsx/), [readxl](https://readxl.tidyverse.org/), [svglite](https://www.tidyverse.org/blog/2021/02/svglite-2-0-0/), [MASS](https://cran.r-project.org/web/packages/MASS/index.html), [skimr](https://github.com/ropensci/skimr), [coin](https://cran.r-project.org/web/packages/coin/index.html), [DT](https://rstudio.github.io/DT/), [data.table](https://cran.r-project.org/web/packages/data.table/index.html),  [shinydashboard](https://rstudio.github.io/shinydashboard/), [ggpubr](https://cran.r-project.org/web/packages/ggpubr/index.html), [multcompView](https://cran.r-project.org/web/packages/multcompView/index.html), [glue](https://glue.tidyverse.org/), [rlang](https://rlang.r-lib.org/), [car](https://cran.r-project.org/web/packages/car/index.html), [vroom](https://www.tidyverse.org/blog/2019/05/vroom-1-0-0/), [effectsize](https://cran.r-project.org/web/packages/effectsize/index.html).
 
 
 

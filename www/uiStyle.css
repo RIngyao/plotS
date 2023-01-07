@@ -21,7 +21,7 @@ body{
       }
       .shiny-notification {
              position:fixed;
-             top: calc(50%);
+             top: calc(25%);
              left: calc(50%);
              color: black;
              font-weight:bold;

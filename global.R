@@ -790,7 +790,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     #global
     testTable$df <<- test %>% as.data.frame()
     #compute effect size
-    effectSize$df <<- cohens_d(data, formula = forml,
+    effectSize$df <<- rstatix::cohens_d(data, formula = forml,
                                ref.group = unlist(ref),
                                comparisons = cmp, 
                                paired = pairedD, var.equal = ttestMethod,

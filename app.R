@@ -4445,34 +4445,39 @@ server <- function(input, output){
           
           #compute statistic only when requested
           statData <- reactive({
+            #show notification
+            computeMsg <- showNotification("Computing.. Please wait.....", duration = NULL, closeButton = FALSE,
+                                           type ="message", id = "computeMsg")
+            on.exit(removeNotification(computeMsg), add = TRUE)
+            
             statData <- generateStatData(data = ptable(), groupStat = groupStat(), groupVar = groupStatVarOption(), method = methodSt(), numericVar = numericVar(),
                                          catVar = catVar(), compRef = compareOrReference(),
                                          ttestMethod = ttestMethod(), paired = pairedData(), 
                                          model = model(), pAdjust = pAdjust(),
                                          pAdjustMethod = pAdjustMethod(), labelSignif = labelSt(), cmpGrpList = cmpGrpList$lists, rfGrpList = rfGrpList$lists,# switchGrpList = switchGrpList$switchs,
                                          xVar = xyAxis()[[1]], anovaType = anovaType(), ssType = ssType())
-            message("stat data in plain")
-            message(statData) #8 and #9 #wil: 7 and 8
-            message(str(statData))
-            #adjust the decimal display of p value
-            if(methodSt() %in% c("t.test", "wilcoxon.test")){
-              
-              # stsignif(statData[,c(8,9)], 1)
-              message(str(statData[[1]]))
-              if(isTRUE(pAdjust())){
-                list(
-                  statData[[1]] %>% mutate(p = round(p, 3), p.adj = round(p.adj, 3)),
-                  statData[[2]]
-                )
-              }else{
-                list(
-                  statData[[1]] %>% mutate(p = round(p, 3)),
-                  statData[[2]]
-                )
-              }
-              
-            }else{ statData }
-            statData
+            # message("stat data in plain")
+            # message(statData) #8 and #9 #wil: 7 and 8
+            # message(str(statData))
+            # #adjust the decimal display of p value
+            # if(methodSt() %in% c("t.test", "wilcoxon.test")){
+            #   
+            #   # stsignif(statData[,c(8,9)], 1)
+            #   message(str(statData[[1]]))
+            #   if(isTRUE(pAdjust())){
+            #     list(
+            #       statData[[1]] %>% mutate(p = round(p, 3), p.adj = round(p.adj, 3)),
+            #       statData[[2]]
+            #     )
+            #   }else{
+            #     list(
+            #       statData[[1]] %>% mutate(p = round(p, 3)),
+            #       statData[[2]]
+            #     )
+            #   }
+            #   
+            # }else{ statData }
+            # statData
           })
           
           statDataStore$df <<- isolate(statData()[[1]])
