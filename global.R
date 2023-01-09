@@ -691,7 +691,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
   if(method %in% c("t.test", "wilcoxon.test")){
     
     message("312wreference")
-    
+    message(glue::glue("referencegr3: {compRef}"))
     ref <- if(compRef == "reference group"){
       
       if(is_empty(rfGrpList)){

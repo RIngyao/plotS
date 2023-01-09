@@ -2825,7 +2825,7 @@ server <- function(input, output){
           selectInput(inputId = "listGroup", label = "Choose 1 variable as reference", choices = c("all",varCR()), multiple = FALSE)
         }else{
           #for unpaired data, 'all' is not applicable
-          selectInput(inputId = "listGroup", label = "Choose 1 variable as reference", choices = c(varCR()), multiple = FALSE)
+          selectInput(inputId = "listGroup", label = "Choose 1 variable as reference", choices = varCR(), multiple = FALSE)
         }
       }
     }
@@ -4112,8 +4112,9 @@ server <- function(input, output){
     })#reactive(ifelse(isTruthy(input$choosePLabel), ifelse(isTRUE(pAdjust), "p.adj", "p"), FALSE)) #if false, no need to add add_significance
     
     compareOrReference <- reactive({
-      if(methodSt() %in% c("t.test", "wilcoxon.test")){ req(input$compareOrReference) }
+      if(methodSt() %in% c("t.test", "wilcoxon.test")){ req(input$compareOrReference) }else{"none"}
     })
+  
     #inside1--------------------------------------
     # pairwiseComparison <- reactive(if(methodSt() != "none") input$pairwiseComparison)
     #line and bar graph error bar
