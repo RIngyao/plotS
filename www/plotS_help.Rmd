@@ -75,16 +75,15 @@ add_header(., sample = "Table 2. Data in table 1 reshaped to long format.", top 
 
 #### **How was effect size estimated?**
 
-> Effect size is estimated using different methods based on the statistical test applied.
+> Effect size is estimated using different methods based on the statistical test applied:
+ 
+> - T-test: cohen's d of rstatix package is used for estimating the effect size.
 
+> - ANOVA : partial eta squared from effectsize package.
 
-> - T-test: cohen's d of rstatix package is used for the test.
+> - Wilcoxon test: the effect size is measured as `z` statistic, derived from the wilcoxon test, divided by square root of the sample size. It is implemented using rstatix package. 
 
-> - ANOVA : partial eta squared from effectsize package
-
-> - wilcoxon test: the effect size is measured as `z` statistic, derived from the wilcoxon test, divided by square root of the sample size. It is implemented using rstatix package. 
-
-> - Kruskal-Wallis test: measured as eta squared based on H-statistic derived from the Kruskal-Wallis test. It is given as `eta2[H] = (H - k + 1)/(n - k)`. Where, `k` is the number of groups and `n` is the total number of observations. It is implemented using rstatix package.
+> - Kruskal-Wallis test: measured as eta squared based on H-statistic derived from the Kruskal-Wallis test. It is given as `eta2[H] = (H - k + 1)/(n - k)`. Where, `k` is the number of groups and `n` is the total number of observations. It is also implemented using rstatix package.
 
 
 #### **R packages used for the application**

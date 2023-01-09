@@ -930,7 +930,7 @@ server <- function(input, output){
       # req(input$headerNumber)
       # browser()
       if(input$replicatePresent == "yes" && req(as.numeric(input$headerNumber)) != 0){
-        message(pInputTable$data)
+        
         data <- pInputTable$data %>% as.data.frame()
         #it is expected that data with replicates will have more than one header
         nh <- as.numeric(input$headerNumber)
@@ -944,7 +944,7 @@ server <- function(input, output){
       
       
       if(input$replicatePresent == "yes"){
-        message(varTable$number)
+        
         selectInput(inputId = "dataVariables", label = "Group/variables", #Number of group/variables
                     choices = c(1:max(varTable$number)), selected = nVar)
       }
@@ -1017,10 +1017,10 @@ server <- function(input, output){
         df_col <- 1:ncol(pInputTable$data)
         # browser()
         replicateIndx <- lapply( 1:as.numeric(input$dataVariables), function(x) as.numeric(eval( str2expression(paste0("input$Variable",x,"R")) )) ) %>% unlist()
-        message(str(replicateIndx))
+        
         #get the index not present in the replicates
         gr_col <- df_col[!df_col %in% replicateIndx]
-        message(str(gr_col))
+        
         selectInput(inputId = "replicateStatGroup", label = "Specify column to group by", choices = c("none", gr_col), multiple = TRUE)
       }
     })
@@ -1059,7 +1059,6 @@ server <- function(input, output){
     req(replicateError())
     output$UiReplicateError <- renderUI({
       message("replicaterrororrrrr")
-      message(replicateError())
       if(isTruthy(input$replicateActionButton) && replicateError() == 1) helpText("Error: cannot convert to numeric. Provide correct header and replicate columns!!", style = "margin-top: 10px; font-size = 12; color:red; font-weight:bold")
     })
   })
@@ -1084,7 +1083,7 @@ server <- function(input, output){
     #main data
     data <- pInputTable$data %>% as.data.frame()
     #keep the columns selected for group by in the beginning
-    message(colnames(data))
+    
     if(req(input$replicateStat) != "none"){
       #if user want mean or median
       
@@ -1094,7 +1093,6 @@ server <- function(input, output){
       }
     }
     
-    message(colnames(data))
     #number of header
     headerNo <- reactive(as.numeric(input$headerNumber))
     #variables id 
@@ -1106,9 +1104,6 @@ server <- function(input, output){
     #count the replicates for each group
     repCount <- lapply(repDetails, length)
     
-    message(repDetails)
-    message(length(unlist(repDetails)))
-    message(length(unique(unlist(repDetails))))
     
     #check error and alert the user:
     # case 1: must have equal replicates for all the group
@@ -1135,7 +1130,7 @@ server <- function(input, output){
     
     #unlist and convert to numeric
     repCol <- repDetails %>% unlist() %>% as.numeric()
-    message(repCol)
+    
     #separate data to replicate and non-replicate [if any (not all data will have variables other than replicates)]
     
     #non-replicate data: 
@@ -1144,7 +1139,7 @@ server <- function(input, output){
     #       case i: group by column is specified, than add length(input$replicateStatGroup) 
     #               to repCol, since the group by variables is being placed in the start column
     #       case ii: group by not specified, than proceed as case 1.
-    message(colnames(data))
+    
     if(req(input$replicateStat) != "none"){
       if(req(input$replicateStatGroup) != "none"){
         noRep_df <- data[, -(repCol + length(input$replicateStatGroup)), drop=FALSE] 
@@ -1155,7 +1150,7 @@ server <- function(input, output){
       noRep_df <- data[, -repCol, drop=FALSE] 
     }
     
-    message(colnames(noRep_df))
+    
     
     #dummy data frame to collect the replicates data after iteration and processing for each variable.
     mergeData <- data.frame()
@@ -1194,8 +1189,7 @@ server <- function(input, output){
       #tidy the computed data.: output will have all the columns and computed stat
       #remove column not necessary 
       rstat2 <- rstat %>% select(!starts_with("Replicate_"))
-      message(colnames(rstat))
-      message(colnames(rstat2))
+      
       if(is_empty(mergeData)){
         mergeData <- rstat2
       }else{
@@ -1206,8 +1200,7 @@ server <- function(input, output){
       
     }
     
-    message(colnames(data))
-    message(colnames(mergeData))
+    
     
     tryCatch({
       #Compute Mean or median:
@@ -1220,17 +1213,14 @@ server <- function(input, output){
           #no group_by
           gb_col <- NULL
         }
-        message(gb_col)
+        
         #get the name of the columns for which to determine mean or median
         other_col <- colnames( mergeData[, 1:which(colnames(mergeData) == "replicates")-1] )
         mm_col <- mergeData %>% select(-all_of(other_col), -replicates) %>% colnames()
-        message(mm_col)
+        
         #determine mean or median for each variables
-        message(nrow(pInputTable_orig$data()))
-        message(colnames(pInputTable_orig$data()))
         mm_list <- lapply(mm_col, getMeanMedian, df = mergeData, stat = req(input$replicateStat), grp = gb_col, varNum = nrow(pInputTable_orig$data()), repNum = length(req(input$Variable1R)))
-        message(mm_list)
-        message(str(mm_list))
+        
         #convert to data frame
         mm_df <- mm_list %>% as.data.frame.list()
         if(!is_empty(gb_col)){
@@ -1241,7 +1231,7 @@ server <- function(input, output){
           #append
           mergeData <- cbind(nr_df_uniq, mm_df)
         }else{
-          message(colnames(mm_df))
+          
           mergeData <- mm_df
         }
       }
@@ -1399,7 +1389,7 @@ server <- function(input, output){
   observe({
     req(reshapeError())
     output$UiReshapeError <- renderUI({
-      message(glue::glue("reshape rror value: {reshapeError()}"))
+      
       if(isTruthy(input$goAction) && req(reshapeError()) == 1 ){
         helpText("Error: failed to reshape the column. Select different columns!",
                  style = "color:red; margin-bottom: 10px; font-weight:bold; font-size:12")
@@ -1514,8 +1504,6 @@ server <- function(input, output){
       }
       #transformed given numeric variable
       message("inside ns and table")
-      message(head(bf_ptable()))
-      
       ns_df <- ns_func(data = bf_ptable(), ns_method = ns_input(), x = cVar, y = nVar)
       message("transofrm done]]]]]]]]]]]]]]]]]")
       ns_df
@@ -1590,7 +1578,7 @@ server <- function(input, output){
       #header name: vector
       message("greater than 0")
       realColN <- colnames(df_nproper) #header name
-      message(realColN)
+      
       if(as.numeric(input$headerNumber) > 1){
         #if user specified more than 1 header, than require more steps to process
         #get the data for the header from the row
@@ -1598,13 +1586,13 @@ server <- function(input, output){
         
         #create one duplicate rows and append real colnames to it
         add_df <- df_nproper[1, ,drop=FALSE]
-        message(head(add_df))
+        
         df_nproper2 <- rbind(add_df, df_nproper)
-        message(head(df_nproper2))
+        
         #start appending
         df_nproper2[1,] <- realColN
         
-        message(head(df_nproper2))
+        
       }else if(as.numeric(input$headerNumber) == 1){
         #for just one header: add the column name as header
         df_nproper2 <- rbind(df_nproper[1,], df_nproper) %>% as.data.frame()
@@ -1633,7 +1621,7 @@ server <- function(input, output){
     req(pInputTable_orig$data(), input$replicatePresent, input$transform)
     
     if(input$replicatePresent == "yes" && !is.null(updated_df())){
-      message(updated_df())
+      
       pInputTable$data <- updated_df()
     }else{
       #original input table
@@ -1653,12 +1641,10 @@ server <- function(input, output){
       col_n <- ncol(df_nproper)
       #create empty header name
       names(df_nproper) <- c(rep(" ", col_n))
-      message(colnames(df_nproper))
-      message("done df_nproper")
+      
       #show the new table
       output$pShowTable <- renderDataTable({
         
-        # message(c(eval(str2expression(paste0("input$Group",1:req(input$dataVariables),"R")))))
         if(req(input$headerNumber) != 0){
           #i
           datatable(
@@ -1724,7 +1710,7 @@ server <- function(input, output){
     
     
     message("enter pshowtra")
-    message(captions)
+    
     #display the table
     output$pShowTransform <- renderDataTable({
       if(!is.null(captions)){
@@ -1789,9 +1775,8 @@ server <- function(input, output){
       var <- selectedVar(data = ptable()) 
     }
     message("x ptable value")
-    message(glue::glue("for x: {head(ptable())}"))
     output$xAxisUi <- renderUI({
-      message(glue::glue("xVar: {var}"))
+      
       if(pltType() != "none") selectInput(inputId = "xAxis", label = "X-axis", choices = colnames(ptable()), selected = var)
     })
     
@@ -1804,7 +1789,7 @@ server <- function(input, output){
     #y-axis
     output$yAxisUi <- renderUI({
       if(req(pltType() %in% xyRequire || isTRUE(needYAxis()))){
-        message(glue::glue("varC: {varC}"))
+        
         selectInput(inputId = "yAxis", label = "Y-axis", choices = colnames(ptable()), selected = varC)
       }
     })
@@ -2763,7 +2748,7 @@ server <- function(input, output){
     if(req(input$stat) == "none" && req(input$dependentVar) == "" && req(input$independentVar) == ""){
       NULL
     }else{
-      message(statDataStore$df)
+      
       statDataStore$df
     }
   })
@@ -3131,7 +3116,7 @@ server <- function(input, output){
       #reset to original
       optList <- list(Table= c("Table 1", ""))
     }
-    # message(optList)
+    
     updateSelectInput(inputId = "statSumDownList", label = NULL, choices = optList)
   })
   #download format:
@@ -3529,8 +3514,7 @@ server <- function(input, output){
           
           #shapiro
           message("shaprio length")
-          message(length(x))
-          message(sampleSize)
+          
           normT <- shapiro.test(x)
           if(normT$p.value <= 0.05 | lvT[1,3] <= 0.05){
             statment1(round(lvT[1,3], digit=3))
@@ -3667,8 +3651,7 @@ server <- function(input, output){
     })
     
     
-    message(testTable$df)
-    message(str(testTable$df))
+    
     #table for stat summary
     output$UiStatSummaryTable <- renderReactable({
       if(input$stat %in% c('t.test', "wilcoxon.test") && unpaired_stopTest() == 'yes'){
@@ -3681,7 +3664,7 @@ server <- function(input, output){
             need(twoAnovaError() == 0, " ")
           )
           
-          message(computeFuncError())
+          
           validate(
             need(computeFuncError() == 0, glue::glue(computeFuncErrorMsg()))
           )
@@ -3759,7 +3742,7 @@ server <- function(input, output){
           validate("")
         }else{
           if(input$stat == "anova" && input$pairedData == "two"){
-            message(computeFuncError())
+            
             validate(
               need(computeFuncError() == 0, glue::glue(computeFuncErrorMsg()))
             )
@@ -3914,7 +3897,7 @@ server <- function(input, output){
     #group for connect the line path
     linC <- reactive({if(figType() == "line") {
       message("ccccccccccccc-------------")
-      message(glue::glue("lineConnectPath: {input$lineConnectPath}---------------------------"))
+      
       req(input$lineConnectPath) }})
     connectVar <- reactive({ifelse(figType() == "line" && linC() == "none", 1, linC())})
     
@@ -3931,7 +3914,7 @@ server <- function(input, output){
     
     #xVar <- ptable() %>% dplyr::select(.data[[input$xAxis]])
     geomTypes <- reactive({
-      # message(glue::glue("connectVar: {connectVar()}"))
+      
       switch(figType(),
              "box plot" = geom_boxplot(width = freqPolySize()),
              "Violine plot" = geom_violin(),
@@ -4026,7 +4009,7 @@ server <- function(input, output){
     histLine <- reactive({
       if(figType() == "histogram"){
         if(xVarType()[1] %in% c("integer", "numeric", "double")){ #if variable is numeric, than mean or group mean
-          message(glue::glue("histMean: {input$histMean}------"))
+          
           if(req(input$histMean) %in% c("mean", "median")){
             geom_vline(aes(xintercept = mean(.data[[xyAxis()[[1]]]])), linetype = histLinetypes(), color = colors(), size = sizes())
           }else if(input$histMean == "group mean"){
@@ -4092,7 +4075,6 @@ server <- function(input, output){
         
       }else if(methodSt() == "anova" && anovaType() == "two"){
         #Two variables for two-way anova
-        message(glue::glue("xVar: {colnames(xVar())} == twoAovVar: {twoAovVar()} == color:{varSet()}"))
         c(colnames(xVar()),twoAovVar())
       }
       
@@ -4121,7 +4103,7 @@ server <- function(input, output){
     )
     choosePLabel <- reactive(ifelse(methodSt() != "none" && isTruthy(input$choosePLabel), input$choosePLabel, "value"))
     labelSt <- reactive({ 
-      message(glue::glue("choosePLabel: {choosePLabel()}"))
+      
       if(choosePLabel() == "p.adj.signif"){
         ifelse(isTRUE(pAdjust()),"p.adj.signif","p.signif")
       }else if(choosePLabel() == "p.adj"){
@@ -4187,9 +4169,6 @@ server <- function(input, output){
               #computing
               message("computed sd--------------")
               
-              message(newData)
-              message(colnames(newData))
-              
               
             }else if( !varSet() %in% c("none", colnames(xVar())) ){
               #if variable for color is present and different from x-axis, no need to check for other aesthetics
@@ -4216,12 +4195,9 @@ server <- function(input, output){
             anovaFigure <- reactive(req(input$anovaFigure))
             
             message("two-anova")
-            message(input$anovaFigure)
+            
             #by default aesthetic will have only one option for two-way anova.
             newData <- sdFunc(x = ptable(), oName = anovaFigure(), yName = colnm, lineGrp = lineConnectPath())
-            message("tow-done2")
-            message(colnames(newData))
-            message(newData)
           }#end of two-way anova
           
           
@@ -4435,12 +4411,7 @@ server <- function(input, output){
       
       tryCatch({
         if(figType() != "none" && methodSt() != "none"){
-          message(glue::glue("method2: {methodSt()}"))
-          message(catVar())
-          message("input$compareOrReference")
-          message(input$compareOrReference)
-          message("againssssss")
-          message(compareOrReference())
+          
           #stat not applicable
           
           #compute statistic only when requested
@@ -4456,28 +4427,7 @@ server <- function(input, output){
                                          model = model(), pAdjust = pAdjust(),
                                          pAdjustMethod = pAdjustMethod(), labelSignif = labelSt(), cmpGrpList = cmpGrpList$lists, rfGrpList = rfGrpList$lists,# switchGrpList = switchGrpList$switchs,
                                          xVar = xyAxis()[[1]], anovaType = anovaType(), ssType = ssType())
-            # message("stat data in plain")
-            # message(statData) #8 and #9 #wil: 7 and 8
-            # message(str(statData))
-            # #adjust the decimal display of p value
-            # if(methodSt() %in% c("t.test", "wilcoxon.test")){
-            #   
-            #   # stsignif(statData[,c(8,9)], 1)
-            #   message(str(statData[[1]]))
-            #   if(isTRUE(pAdjust())){
-            #     list(
-            #       statData[[1]] %>% mutate(p = round(p, 3), p.adj = round(p.adj, 3)),
-            #       statData[[2]]
-            #     )
-            #   }else{
-            #     list(
-            #       statData[[1]] %>% mutate(p = round(p, 3)),
-            #       statData[[2]]
-            #     )
-            #   }
-            #   
-            # }else{ statData }
-            # statData
+            
           })
           
           statDataStore$df <<- isolate(statData()[[1]])
@@ -4674,23 +4624,13 @@ server <- function(input, output){
             }
             #get x- and y-axis if figure is for non-interaction and not present in x-axis
             # 1. it will be a list of two elements
-            message(glue::glue("stop333 anovafigure: {anovaFigure()}, {twoAovVar()}"))
+            
             if(anovaFigure() == twoAovVar()){
               xyAxis <- reactive(list(twoAovVar(), colnames(yVar())))
             }
-            # xyAxis <- reactive({
-            #   if(anovaFigure() == twoAovVar()){
-            #     # list(twoAovVar(), colnames(yVar()))
-            #     list(twoAovVar(), input$yAxis)
-            #   }
-            # })
-            message("stop3334")
-            message(glue::glue("xyoutsied: {xyAxis()}"))
             
             anovaAutoCust <- reactive(ifelse(anovaFigure() != "Interaction", input$anovaAutoCust, "none"))
             anovaColor <- reactive(if(anovaFigure() != "Interaction" && anovaFigure() %in% colnames(ptable())) input$anovaFigure)
-            # data1 <- ptable() %>% mutate(across(.data[[anovaColor()]], factor)) 
-            message(glue::glue("anova:"))#{anovaColor()}"))
             anovaAddColor <- reactive(ifelse(anovaFigure() != "Interaction" && anovaAutoCust() == "customize", input$anovaAddColor, "noneProvided"))
             aovX <-if(anovaFigure() == colnames(xVar())){
               "group1"
@@ -4834,9 +4774,7 @@ server <- function(input, output){
         }else if(dlChoice == "Table 4"){
           write_csv(table4(), file)
         }else if(dlChoice == "Table 5"){
-          message(str(table5())[])
-          message(length(table5()))
-          message(is.data.frame(table5())[])
+          
           #save as worksheet: openxlsx
           #create a workbook
           wb <- openxlsx::createWorkbook()
@@ -4852,8 +4790,6 @@ server <- function(input, output){
               #add proper column name in the final output
               x_df <- as.data.frame(table5()[i])
               x_df[, sheetnames] <- rownames(as.data.frame(table5()[i]))
-              message(colnames(x_df))
-              message(names(sheetnames))
               x_df <- x_df %>% select(.data[[sheetnames]], everything())
               # rownames(x_df) <- NULL
               
@@ -4868,14 +4804,8 @@ server <- function(input, output){
           #save the sheet
           saveWorkbook(wb, file = file, overwrite = TRUE)
           
-          # sink(file)
-          # print(table5())
-          # sink()
         }else if(dlChoice == "Figure 1"){
-          # browser()
-          message(file)
-          # message(str(figure1()))
-          # message(figure1())
+          
           figureDowFunc(fig = figure1(), filename = file, format = tolower(req(input$statSumDownFormat)))
           
         }else if(dlChoice == "Figure 2"){

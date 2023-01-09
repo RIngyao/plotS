@@ -68,7 +68,6 @@ allNumCharVar <- function(checks = "integer", data = "ptable()"){
   
   #get the data types of the column in the data frame
   varClass <- sapply(data, class)
-  message(varClass)
   #filter the df based on the provided data type
   if(checks %in% c("integer", "numeric", "double")){
     var <- data[ varClass %in% c("integer", "numeric", "double") ]
@@ -99,7 +98,6 @@ selectedVar2 <- function(data = "ptable()", check = "character", index = 1){ #in
     ifelse(length(var) >= 2, var[2], var[1])
   }else if( tolower(check) %in% c("numeric", "integer") ){
     #generally require double for y axis
-    message(var)
     ifelse(length(var) >= 2, var[index], var[1])
   }
 }
@@ -206,24 +204,11 @@ ns_func <- function(data, ns_method, x=NULL, y){
     
   }else if(ns_method == "box-cox"){
     #determine model
-    # I have considered only the variable of x-axis while using the model
-    # and ignored other independent variables provided in aesthetics.
-    # Reason: so that I can display both the original and the transformed data 
-    # in the organized table panel.
-    message("run lm")
-    message(y)
-    message(x)
-    models <- lm(formula = formula(eval(str2expression(y)) ~ eval(str2expression(x))), data = data)
-    message("done lm2")
-    message(models)
-    #run boxcox
-    # browser()
-    bc <- MASS::boxcox(models, plotit = FALSE, na.action = NULL)
-    
-    message('get optimal lambda')
+    bc <- with(data, car::boxCox(eval(parse(text = y)) ~ eval(parse(text = x)), plotit = FALSE))
+  
     #optimal lambda value
     opt_lba <- bc$x[which.max(bc$y)]
-    message("transform")
+    message("transformed")
     #transform
     new_df <- data %>% mutate( box_cox = ((.data[[y]]^opt_lba-1)/opt_lba) )
     
@@ -259,7 +244,6 @@ sdFunc <- function(x, oName, yName, lineGrp = NULL){
   if(lineGrp != "none" || is.null(lineGrp)){
     
     if( lineGrp %in% oName || is.null(lineGrp) ){
-      message(glue::glue("oName:{oName}"))
       nDf <- nDf %>% group_by( !!!rlang::syms( oName ) ) %>% 
         #calculate sd, mean and count
         summarise(sd = sd(.data[[yName]], na.rm = TRUE), newCol = mean(.data[[yName]], na.rm=TRUE), count = n())%>%
@@ -296,9 +280,7 @@ sdFunc <- function(x, oName, yName, lineGrp = NULL){
   
   #rename the column
   names(nDf)[ncol(nDf)-3]<- yName #same name as y-axis
-  
-  message(glue::glue("ndf heres: {colnames(nDf)}"))
-  message(nDf)
+  message(glue::glue("ndf heres: colnames(nDf)"))
   return(nDf)
 }
 
@@ -336,11 +318,7 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
     if(!is_empty(y)){
       
       #get the header
-      print(headerNo)
-      message(y[headerNo, ])
       headr <- y[headerNo, ,drop=FALSE] %>% as.data.frame()
-      message(headr)
-      message(colnames(headr))
       #removed the header
       y_headRe <- y[-headerNo, ,drop=FALSE] %>% as.data.frame()
       
@@ -353,7 +331,6 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
         col_n <- ncol(y_headRe)
         
         colnames(y_headRe) <- paste0("variable",1:col_n)
-        message(head(y_headRe))
         
       }else{
         message("header present")
@@ -375,7 +352,6 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
           }else{
             
             #multiple header
-            message(headr[,i])
             if( all(is.na(headr[,i])) ){
               getName[i] <- paste0("Var",i)
             }else if( any(is.na(headr[,i])) ){
@@ -386,21 +362,19 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
               for(i in headerNo){
                 if(all(!is.na(headr[i,]))){
                   
-                  message(headr[i,])
                   #check for one more condition: skip row that starts with ..number in more 
                   # than one column (this are default header added while uploading data)
                   if( any( isTRUE(str_detect(headr[i,], regex("^\\.+[:digit:]"))) ) ){
                     next
                   }else{
-                    message(headr[i,])
                     noNaRow <- headr[i,]
                   }
-                  message(noNaRow)
+                  message("noNaRow")
                 }
               }
               
               if(!is_empty(noNaRow)){
-                message(noNaRow)
+                
                 getName <- noNaRow
               }else{
                 #remove na and get the first element
@@ -418,7 +392,6 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
                 if(any( isTRUE(str_detect(headr[n,], regex("^\\.+[:digit:]"))) ) ){
                   next
                 }else{
-                  message(headr[n,i])
                   #get the first name
                   getName[i] <- headr[n,i] 
                   break #get out of the nested loop
@@ -429,17 +402,14 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
           }
           
         }#end of for loop
-        message(getName)
-        message(str(getName))
+        
         colnames(y_headRe) <- getName
         
       }
-      message(y_headRe)
-      message(colnames(y_headRe))
+      
       #check wether data needs to be converted back to numeric as it should be in the original data provided
       # by the user
       for(i in seq_len(ncol(y_headRe))){
-        message(head(y_headRe[,i]))
         if( any( !str_detect( y_headRe[,i],regex('[:alpha:]')) ) ){
           y_headRe[,i] <- as.numeric(y_headRe[, i])
           
@@ -454,10 +424,6 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
   # it will execute irrespective of stp
   
   #select only the specified columns
-  message(colnames(x))
-  message(colNo)
-  message(str(x))
-  
   x2 <- x[, colNo]
   #remove the header
   x2 <- x2[-c(headerNo),] %>% as.data.frame() # all columns will be present
@@ -484,16 +450,8 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
   
   message("merge done3")
   #Reshape the data: keep replicate row-wise i.e. longer format (pivot_longer())
-  message(colName)
-  message(str(colName))
-  message(colnames(onlyNumeric))
-  message(newDf)
-  message(str(newDf))
-  colnames(newDf)
   newDf2 <- pivot_longer(newDf, cols = colnames(onlyNumeric), names_to = "replicates", values_to = colName)
   message("reshape done inside replicate func")
-  message(colnames(newDf2))
-  message(head(newDf2))
   rownames(newDf2) <- NULL
   
   return(newDf2)
@@ -521,15 +479,12 @@ getMeanMedian <- function(x, df, stat='none', grp = NULL, varNum = NULL, repNum 
     #user provide no column to group by
     
     #add unique id to each sample to be used in group by
-    message(varNum)
-    message(repNum)
     
     df2$newId <- rep(1:varNum, each = repNum)
-    message(df2$newId)
+    
     #group by based on the ID
     if(stat == "mean"){
       gb_df <- df2 %>% group_by(newId) %>% summarise(mean= mean(.data[[x]])) %>% as.data.frame() 
-      message(gb_df)
       
       #proper name for calculated stat
       gb_df[, paste0(x,"_mean")] <- gb_df$mean
@@ -651,10 +606,8 @@ getDataVariable <- function(x, nh = 1, re = 1){
   }
   
   if(re == 1){
-    message(getNumber)
     return(getNumber)
   }else{
-    message(getTable)
     return(getTable)
   }
   
@@ -738,7 +691,6 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
   if(method %in% c("t.test", "wilcoxon.test")){
     
     message("312wreference")
-    message(glue::glue("referencegr3: {compRef}"))
     
     ref <- if(compRef == "reference group"){
       
@@ -747,7 +699,6 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
         NULL
       }else {
         message("reference stage++")
-        message(glue::glue("ref value: {cmpGrpList}"))
         rfGrpList
       }
     }else { NULL }
@@ -770,14 +721,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
   #hard coded: revise
   if(method == "t.test"){
     message("forml=-=--")
-    message(glue::glue("forml13:{forml}"))
-    message(glue::glue("ttestMethod: {isTRUE(ttestMethod)}"))
     message("ttestMethod complete33")
-    message(ref)
-    message(str(ref))
-    message(unlist(ref))
-    # browser()
-    message(pAdjustMethod) 
     test <- rstatix::t_test(data, formula = forml,
            ref.group = unlist(ref), #if(!is.null(cRf[[1]])) .data[[cRf[[1]]]] else NULL,
            comparisons = cmp, p.adjust.method = pAdjustMethod,
@@ -785,8 +729,6 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     )
     
     message("ttest done2 ")
-    message(test)
-    message(str(test))
     #global
     testTable$df <<- test %>% as.data.frame()
     #compute effect size
@@ -800,12 +742,6 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     
   }else if(method == "wilcoxon.test"){
     message("formlw=-=--")
-    message(glue::glue("forml13w:{forml}"))
-    message(str(data))
-    message(colnames(data))
-    message(data)
-    
-    
     message('start')
     test <- rstatix::wilcox_test(data = data, formula = forml,
                 ref.group = unlist(ref), #if(compRef == "none"){NULL}else{if(switchGrpList == 0) NULL else .data[[cmpGrpList]]},
@@ -837,7 +773,6 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     }
     
     anovaTable <- parameters::model_parameters(anova) %>% as.data.frame() 
-    message(glue::glue("anovaTable: {anovaTable}"))
     
     #rename the column. Global data
     message(glue::glue("renaming anova table------"))
@@ -847,7 +782,6 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     #effect size: partial eta_squared
     effectSize$df <<- effectsize::eta_squared(anova, partial = TRUE)
     message(glue::glue("------catVar: {catVar}-------"))
-    message(glue::glue("model==========={model}"))
     
     #conduct post-hoc analysis for one-way and two-way ANOVA
     #one-way anova----------------------------
@@ -882,7 +816,6 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
       
       #left_join with the computed data for mean and labeling positions
       meanLabPos <- left_join(meanLabPos, mcl2, by = c(col))
-      message(glue::glue("meanLabPos col one-way: {colnames(meanLabPos)}"))
       geomTextLabel <- meanLabPos %>% as.data.frame()#use in geom_text
       return(geomTextLabel)
       
@@ -937,8 +870,6 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
           arrange(desc(mean)) %>%
           #placed the groups in the first column
           select(!!!rlang::syms(catVar[2]), everything())
-        
-        message(glue::glue("meanLabPos: {meanLabPos}"))
          
         
         #global save for additive figure for different groups
@@ -946,8 +877,6 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
         postHoc_table$df <<- tukey_df#gloabal: save and display as summary
         aovMeanLabPos <<- meanLabPos #mean table
         aovClt <<- clt #compact letter
-        
-        message(glue::glue("))clt: {clt}"))
         
         #get the compact letter 
         clt_n1 <- as.data.frame.list(clt[[1]]) #group1
@@ -958,19 +887,14 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
         clt_n3$lab <- rownames(clt_n3)
         
         message("unlist")
-        message(glue::glue("unlist:{unlist(catVar[[1]][1])}"))
-        
         #add compact letter to the mean table
         #group1
         x <- catVar[1]
         colJ1 <- "lab"
         names(colJ1) <- x
-        message(glue::glue("colJ1:{colJ1}"))
+        
         meanLabPos_a <- left_join(meanLabPos1, clt_n1, by=colJ1) %>% select(1:5)
         meanLabPos_a <<- dplyr::rename(meanLabPos_a, tk1=Letters)
-        message(glue::glue("nn1: {meanLabPos_a}"))
-        message("non-group1 complete")
-        message(glue::glue("unlist:{unlist(catVar[2])}"))
         
         #group2
         x <- unlist(catVar[2])
@@ -978,13 +902,12 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
         names(colJ2) <- x
         meanLabPos_a2 <- left_join(meanLabPos2, clt_n2, by = colJ2) %>% select(1:5)
         meanLabPos_a2 <<- dplyr::rename(meanLabPos_a2, tk2=Letters)
-        message(glue::glue("nn2: {meanLabPos_a2}"))
+        
         message("non- group2 complete")
         
         #interaction
         meanLabPos_i <- meanLabPos
         meanLabPos_i$tkint <- clt_n3$Letters
-        message(glue::glue("meanLabPos col: {colnames(meanLabPos)}------"))
         geomTextLabel <- meanLabPos_i %>% as.data.frame()
         
         return(geomTextLabel)
@@ -1004,7 +927,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
           arrange(desc(mean)) %>%
           #placed the groups in the first column
           select(!!!rlang::syms(catVar[1]), everything())
-        message(glue::glue("meanLabPos1$tk1: {meanLabPos1$tk1}"))
+        
         #group2
         meanLabPos2 <- data %>% group_by(!!!rlang::syms(catVar[2])) %>% 
           summarise(mean = mean(!!!rlang::syms(numericVar)), quantl = quantile(!!!rlang::syms(numericVar), probs =1, na.rm=TRUE)) %>%
@@ -1012,7 +935,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
           arrange(desc(mean)) %>%
           #placed the groups in the first column
           select(!!!rlang::syms(catVar[2]), everything())
-        message(glue::glue("meanLabPos1$tk2 : {meanLabPos1$tk2}"))
+        
         
         #compare the mean: using base TukeyHSD()
         tukey_df <- TukeyHSD(av) #gloabal: save and display as summary
@@ -1027,7 +950,6 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
         aovMeanLabPos2 <<- meanLabPos2
         aovClt <<- clt #compact letter
         
-        message(glue::glue("))clt: {clt}"))
         #get all the required data for anova figure: interaction, group1, group2
         #add compact letter to the mean table
         clt_n1 <- as.data.frame.list(clt[[1]]) #group1
@@ -1036,17 +958,12 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
         clt_n2$lab <- rownames(clt_n2)
         
         message("unlist")
-        message(glue::glue("unlist:{unlist(catVar[[1]][1])}"))
         #group1: to be used in join
         x <- catVar[1]
         colJ1 <- "lab"
         names(colJ1) <- x
-        message(glue::glue("colJ1:{colJ1}"))
         meanLabPos_a <- left_join(meanLabPos1, clt_n1, by=colJ1) %>% select(1:4)
         meanLabPos_a <<- dplyr::rename(meanLabPos_a, tk1=Letters)
-        message(glue::glue("nn1: {meanLabPos_a}"))
-        message("non-group1 complete")
-        message(glue::glue("unlist:{unlist(catVar[2])}"))
         
         #group2: to be used in join
         x <- catVar[2]
@@ -1054,8 +971,6 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
         names(colJ2) <- x
         meanLabPos_a2 <- left_join(meanLabPos2, clt_n2, by = colJ2) %>% select(1:4)
         meanLabPos_a2 <<- dplyr::rename(meanLabPos_a2, tk2=Letters)
-        message(glue::glue("nn2: {meanLabPos_a2}"))
-        message("non- group2 complete")
         
         #two table will be generated
         # This can be confusing:
@@ -1074,8 +989,6 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     message("Kruskal test on2")
     allMean <- data %>% group_by(!!!rlang::syms(catVar)) %>% 
       summarise(mean = mean(!!!rlang::syms(numericVar)), quantl = quantile(!!!rlang::syms(numericVar), probs =1, na.rm=TRUE)) 
-    
-    message(glue::glue("krusk mean: {allMean}"))
     #do the test
     kstat <- rstatix::kruskal_test(data=data, formula = forml)
     message("entering post hoc kruskal")
@@ -1083,7 +996,6 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     #global
     
     posthoc <- dunn_test(data=data, formula = forml, p.adjust.method = pAdjustMethod, detailed=FALSE)
-    message(glue::glue("krusk posthoc: {posthoc}"))
     #get compact letter
     if(isTRUE(pAdjust)){
       pval <- posthoc$p.adj
@@ -1097,8 +1009,6 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     #effect size
     effectSize$df <- kruskal_effsize(data=data, formula = forml, ci = FALSE) #ci = TRUE is too slow
     message("kruskal post hooooooooooooooooooooooooooooooooooooooooooooooccc")
-    message(str(posthoc))
-    message("kruskal post hooooooooooooooooooooooooooooooooooooooooooooooccc")
     #get compLetter
     names(pval) <- paste(posthoc$group1, posthoc$group2, sep="-")
     mcp <- multcompLetters(pval) %>% as.data.frame.list()
@@ -1110,7 +1020,6 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     
     mcp$group <- rownames(mcp) #give the column name as "group" (similar name with value of toJoin)
     df_final <- left_join(allMean, mcp, by = toJoin) %>% dplyr::select(1:4)
-    message(glue::glue("krusk final: {colnames(df_final)}, {df_final}"))
     return(df_final)
     
   }
@@ -1132,12 +1041,6 @@ generateStatData <- function(data = "ptable()", groupStat = "groupStat()", group
   #convert the x-axis or group_by variable to factor.  
   #converting to factor is necessary for further processing
   message("entering generateStatData()-------------------")
-  message(glue::glue("head of data: {head(data)}"))
-  message(glue::glue("method gsd: {method}"))
-  message(glue::glue("groupStat gsd: {groupStat}"))
-  message(glue::glue("groupVar: {groupVar}"))
-  message(glue::glue("numericVar: {numericVar}"))
-  message(glue::glue("catVar: {catVar}"))
   
   #for anova, every independent variable has to be a factor
   #for other tests, it will depend on the type of computation
@@ -1269,28 +1172,6 @@ plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "g
     }
   }
   
-  # if(types == "box plot"){
-  #   #only for plot that require errorbar
-  #   plt1 <- gp + 
-  #     stat_boxplot(geom = "errorbar", width = barSize) +
-  #     geom_type
-  # }else if(types == "histogram"){
-  #   plt1 <- gp + geom_type + histLine
-  # }else{
-  #   #other than boxplot
-  #   plt1 <- gp +
-  #     geom_type
-  # }
-  # message(glue::glue("lineParam: {lineParam[[1]]}"))
-  # #Add error bar for line and bar graph
-  # if(isFALSE(lineParam[[1]])){
-  #   plt <- plt1
-  # }else{
-  #   #if TRUE, than it is for line and bar graph, which require sd computed data
-  #   plt <- plt1 +
-  #     #adding geom_errorbar
-  #     lineParam[[3]]
-  # }
   
   #add layer
   if(layer != "none"){
@@ -1370,12 +1251,8 @@ plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "g
           plt
         }else if(autoCust == "customize"){
           #this will execute only if the customize option is selected
-          message(glue::glue("colorTxt : {colorTxt}"))
-          message(glue::glue("varSet : {varSet}"))
           #get number of variables
           countVar <- length(unique(data[[varSet]]))
-          # data %>%
-          # dplyr::distinct(.data[[varSet]], .keep_all = F) %>% nrow()
           
           editC <- if(colorTxt == "noneProvided"){
             "not provided" #if no color is provided
@@ -1385,23 +1262,16 @@ plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "g
             inputC <- strsplit(str_trim(gsub(" |,", " ", colorTxt))," +")[[1]]
             #Select only the required number of colors if user provide more than 
             #the required number.
-            message(glue::glue("end of processing color: {inputC}"))
-            message(glue::glue("length of inputC: {length(inputC)}"))
-            message(glue::glue("countVar: {countVar}"))
             
             if(length(inputC) > countVar){
               inputC[1:countVar]
             }else{ inputC }
           }
           
-          message(glue::glue("edit length: {length(editC)}"))
           if(length(editC) < countVar){
             #display the color of the global plot
-            message(glue::glue("editC less number : {editC}"))
-            message(glue::glue("edit length: {length(editC)}"))
             newPlt
           }else if(length(editC) == countVar){
-            message(glue::glue("editC final color: {editC}"))
             #add color to the plot
             if(types %in% c("line", "frequency polygon", "scatter plot")){
               plt <- plt + scale_color_manual(values = tolower(editC))
@@ -1419,10 +1289,7 @@ plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "g
         message("label inside function22--------")
         if(!methodSt %in% c("anova", "kruskal-wallis")){
           message("not anova------")
-          message(glue::glue("stat4.  :{methodSt}"))
-          message("statData[[2]]")
-          message(str(statData) )
-          message(statData)
+          
           plt <- plt + stat_pvalue_manual(statData[[1]], label = statData[[2]], tip.length = 0.01, remove.bracket = removeBracket, bracket.size = 0.4, step.increase = 0.03, bracket.nudge.y = 0.02, inherit.aes=FALSE, fontface = "bold")  
         }else if(methodSt == "anova"){
           message("Anova stat method 2====")
@@ -1430,14 +1297,10 @@ plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "g
           
           textData <- statData[[1]] %>% as.data.frame()
           message("textData===")
-          message(head(textData))
-          message(colnames(textData))
+          
           col <- colnames(textData)
-          message(glue::glue("inner function col: {col}"))
           
           x_name <- col[1]
-          message(glue::glue("inner function x_name: {x_name}"))
-          message(glue::glue("inner function text data: {textData}"))
           
           if(anovaType == "one"){
             y_name <- col[3]
@@ -1466,15 +1329,12 @@ plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "g
           #end of anova
         }else if(methodSt == "kruskal-wallis"){
           message("entering Kruskal test=00000000")
-          message(glue::glue("data: {statData[[1]]}"))
           textData <- statData[[1]] %>% as.data.frame()
           col <- colnames(textData)
           
           x_name <- col[1]
           y_name <- col[3]
           letr <- col[4]
-          message(glue::glue("inner function x_name: {x_name}"))
-          message(glue::glue("inner function text data: {textData}"))
           #plot krukal test
           plt <- plt + coord_cartesian(clip="off") + geom_text(data=textData, aes(x=eval(str2expression(x_name)), y = eval(str2expression(y_name)),
                                                     label = eval(str2expression(letr))), position= position_dodge2(0.9), size = 7, vjust=-0.25, na.rm = TRUE)
@@ -1579,10 +1439,8 @@ setFig <- function(data,# = "ptable()",
   #this conversion will take place only for certain figType(), not for all
   if(figType %in% c(  "box plot","Violine plot", "line")){
     message("-------------1. Reminder: check the factor of x and y axis---------------------")
-    # data <- as.data.frame(data)
-    message(glue::glue("xy1[1:{xy}"))
     data[[xy[[1]]]] <- as.factor(data[[xy[[1]]]])
-  }else{ #if(figType %in% c("line", "scatter plot")){
+  }else{
     message("-------------2. Reminder: check the factor of x and y axis---------------------")
     data
   }
