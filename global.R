@@ -29,7 +29,7 @@ library(rstatix)
 library(shiny)
 library(tidyverse)
 library(reactable)
-
+library(shinyWidgets)
 #May use later
 # library(GenomicRanges)
 # library(bslib)
@@ -41,7 +41,7 @@ library(reactable)
 
 #Objects necesary to create---------------
 #plot that require x and y-axis
-xyRequire <- c(  "box plot", "bar plot", "line", "scatter plot", "Violine plot") 
+xyRequire <- c(  "box plot", "bar plot", "line", "scatter plot", "violin plot") 
 NS_methods <- list(Normalization= c("log2", "log10", "square-root", "box-cox"), Standardization = c("scale","") )
 
 #stat object
@@ -666,7 +666,7 @@ computeFuncErrorMsg <- reactiveVal(NULL)
 "
 
 computFunc <- function(data = "data", method = "none", numericVar = "numericVar()",
-                       catVar = "catVar()", compRef = "compareOrReference()",
+                       catVar = "catVar()", compRef = "none",
                        pairedD = "pairedData", anovaType = "anovaType()", 
                        ttestMethod = FALSE, ssType="ssType()", 
                        model = "model", cmpGrpList = NULL, rfGrpList=NULL,
@@ -714,16 +714,14 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     }else { NULL }
     
     message("after compRef=================")
-    message("hwlOOOOOOO1")
     message(glue::glue("compRef: {cmp}, {ref}"))
-    message("hwlOOOOOOO")
   }
   #hard coded: revise
   if(method == "t.test"){
     message("forml=-=--")
     message("ttestMethod complete33")
     test <- rstatix::t_test(data, formula = forml,
-           ref.group = unlist(ref), #if(!is.null(cRf[[1]])) .data[[cRf[[1]]]] else NULL,
+           ref.group = unlist(ref), 
            comparisons = cmp, p.adjust.method = pAdjustMethod,
            paired = pairedD, var.equal = ttestMethod #welch's =FALSE, or student's test = TRUE
     )
@@ -1031,7 +1029,7 @@ message("End of computFunc()------------")
 #anova need more setting
 generateStatData <- function(data = "ptable()", groupStat = "groupStat()", groupVar = "groupStatVarOption()",
                              method = "none", numericVar = "numericVar()",
-                             catVar = "catVar()", compRef = "compareOrReference()",
+                             catVar = "catVar()", compRef = "none",
                              pairedD = "pairedData", pAdjust = TRUE, 
                              ttestMethod=FALSE, #welch or student's test
                              model = "model", #model of anova
@@ -1175,7 +1173,7 @@ plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "g
   
   #add layer
   if(layer != "none"){
-    cal <- ifelse(types %in% c(  "box plot", "Violine plot"), "median", "mean")
+    cal <- ifelse(types %in% c(  "box plot", "violin plot"), "median", "mean")
     plt <- switch(layer,
                   "line" = plt + stat_summary(fun = cal, geom = 'line', aes(group = 1), size = layerSize),
                   "smooth" = plt + geom_smooth(size = layerSize),
@@ -1229,11 +1227,16 @@ plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "g
            statData,#= "statData",
            anovaType,
            aovX=aovX,#This is require for two-way anova
-           xTextLabel #label of x-axis
+           xTextLabel, #label of x-axis
+           ylim=FALSE
   ){ #="anovaType" 
     #no need to provide function parameters for basic plot: the default will be used
     message("inner function")
-    # browser()
+    #set lower limit of y axis
+    if(isTRUE(ylim)){
+      plt <- plt + ylim(0, NA)
+    }
+    
     if(isFALSE(advance)){
       #basic plot: default
       message("display basic")
@@ -1290,7 +1293,7 @@ plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "g
         if(!methodSt %in% c("anova", "kruskal-wallis")){
           message("not anova------")
           
-          plt <- plt + stat_pvalue_manual(statData[[1]], label = statData[[2]], tip.length = 0.01, remove.bracket = removeBracket, bracket.size = 0.4, step.increase = 0.03, bracket.nudge.y = 0.02, inherit.aes=FALSE, fontface = "bold")  
+          plt <- plt + stat_pvalue_manual(statData[[1]], label = statData[[2]], tip.length = 0.01, remove.bracket = removeBracket, bracket.size = 0.4, step.increase = 0.1, bracket.nudge.y = 0.01, inherit.aes=FALSE, fontface = "bold") 
         }else if(methodSt == "anova"){
           message("Anova stat method 2====")
           #get the details for labeling the plot
@@ -1421,6 +1424,7 @@ setFig <- function(data,# = "ptable()",
                    layer = "none",
                    layerSize = layerSize,
                    xTextLabel = NULL, 
+                   ylim=FALSE,
                    ...){ #dis is for applying the advance option: TRUE for apply and FALSE for don't apply
   #data need to be changed based on the type of plots
   if(isFALSE(lineParam[[1]])){
@@ -1428,7 +1432,7 @@ setFig <- function(data,# = "ptable()",
     data <- data
   }else{
     #for line graph
-    if(figType == "scatter plot"){
+    if(figType %in% c("scatter plot", "violin plot")){
       data <- data
     }else{
       data <- lineParam[[2]]
@@ -1437,7 +1441,7 @@ setFig <- function(data,# = "ptable()",
   }
   #convert the x-axis into factor: this is necessary especially if user provide numerical variables for x-axis
   #this conversion will take place only for certain figType(), not for all
-  if(figType %in% c(  "box plot","Violine plot", "line")){
+  if(figType %in% c(  "box plot","violin plot", "line")){
     message("-------------1. Reminder: check the factor of x and y axis---------------------")
     data[[xy[[1]]]] <- as.factor(data[[xy[[1]]]])
   }else{
@@ -1447,7 +1451,7 @@ setFig <- function(data,# = "ptable()",
  
   #first plot the type of figure: geom_
   #Here, i've added the aethetic of shape and line type: For color it will be implemented later
-  #hard coded
+  #hard coded: rewrite (lazy evaluation)
   if(shapeLine == "Shape"){
     if(!is.null(xy[[1]]) && !is.null(xy[[2]])){
       #plots with x- and y-axis
@@ -1550,7 +1554,7 @@ setFig <- function(data,# = "ptable()",
   if(isFALSE(dis)){
     #basic plot
     pltSet(advance = dis, 
-           xTextLabel= xTextLabel)+ #addThemes
+           xTextLabel= xTextLabel, ylim = ylim)+ #addThemes
       axisLabs(x =xyLable[[1]], y = xyLable[[2]])+
       themeF(thme = themes)+
       otherTheme
@@ -1566,7 +1570,8 @@ setFig <- function(data,# = "ptable()",
            statData = statData,
            anovaType = anovaType, 
            aovX=aovX,
-           xTextLabel=xTextLabel)+ 
+           xTextLabel=xTextLabel,
+           ylim=ylim)+ 
       #addThemes
       axisLabs(x =xyLable[[1]], y = xyLable[[2]])+
       themeF(thme = themes)+

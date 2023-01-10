@@ -191,6 +191,7 @@ body{
       /*Graph*/
       .figureMainPanel{
       margin:auto;
+      max-width: 820px;
       /*color:#F4F4F4;*/
       }
       
@@ -199,8 +200,8 @@ body{
       }
       .figurePlotBox, .figureTheme{
       max-width: 800px;
-      margin-left:10%;
-      margin-right:10%;
+      /*margin-left:10%;
+      margin-right:10%;*/
       padding:auto;
       text-color:black;
       }
@@ -305,4 +306,12 @@ body{
       margin-left:5%;
       margin-right:5%;
       background-color:transparent;
+      }
+      
+      .miscDiv{
+      background:rgba(206,247,250, 0.2);
+      font-size:14px;
+      }
+      #Ylimit, #UiRemoveBracket, #UiStripBackground{
+      text-align: center;
       }

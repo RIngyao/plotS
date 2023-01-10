@@ -290,20 +290,29 @@ ui <- fluidPage(
                                uiOutput("UiJitter"),
                                #Ui to add error bar for line type
                                uiOutput("UiLineErrorBar"),
-                               #ui to compute for error bar
-                               uiOutput("UiErrorBarStat"),
-                               #ui message for confidence interval
-                               uiOutput("UiCIMsg"),
-                               #ui to display error for sd
-                               uiOutput("UiSdError"),
-                               #Ui to compute or specify the computed sd
-                               uiOutput("UilineComputeSd"),
-                               #Ui to group by for computing standard deviation 
-                               uiOutput("UiLineGroupVar"),
-                               #ui for error bar size
-                               uiOutput("UiErrorBarSize"),
-                               #Ui to add color for error bar
-                               uiOutput("UiErrorBarColor"),
+                               #parameters for error bar
+                               conditionalPanel(condition = "input.lineErrorBar",
+                                                div(
+                                                  style= "border-top:dotted 1px; border-bottom:dotted 1px; margin-bottom:20px; margin-right:0; 
+                                                      background-image:linear-gradient(rgba(206,247,250, 0.3), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5))",
+                                                  
+                                                  #ui to compute for error bar
+                                                  uiOutput("UiErrorBarStat"),
+                                                  #ui message for confidence interval
+                                                  uiOutput("UiCIMsg"),
+                                                  #ui to display error for sd
+                                                  uiOutput("UiSdError"),
+                                                  #Ui to compute or specify the computed sd
+                                                  uiOutput("UilineComputeSd"),
+                                                  #Ui to group by for computing standard deviation 
+                                                  uiOutput("UiLineGroupVar"),
+                                                  #ui for error bar size
+                                                  uiOutput("UiErrorBarSize"),
+                                                  #Ui to add color for error bar
+                                                  uiOutput("UiErrorBarColor")
+                                                )
+                               ),
+                               
                                #line size for error bar
                                uiOutput("UiErrorBarLineSize"), 
                                #mean for histogram
@@ -586,12 +595,30 @@ ui <- fluidPage(
                             #font size
                             column(3,uiOutput("UiLegendSize"))
                           ),
-                          #title switch
-                          fluidRow(
-                            uiOutput("UiRemoveBracket"),
-                            uiOutput("UiStripBackground")
-                            # column(3, uiOutput("UiRemoveBracket")),
-                            # column(4, uiOutput("UiStripBackground"))
+                          #Miscellaneous setting for graph
+                          conditionalPanel(condition = "input.plotType != 'none'",
+                                           dropdownButton(
+                                             inputId = "miscGraphSet",
+                                             label = "Misc setting",
+                                             icon = icon("sliders"),
+                                             size="sm",
+                                             up=TRUE,
+                                             margin = '5px',
+                                             status = "primary",
+                                             circle = FALSE,
+                                             tooltip = tooltipOptions(title = "Click"),
+                                             div(
+                                               class = "miscDiv",
+                                               {lch <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
+                                                            tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
+                                               
+                                               radioButtons(inputId = "Ylimit", label = "Set lower limit of y-axis to 0?",
+                                                            choiceNames = lch, choiceValues = c("no", "yes"), inline = TRUE)},
+                                               
+                                               uiOutput("UiRemoveBracket"),
+                                               uiOutput("UiStripBackground")
+                                             )
+                                           )
                           )
                         )#end for legend
                       ) %>% tagAppendAttributes(class="figureTheme")#end figure box
@@ -1726,7 +1753,7 @@ server <- function(input, output){
   planPlotList <- c("none",   "box plot","bar plot", "histogram", "scatter plot",
                     "density plot", "heatmap", "line", "frequency polygon",
                     "violin","jitter","area", "pie chart", "venn", "upset", "tile")
-  plotList <- c(  "box plot","Violine plot", "density", "frequency polygon", "histogram","line", "scatter plot", "bar plot")
+  plotList <- c(  "box plot","violin plot", "density", "frequency polygon", "histogram","line", "scatter plot", "bar plot")
   
   output$UiPlotType <- renderUI({
     req(refresh_1())
@@ -1753,7 +1780,7 @@ server <- function(input, output){
  
   #set x- and/or y-axis-----------------------
   #plot that require x and y-axis
-  # xyRequire <- c(  "box plot", "Violine plot", "bar plot", "line", "scatter plot") 
+  # xyRequire <- c(  "box plot", "violin plot", "bar plot", "line", "scatter plot") 
   
   #get x- and/or y-axis based on the type of plot
   needYAxis <-reactive({
@@ -1849,7 +1876,7 @@ server <- function(input, output){
     
     output$uiXAxisTextLabel <- renderUI({
       if( req(input$plotType) != "none" ){
-        textAreaInput(inputId = "xTextLabel", label = glue::glue("Change name of x-axis (enter {nVar} names):"), placeholder = "Comma or space separated",  height = "35px", width = "650px")
+        textAreaInput(inputId = "xTextLabel", label = glue::glue("Change variable name of x-axis (enter {nVar} names):"), placeholder = "Comma or space separated",  height = "35px", width = "650px")
       }
     })
   })
@@ -1919,16 +1946,16 @@ server <- function(input, output){
   #add error bar
   output$UiLineErrorBar <- renderUI({
     req(refresh_3(), pltType() != "none")
-    if(pltType() %in% c("line", "bar plot", "scatter plot") && (isTruthy(xVar())|| isTruthy(yVar())) ) checkboxInput(inputId = "lineErrorBar", label = tags$span("Add error bar", style = "color:#b30000; font-weight:bold; background:#f7f3f3"))
+    if(pltType() %in% c("line", "bar plot", "scatter plot", "violin plot") && (isTruthy(xVar())|| isTruthy(yVar())) ) checkboxInput(inputId = "lineErrorBar", label = tags$span("Add error bar", style = "color:#b30000; font-weight:bold; background:#f7f3f3"))
   })
   
   observe({
     req(is.data.frame(ptable()), isTruthy(input$lineErrorBar))
     
     output$UiErrorBarStat <- renderUI({
-      if(is.data.frame(ptable()) && pltType() %in% c("line", "bar plot", "scatter plot") && isTruthy(input$lineErrorBar)){
+      if(is.data.frame(ptable()) && pltType() %in% c("line", "bar plot", "scatter plot", "violin plot") && isTruthy(input$lineErrorBar)){
         li <- list(`Inferential error bar` = c("Confidence interval (CI)","Standard error (SE)"), `Descriptive error bar` = c("Standard deviation (SD)", ""))
-        selectInput(inputId = "errorBarStat", label = "Calculate", choices = li, selected = "Standard error")
+        selectInput(inputId = "errorBarStat", label = "Error bar type", choices = li, selected = "Standard error")
       }
     })
     
@@ -1937,7 +1964,7 @@ server <- function(input, output){
   observe({
     req(input$errorBarStat)
     output$UiCIMsg <- renderUI({
-      if(isTruthy(input$lineErrorBar) && pltType() %in% c("line", "bar plot", "scatter plot") && input$errorBarStat == "Confidence interval (CI)"){
+      if(isTruthy(input$lineErrorBar) && pltType() %in% c("line", "bar plot", "scatter plot", "violin plot") && input$errorBarStat == "Confidence interval (CI)"){
         helpText("At 95% confidence level", style = "text-align:center; margin-top:0;")
       }
     })
@@ -1948,16 +1975,16 @@ server <- function(input, output){
   #Option for the user to used computed sd or to compute sd
   output$UilineComputeSd <- renderUI({
     req(refresh_3(), pltType() != "none", input$errorBarStat)
-    if(pltType() %in% c("line", "bar plot", "scatter plot") & req(isTruthy(input$lineErrorBar))){
+    if(pltType() %in% c("line", "bar plot", "scatter plot", "violin plot") & req(isTruthy(input$lineErrorBar))){
       choic <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
                     tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
       
       if(input$errorBarStat == "Standard error"){
-        radioButtons(inputId = "lineComputeSd", label = "Calculate SE?", choiceNames = choic, choiceValues = c("no","yes"), selected = "no", inline = TRUE)
+        radioButtons(inputId = "lineComputeSd", label = "Auto compute SE?", choiceNames = choic, choiceValues = c("no","yes"), selected = "no", inline = TRUE)
       }else if(input$errorBarStat == 'Standard deviation'){
-        radioButtons(inputId = "lineComputeSd", label = "Calculate SD?", choiceNames = choic, choiceValues = c("no","yes"), selected = "no", inline = TRUE)
+        radioButtons(inputId = "lineComputeSd", label = "Auto compute SD?", choiceNames = choic, choiceValues = c("no","yes"), selected = "no", inline = TRUE)
       }else{
-        radioButtons(inputId = "lineComputeSd", label = "Calculate CI?", choiceNames = choic, choiceValues = c("no","yes"), selected = "no", inline = TRUE)
+        radioButtons(inputId = "lineComputeSd", label = "Auto compute CI?", choiceNames = choic, choiceValues = c("no","yes"), selected = "no", inline = TRUE)
       }
       
     }
@@ -1976,7 +2003,7 @@ server <- function(input, output){
   #compute by grouping variables
   output$UiLineGroupVar <- renderUI({
     req(refresh_3())
-    req(ptable(), pltType() %in% c("line", "bar plot", "scatter plot"), isTruthy(input$lineErrorBar), input$lineComputeSd)
+    req(ptable(), pltType() %in% c("line", "bar plot", "scatter plot", "violin plot"), isTruthy(input$lineErrorBar), input$lineComputeSd)
     
     col <- ptable()[colnames(ptable()) != colnames(yVar())]
     if(input$lineComputeSd == "no"){
@@ -2000,7 +2027,7 @@ server <- function(input, output){
   #color option for error bar
   
   output$UiErrorBarColor <- renderUI({
-    if(req(pltType() %in% c("line", "bar plot", "scatter plot")) && req(isTruthy(input$lineErrorBar)) ){
+    if(req(pltType() %in% c("line", "bar plot", "scatter plot", "violin plot")) && req(isTruthy(input$lineErrorBar)) ){
       selectInput( inputId = "errorBarColor", label = "Error bar color", choices = c("default", sort(c("black", "red", "blue", "green"))), selected = "default")
     }
   })
@@ -2008,8 +2035,8 @@ server <- function(input, output){
   observe({
     req(isTruthy(input$lineErrorBar))
     output$UiErrorBarSize <- renderUI({
-      if(isTruthy(input$lineErrorBar) && pltType() %in% c("line", "bar plot", "scatter plot")){
-        sliderInput(inputId = "errorBarSize", label = "Error bar size", min = 0.5, max = 5, value = 1)
+      if(isTruthy(input$lineErrorBar) && pltType() %in% c("line", "bar plot", "scatter plot", "violin plot")){
+        sliderInput(inputId = "errorBarSize", label = "Error bar size", min = 0.1, max = 5, value = 1)
       }
     })
     
@@ -2122,13 +2149,13 @@ server <- function(input, output){
         min <- 0.1
         max <- 10
         value <- 1
-      }else if(pltType() %in% c("bar plot",   "box plot")){
+      }else if(pltType() %in% c("bar plot",   "box plot", "violin plot")){
         lab <- ifelse(pltType() == 'bar plot', 'Bar width', "Box width")
         min <- 0.001
-        max <- 1
+        max <- 2
         value <- 0.90
       }
-      if(!pltType() %in% c("none", "histogram", "Violine plot") && (isTruthy(xVar())|| isTruthy(yVar())) ) sliderInput(inputId = "freqPolySize", label = lab,
+      if(!pltType() %in% c("none", "histogram") && (isTruthy(xVar())|| isTruthy(yVar())) ) sliderInput(inputId = "freqPolySize", label = lab,
                                                                                                                        value = value, min = min, max = max)
     })
     
@@ -2265,7 +2292,7 @@ server <- function(input, output){
     
     else{
       #generic
-      if(pltType() %in% c(  "box plot","Violine plot", "line", "scatter plot", "bar plot")){
+      if(pltType() %in% c("box plot","violin plot", "line", "scatter plot", "bar plot")){
         req(yVar())
         #remove variable of y-axis from the list
         allVar[allVar != colnames(req(yVar()))]
@@ -2327,7 +2354,7 @@ server <- function(input, output){
     if(req(pltType()) %in% c("scatter plot")){
       # list(tags$span("Shape", style = "font-weight:bold; color:#0099e6"))
       c("Shape")
-    }else if(req(pltType()) %in% c(  "box plot","Violine plot", "bar plot", "histogram", "frequency polygon", "line", "density")){
+    }else if(req(pltType()) %in% c(  "box plot","violin plot", "bar plot", "histogram", "frequency polygon", "line", "density")){
       #remove shape for histogram, frequency polygon, line
       c("Line type")
     }else{
@@ -2422,7 +2449,7 @@ server <- function(input, output){
   observe({
     req(is.data.frame(ptable()), pltType() != "none", xVar(), !input$stat %in% c("none", "anova"))
     output$UiRemoveBracket <- renderUI({
-      if(!input$stat %in% c("none", "anova", "kruskal-wallis")) checkboxInput(inputId = "removeBracket", label = span("Remove bracket", style = "font-weight:bold; color:cornflowerblue"))
+      if(!input$stat %in% c("none", "anova", "kruskal-wallis")) checkboxInput(inputId = "removeBracket", label = span("Remove bracket (p label)", style = "font-weight:bold; color:cornflowerblue"))
     })
   })
   
@@ -2776,29 +2803,19 @@ server <- function(input, output){
       choiceList <- list(tags$span("value", style = "font-weight:bold; color:#0099e6"), tags$span("symbol", style = "font-weight:bold; color:#0099e6"))
       radioButtons(inputId = "choosePLabel", label = "Choose p label format", choiceNames = choiceList, choiceValues = c("p.adj","p.adj.signif"),
                    selected = "p.adj", inline = TRUE)
-      # checkboxGroupButtons(inputId = "choosePLabel", label = "Choose p label format", choiceNames = choiceList, choiceValues = c("p.adj","p.adj.signif"),
-      #                      selected = "value", size = "sm", status = "primary", individual =TRUE)
-      # selectInput(inputId = "chooseLabel", label = "Choose label format", choices = c("symbol","value"))
     }
   })
   
   #t-test parameters----------------------------------------
   #compute t-test by comparisons or reference group 
   observe({
-    req(refresh_2(), input$stat != "none")
-    
+    req(input$stat %in% c("t.test", "wilcoxon.test"))
     output$UiCompareOrReference <- renderUI({
       if(input$stat %in% c("t.test", "wilcoxon.test")){
         selectInput(inputId = "compareOrReference", label = "Compare or add reference", choices = c("none","comparison", "reference group"), selected = "none")
       }
     })
     
-  })
-  
-  #compute stat without comparisons for t test
-  output$UiNoCompareTTest <- renderUI({
-    req(refresh_2())
-    if(req(input$stat == "t.test", input$compareOrReference == "none")) selectInput(inputId = "TtestGroupBy", label = "Group by", choices = c("none",input$xAxis))
   })
   
   #empty list to collect groups from user for comparison: require to preceed the below command
@@ -2810,7 +2827,6 @@ server <- function(input, output){
     
     if(input$compareOrReference != "none"){
       #get the variables to be compare or reference
-      # req(ptable(), input$xAxis)
       varCR <-reactive(unique(ptable()[[input$xAxis]]))
       checkList <- reactive({ 
         #emptied the list every time user choose comparison or reference
@@ -2833,7 +2849,6 @@ server <- function(input, output){
   
   #add group action
   output$UiAddGroupAction <- renderUI({
-    # req(input$listGroup, input$compareOrReference != "none")
     req(refresh_2(), ptable(), input$stat %in% c("t.test","wilcoxon.test"), input$compareOrReference != "none")
     if(input$stat %in% c("t.test","wilcoxon.test") && input$compareOrReference != "none") actionButton(inputId = "addGroupAction", label = span("Add", style = "color:white; font-weight:bold"), class = "btn-success", width = '100%')
   })
@@ -2847,8 +2862,6 @@ server <- function(input, output){
   givenGrp <- reactive(req(input$listGroup))
   
   
-  
-  #stop here compRef----------------------------------
   #object to collect and save the list of groups provided by the user
   cmpGrpList <- reactiveValues(lists = NULL) #list for comparison
   rfGrpList <- reactiveValues(lists = NULL) #list for reference group
@@ -2882,7 +2895,6 @@ server <- function(input, output){
   #Reset the list to null when user switch between "none", "comparison" and "reference group"
   observe({
     req(!is_empty(cmpGrpList$lists) | !is_empty(rfGrpList$lists))
-    message("-------not empty--------------")
     if(!is_empty(cmpGrpList$lists) && input$compareOrReference != "comparison"){
       #Comparison list is not null and user has switch to "none" or "reference group", then
       # reset the list for comparison to null
@@ -2911,7 +2923,6 @@ server <- function(input, output){
   output$UiShowListGroup <- renderUI({
     req(refresh_2(), ptable(), input$stat %in% c("t.test","wilcoxon.test"), input$compareOrReference != "none", input$addGroupAction)
     verbatimTextOutput("showListGroup", placeholder = TRUE)
-    # textOutput("showListGroup") #not ideal for this case
   })
   
   output$showListGroup <- renderText({
@@ -3030,7 +3041,7 @@ server <- function(input, output){
   output$UiLayer <- renderUI({
     req(refresh_2(), pltType())
     #it require both x and y-axis
-    reqPlot <- c("none",  "box plot","line", "scatter plot", "Violine plot")
+    reqPlot <- c("none",  "box plot","line", "scatter plot", "violin plot")
     layerChoice <- c("line", "smooth", "point", "jitter")
     # if(pltType() %in% reqPlot || (pltType() == "histogram" & isTRUE(xyAxisReady()))){
     if(pltType() %in% reqPlot || isTRUE(needYAxis())){
@@ -3849,8 +3860,9 @@ server <- function(input, output){
       }
     })
     
+    #ylim
+    ylimit <- reactive(ifelse(input$Ylimit == "yes", TRUE, FALSE))
     #for color setting
-    # autoCust <- reactive(if(varSet() != "none") input$autoCustome)
     autoCust <- reactive(ifelse(varSet() != "none", input$autoCustome, "none"))
     colorTxt <- reactive(ifelse(autoCust() == "customize", input$colorAdd, "noneProvided"))
     #for shape and line
@@ -3917,7 +3929,7 @@ server <- function(input, output){
       
       switch(figType(),
              "box plot" = geom_boxplot(width = freqPolySize()),
-             "Violine plot" = geom_violin(),
+             "violin plot" = geom_violin(width = freqPolySize()),
              "histogram" = if(xVarType()[1] == "character"){ 
                #Discrete variable
                if(varSet() == "none"){
@@ -4038,7 +4050,7 @@ server <- function(input, output){
     #parameters for computing statistics
     #dependent variable
     numericVar <- reactive({
-      if(figType() %in% c(  "box plot","Violine plot", "bar plot","line", "scatter plot")){
+      if(figType() %in% c(  "box plot","violin plot", "bar plot","line", "scatter plot")){
         if(methodSt() != "none") xyAxis()[2]
       }else if(figType() %in% c("histogram")){
         #for histogram, it will depend upon the data used for ploting
@@ -4112,17 +4124,14 @@ server <- function(input, output){
     })#reactive(ifelse(isTruthy(input$choosePLabel), ifelse(isTRUE(pAdjust), "p.adj", "p"), FALSE)) #if false, no need to add add_significance
     
     compareOrReference <- reactive({
-      if(methodSt() %in% c("t.test", "wilcoxon.test")){ req(input$compareOrReference) }else{"none"}
+      if(methodSt() %in% c("t.test", "wilcoxon.test")){ req(input$compareOrReference) }
     })
   
-    #inside1--------------------------------------
-    # pairwiseComparison <- reactive(if(methodSt() != "none") input$pairwiseComparison)
     #line and bar graph error bar
     #add error bar?
-    addErrorBar <- reactive(ifelse(figType() %in% c("line","bar plot", "scatter plot") && isTruthy(input$lineErrorBar), TRUE, FALSE)) #TRUE: add error bar
+    addErrorBar <- reactive(ifelse(figType() %in% c("line","bar plot", "scatter plot", "violin plot") && isTruthy(input$lineErrorBar), TRUE, FALSE)) #TRUE: add error bar
     #compute sd?
     computeSD <- reactive(ifelse(isTRUE(addErrorBar()) && input$lineComputeSd == "yes", TRUE, FALSE)) #TRUE: compute sd
-    # countIdentity <- reactive(ifelse(figType() == "bar plot" && input$countIdentity != "count", TRUE, FALSE)) #TRUE: use the value as is
     
     #This is require for line, bar and scatter plot
     
@@ -4178,7 +4187,7 @@ server <- function(input, output){
               
             }else if( varSet()  %in% c('none', colnames(xVar())) && shapeLine() != "none"){
               message("shapeLine not one")
-              if( figType() %in% c("line", "bar plot") && lineSet() != colnames(xVar()) ){
+              if( figType() %in% c("line", "bar plot", "violin plot") && lineSet() != colnames(xVar()) ){
                 message("lineSet")
                 newData <- sdFunc(x = ptable(), oName = c(colnames(xVar()), lineSet()), yName = colnm, lineGrp = lineConnectPath() )
               }else if(figType() == "scatter plot" && shapeSet() != colnames(xVar())){
@@ -4223,7 +4232,9 @@ server <- function(input, output){
                                  "bar plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
                                                             width = 0.2, position = position_dodge(width = 0.9)),
                                  "scatter plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
-                                                                width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize))
+                                                                width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize)),
+                                 "violin plot" = geom_pointrange(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
+                                                                 position = position_dodge(width = 0.9), size = req(input$errorBarSize))
             )
           }else{
             #not default
@@ -4233,7 +4244,9 @@ server <- function(input, output){
                                  "bar plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
                                                             width = 0.2, position = position_dodge(width = 0.9), color = errorBarColor()),
                                  "scatter plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
-                                                                width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize), color = errorBarColor())
+                                                                width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize), color = errorBarColor()),
+                                 "violin plot" = geom_pointrange(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
+                                                                 position = position_dodge(width = 0.9), size = req(input$errorBarSize), color = errorBarColor())
             )
           }
           
@@ -4254,7 +4267,9 @@ server <- function(input, output){
                                                                                   ymax = .data[[ colnm ]] + .data[[ lineGroupVar() ]]),  width = 0.2,
                                                               position = position_dodge(width = 0.9)), #position will always be dodge for error_bar
                                    "scatter plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - sd, ymax = .data[[colnm]] + sd), 
-                                                                  width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize))
+                                                                  width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize)),
+                                   "violin plot" = geom_pointrange(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
+                                                                   position = position_dodge(width = 0.9), size = req(input$errorBarSize))
               )
             }else{
               geom_erbar <- switch(figType(),
@@ -4265,7 +4280,9 @@ server <- function(input, output){
                                                                                   ymax = .data[[ colnm ]] + .data[[ lineGroupVar() ]]),  width = 0.2,
                                                               position = position_dodge(width = 0.9), color = errorBarColor()), #position will always be dodge for error_bar
                                    "scatter plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - sd, ymax = .data[[colnm]] + sd), 
-                                                                  width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize), color = errorBarColor())
+                                                                  width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize), color = errorBarColor()),
+                                   "violin plot" = geom_pointrange(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
+                                                                   position = position_dodge(width = 0.9), size = req(input$errorBarSize), color = errorBarColor())
               )
             }
           }else{
@@ -4423,7 +4440,7 @@ server <- function(input, output){
             on.exit(removeNotification(computeMsg), add = TRUE)
             
             statData <- generateStatData(data = ptable(), groupStat = groupStat(), groupVar = groupStatVarOption(), method = methodSt(), numericVar = numericVar(),
-                                         catVar = catVar(), compRef = compareOrReference(),
+                                         catVar = catVar(), compRef = req(compareOrReference()),
                                          ttestMethod = ttestMethod(), paired = pairedData(), 
                                          model = model(), pAdjust = pAdjust(),
                                          pAdjustMethod = pAdjustMethod(), labelSignif = labelSt(), cmpGrpList = cmpGrpList$lists, rfGrpList = rfGrpList$lists,# switchGrpList = switchGrpList$switchs,
@@ -4462,7 +4479,7 @@ server <- function(input, output){
                                 shapeLine = shapeLine(), shapeSet = shapeSet(), lineSet = lineSet(),
                                 facet = facet(), faceType = facetType(), varRow = varRow(), varColumn = varColumn(),
                                 nRow = nRow(), nColumn = nColumn(), scales = scales(), stripBackground = stripBackground(),
-                                layer = layer(), layerSize = layerSize(), xTextLabel = xTextLabels())
+                                layer = layer(), layerSize = layerSize(), xTextLabel = xTextLabels(), ylim=ylimit())
             # finalPlt
             
           }else if(varSet() != "none" && methodSt() == "none"){
@@ -4481,7 +4498,7 @@ server <- function(input, output){
                                   facet = facet(), faceType = facetType(), varRow = varRow(), varColumn = varColumn(), 
                                   nRow = nRow(), nColumn = nColumn(), scales = scales(), stripBackground = stripBackground(),
                                   layer = layer(), layerSize = layerSize(),
-                                  fill = .data[[varSet()]], xTextLabel=xTextLabels()) #fill the color
+                                  fill = .data[[varSet()]], xTextLabel=xTextLabels(), ylim=ylimit()) #fill the color
               # finalPlt
             }else{
               #freqpoly, line will use varSet for color, not fill
@@ -4496,7 +4513,7 @@ server <- function(input, output){
                                   facet = facet(), faceType = facetType(), varRow = varRow(), varColumn = varColumn(), 
                                   nRow = nRow(), nColumn = nColumn(), scales = scales(), stripBackground = stripBackground(),
                                   layer = layer(),layerSize = layerSize(),
-                                  color = .data[[varSet()]], xTextLabel=xTextLabels()) #color the line
+                                  color = .data[[varSet()]], xTextLabel=xTextLabels(), ylim=ylimit()) #color the line
               # finalPlt
             }
           }else if(varSet() == "none" && methodSt() != "none"){
@@ -4511,7 +4528,7 @@ server <- function(input, output){
                                 methodSt = methodSt(), statData = statData(), anovaType=anovaType(), removeBracket=removeBracket(),
                                 facet = facet(), faceType = facetType(), varRow = varRow(), varColumn = varColumn(), 
                                 nRow = nRow(), nColumn = nColumn(), scales = scales(), stripBackground = stripBackground(),
-                                layer = layer(), layerSize = layerSize(), xTextLabel=xTextLabels())
+                                layer = layer(), layerSize = layerSize(), xTextLabel=xTextLabels(), ylim=ylimit())
             # finalPlt
           }else if(varSet() != "none" && methodSt() != "none"){
             #enable parameters for both the color and statistics
@@ -4529,7 +4546,7 @@ server <- function(input, output){
                                   facet = facet(), faceType = facetType(), varRow = varRow(), varColumn = varColumn(), 
                                   nRow = nRow(), nColumn = nColumn(), scales = scales(), stripBackground = stripBackground(),
                                   layer = layer(), layerSize = layerSize(),
-                                  fill = .data[[varSet()]], xTextLabel=xTextLabels()) #fill the color
+                                  fill = .data[[varSet()]], xTextLabel=xTextLabels(), ylim=ylimit()) #fill the color
               # finalPlt
             }else{
               #freqpoly, line will use varSet for color, not fill
@@ -4544,7 +4561,7 @@ server <- function(input, output){
                                   facet = facet(), faceType = facetType(), varRow = varRow(), varColumn = varColumn(), 
                                   nRow = nRow(), nColumn = nColumn(), scales = scales(), stripBackground = stripBackground(),
                                   layer = layer(),layerSize = layerSize(),
-                                  color = .data[[varSet()]], xTextLabel=xTextLabels()) #color the line
+                                  color = .data[[varSet()]], xTextLabel=xTextLabels(), ylim=ylimit()) #color the line
               # finalPlt
             }
             
@@ -4577,7 +4594,7 @@ server <- function(input, output){
                                   facet = facet(), faceType = facetType(), varRow = varRow(), varColumn = varColumn(), 
                                   nRow = nRow(), nColumn = nColumn(), scales = scales(), stripBackground = stripBackground(),
                                   layer = layer(), layerSize = layerSize(),
-                                  fill = .data[[varSet()]], xTextLabel=xTextLabels()) #fill the color
+                                  fill = .data[[varSet()]], xTextLabel=xTextLabels(), ylim=ylimit()) #fill the color
               # finalPlt
             }else{
               #freqpoly, line will use varSet for color, not fill
@@ -4592,7 +4609,7 @@ server <- function(input, output){
                                   facet = facet(), faceType = facetType(), varRow = varRow(), varColumn = varColumn(), 
                                   nRow = nRow(), nColumn = nColumn(), scales = scales(), stripBackground = stripBackground(),
                                   layer = layer(),layerSize = layerSize(),
-                                  color = .data[[varSet()]], xTextLabel=xTextLabels()) #color the line
+                                  color = .data[[varSet()]], xTextLabel=xTextLabels(), ylim=ylimit()) #color the line
               # finalPlt
             }
             
@@ -4657,7 +4674,7 @@ server <- function(input, output){
                                   facet = facet(), faceType = facetType(), varRow = varRow(), varColumn = varColumn(), 
                                   nRow = nRow(), nColumn = nColumn(), scales = scales(), stripBackground = stripBackground(),
                                   layer = layer(), layerSize = layerSize(),
-                                  fill = .data[[anovaColor()]], xTextLabel=xTextLabels()) #fill the color
+                                  fill = .data[[anovaColor()]], xTextLabel=xTextLabels(), ylim=ylimit()) #fill the color
               # finalPlt
             }else{
               #freqpoly, line will use varSet for color, not fill
@@ -4677,7 +4694,7 @@ server <- function(input, output){
                                   facet = facet(), faceType = facetType(), varRow = varRow(), varColumn = varColumn(), 
                                   nRow = nRow(), nColumn = nColumn(), scales = scales(), stripBackground = stripBackground(),
                                   layer = layer(),layerSize = layerSize(),
-                                  color = .data[[anovaColor()]], xTextLabel=xTextLabels()) #color the line
+                                  color = .data[[anovaColor()]], xTextLabel=xTextLabels(), ylim=ylimit()) #color the line
               # finalPlt
             }
           }  #end of non interaction
