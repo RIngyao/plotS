@@ -30,7 +30,7 @@ library(flextable)
 
 #### **Why and when to reshape the data?**
 
-> Reshaping is required depending on the input data so that variables can be compared. In order to represent and compare variables in plotS, the input data must be in **long format** rather than **wide format**. In the below example, _Table 1_ shows the wide format, while _Table 2_ represent the long format. You need to reshape your data if it is in wide format and want to compare between variables (control, treatment1 and treatment2).
+> Reshaping is required depending on the input data so that variables can be compared. In order to represent and compare variables in plotS, the input data must be in **long format** rather than **wide format**. In the example below, _Table 1_ represents the wide format, while _Table 2_ represent the long format. You need to reshape your data if it is in wide format and want to compare between variables (control, treatment1 and treatment2).
 
 
 
@@ -75,22 +75,19 @@ add_header(., sample = "Table 2. Data in table 1 reshaped to long format.", top 
 
 #### **How was effect size estimated?**
 
-> Effect size is estimated using different methods based on the statistical test applied:
- 
-> - T-test: cohen's d of rstatix package is used for estimating the effect size.
+> Effect size is estimated using different methods based on the statistical test applied.
 
-> - ANOVA : partial eta squared from effectsize package.
 
-> - Wilcoxon test: the effect size is measured as `z` statistic, derived from the wilcoxon test, divided by square root of the sample size. It is implemented using rstatix package. 
+> - T-test: cohen's d of rstatix package is used for the test.
 
-> - Kruskal-Wallis test: measured as eta squared based on H-statistic derived from the Kruskal-Wallis test. It is given as `eta2[H] = (H - k + 1)/(n - k)`. Where, `k` is the number of groups and `n` is the total number of observations. It is also implemented using rstatix package.
+> - ANOVA : partial eta squared from effectsize package
+
+> - wilcoxon test: the effect size is measured as `z` statistic, derived from the wilcoxon test, divided by square root of the sample size. It is implemented using rstatix package. 
+
+> - Kruskal-Wallis test: measured as eta squared based on H-statistic derived from the Kruskal-Wallis test. It is given as `eta2[H] = (H - k + 1)/(n - k)`. Where, `k` is the number of groups and `n` is the total number of observations. It is implemented using rstatix package.
 
 
 #### **R packages used for the application**
-
-- [shiny](https://shiny.rstudio.com/) : building the interactive web apps.
-
-- [tidyverse](https://www.tidyverse.org/) : collection of R packages for data science.
 
 - [ggplot2](https://ggplot2.tidyverse.org/) : most of the graphics in this app are created using ggplot2.
 
@@ -98,9 +95,14 @@ add_header(., sample = "Table 2. Data in table 1 reshaped to long format.", top 
 
 - [rmarkdown](https://rmarkdown.rstudio.com/) : creating documents for report.
 
+
+- [shiny](https://shiny.rstudio.com/) : building the interactive web apps.
+
+- [tidyverse](https://www.tidyverse.org/) : collection of R packages for data science.
+
 - other packages:
-    - [reactable](https://glin.github.io/reactable/), [flextable](https://cran.r-project.org/web/packages/flextable/index.html),
-    [openxlsx](https://ycphs.github.io/openxlsx/), [readxl](https://readxl.tidyverse.org/), [svglite](https://www.tidyverse.org/blog/2021/02/svglite-2-0-0/), [MASS](https://cran.r-project.org/web/packages/MASS/index.html), [skimr](https://github.com/ropensci/skimr), [coin](https://cran.r-project.org/web/packages/coin/index.html), [DT](https://rstudio.github.io/DT/), [data.table](https://cran.r-project.org/web/packages/data.table/index.html),  [shinydashboard](https://rstudio.github.io/shinydashboard/), [ggpubr](https://cran.r-project.org/web/packages/ggpubr/index.html), [multcompView](https://cran.r-project.org/web/packages/multcompView/index.html), [glue](https://glue.tidyverse.org/), [rlang](https://rlang.r-lib.org/), [car](https://cran.r-project.org/web/packages/car/index.html), [vroom](https://www.tidyverse.org/blog/2019/05/vroom-1-0-0/), [effectsize](https://cran.r-project.org/web/packages/effectsize/index.html).
+    - [car](https://cran.r-project.org/web/packages/car/index.html), [coin](https://cran.r-project.org/web/packages/coin/index.html), [data.table](https://cran.r-project.org/web/packages/data.table/index.html), [DT](https://rstudio.github.io/DT/), [effectsize](https://cran.r-project.org/web/packages/effectsize/index.html), [flextable](https://cran.r-project.org/web/packages/flextable/index.html), [ggpubr](https://cran.r-project.org/web/packages/ggpubr/index.html), [glue](https://glue.tidyverse.org/),  [MASS](https://cran.r-project.org/web/packages/MASS/index.html), [memoise](https://memoise.r-lib.org/), [multcompView](https://cran.r-project.org/web/packages/multcompView/index.html), [openxlsx](https://ycphs.github.io/openxlsx/), [reactable](https://glin.github.io/reactable/), [readxl](https://readxl.tidyverse.org/), [rlang](https://rlang.r-lib.org/),  [shinydashboard](https://rstudio.github.io/shinydashboard/), [shinyWidgets](https://shinyapps.dreamrs.fr/shinyWidgets/), [skimr](https://github.com/ropensci/skimr), [svglite](https://www.tidyverse.org/blog/2021/02/svglite-2-0-0/), [vroom](https://www.tidyverse.org/blog/2019/05/vroom-1-0-0/).
+
 
 
 

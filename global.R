@@ -8,6 +8,13 @@ options(shiny.maxRequestSize = 50*1024^2)
 #                "rstatix", "shiny", "tidyverse", "reactable")
 # lapply(libraries, library, character.only = TRUE)
 # 
+lib <- c("memoise", "effectsize", "vroom", "car","glue",
+         "flextable", "openxlsx", "svglite","MASS", "rlang",
+         "skimr","coin","DT","data.table","readxl","markdown",
+         "shinydashboard","ggpubr","multcompView","rstatix",
+         "shiny", "tidyverse","reactable","shinyWidgets")
+sort(lib)
+library(memoise)
 library(effectsize)
 library(vroom)
 library(car)

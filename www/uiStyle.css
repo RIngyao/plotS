@@ -106,6 +106,9 @@ body{
       hr{
         border:solid 0.4px;
       }
+      .inst{
+      margin:5%;
+      }
       .inst p{
         font-size:17px;
       }

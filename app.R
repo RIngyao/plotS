@@ -31,8 +31,7 @@ ui <- fluidPage(
             # HTML instruction---------------
             HTML('
                     <div class = "inst">
-                      
-                      <br></br>
+                    
                       <p>
                       <b>PlotS</b> is a web-based application for data analysis and visualization. It is free and simple to use. 
                       You can analyze your data in an engaging way by running statistical tests while plotting the graphs. We hope that it will be a useful tool for performing quick analysis.
@@ -4124,6 +4123,7 @@ server <- function(input, output){
     })#reactive(ifelse(isTruthy(input$choosePLabel), ifelse(isTRUE(pAdjust), "p.adj", "p"), FALSE)) #if false, no need to add add_significance
     
     compareOrReference <- reactive({
+      
       if(methodSt() %in% c("t.test", "wilcoxon.test")){ req(input$compareOrReference) }
     })
   
@@ -4228,11 +4228,11 @@ server <- function(input, output){
             #default color is appropriate when user provide color aesthetics
             geom_erbar <- switch(figType(),
                                  "line" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
-                                                        width = 0.2, position = position_dodge(0.03), size = freqPolySize()),
+                                                        width = 0.1, position = position_dodge(0.03), size = freqPolySize()),
                                  "bar plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
-                                                            width = 0.2, position = position_dodge(width = 0.9)),
+                                                            width = 0.1, position = position_dodge(width = 0.9)),
                                  "scatter plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
-                                                                width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize)),
+                                                                width = 0.1, position = position_dodge(width = 0.9), size = req(input$errorBarSize)),
                                  "violin plot" = geom_pointrange(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
                                                                  position = position_dodge(width = 0.9), size = req(input$errorBarSize))
             )
@@ -4240,11 +4240,11 @@ server <- function(input, output){
             #not default
             geom_erbar <- switch(figType(),
                                  "line" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
-                                                        width = 0.2, position = position_dodge(0.03), size = freqPolySize(), color = errorBarColor()),
+                                                        width = 0.1, position = position_dodge(0.03), size = freqPolySize(), color = errorBarColor()),
                                  "bar plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
-                                                            width = 0.2, position = position_dodge(width = 0.9), color = errorBarColor()),
+                                                            width = 0.1, position = position_dodge(width = 0.9), color = errorBarColor()),
                                  "scatter plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
-                                                                width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize), color = errorBarColor()),
+                                                                width = 0.1, position = position_dodge(width = 0.9), size = req(input$errorBarSize), color = errorBarColor()),
                                  "violin plot" = geom_pointrange(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
                                                                  position = position_dodge(width = 0.9), size = req(input$errorBarSize), color = errorBarColor())
             )
@@ -4261,13 +4261,13 @@ server <- function(input, output){
             if(errorBarColor() == "default"){
               geom_erbar <- switch(figType(),
                                    "line" = geom_errorbar(data = newData, aes(ymin = .data[[ colnm ]] - .data[[ lineGroupVar() ]],
-                                                                              ymax = .data[[ colnm ]] + .data[[ lineGroupVar() ]]),  width = 0.1,
-                                                          position = position_dodge(0.03), size = freqPolySize()),
+                                                                              ymax = .data[[ colnm ]] + .data[[ lineGroupVar() ]]),  
+                                                          width = 0.1, position = position_dodge(0.03), size = freqPolySize()),
                                    "bar plot" = geom_errorbar(data = newData, aes(ymin = .data[[ colnm ]] - .data[[ lineGroupVar() ]],
-                                                                                  ymax = .data[[ colnm ]] + .data[[ lineGroupVar() ]]),  width = 0.2,
-                                                              position = position_dodge(width = 0.9)), #position will always be dodge for error_bar
+                                                                                  ymax = .data[[ colnm ]] + .data[[ lineGroupVar() ]]),  
+                                                              width = 0.1, position = position_dodge(width = 0.9)), #position will always be dodge for error_bar
                                    "scatter plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - sd, ymax = .data[[colnm]] + sd), 
-                                                                  width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize)),
+                                                                  width = 0.1, position = position_dodge(width = 0.9), size = req(input$errorBarSize)),
                                    "violin plot" = geom_pointrange(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
                                                                    position = position_dodge(width = 0.9), size = req(input$errorBarSize))
               )
@@ -4277,10 +4277,10 @@ server <- function(input, output){
                                                                               ymax = .data[[ colnm ]] + .data[[ lineGroupVar() ]]),  width = 0.1,
                                                           position = position_dodge(0.03), size = freqPolySize(), color = errorBarColor()),
                                    "bar plot" = geom_errorbar(data = newData, aes(ymin = .data[[ colnm ]] - .data[[ lineGroupVar() ]],
-                                                                                  ymax = .data[[ colnm ]] + .data[[ lineGroupVar() ]]),  width = 0.2,
+                                                                                  ymax = .data[[ colnm ]] + .data[[ lineGroupVar() ]]),  width = 0.1,
                                                               position = position_dodge(width = 0.9), color = errorBarColor()), #position will always be dodge for error_bar
                                    "scatter plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - sd, ymax = .data[[colnm]] + sd), 
-                                                                  width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize), color = errorBarColor()),
+                                                                  width = 0.1, position = position_dodge(width = 0.9), size = req(input$errorBarSize), color = errorBarColor()),
                                    "violin plot" = geom_pointrange(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
                                                                    position = position_dodge(width = 0.9), size = req(input$errorBarSize), color = errorBarColor())
               )
@@ -4430,7 +4430,10 @@ server <- function(input, output){
       tryCatch({
         if(figType() != "none" && methodSt() != "none"){
           
-          #stat not applicable
+          #necessary for t.test and wilcoxon test: ..??
+          message(compareOrReference())
+          # message(input$compareOrReference) 
+          
           
           #compute statistic only when requested
           statData <- reactive({
@@ -4439,12 +4442,14 @@ server <- function(input, output){
                                            type ="message", id = "computeMsg")
             on.exit(removeNotification(computeMsg), add = TRUE)
             
-            statData <- generateStatData(data = ptable(), groupStat = groupStat(), groupVar = groupStatVarOption(), method = methodSt(), numericVar = numericVar(),
-                                         catVar = catVar(), compRef = req(compareOrReference()),
-                                         ttestMethod = ttestMethod(), paired = pairedData(), 
-                                         model = model(), pAdjust = pAdjust(),
-                                         pAdjustMethod = pAdjustMethod(), labelSignif = labelSt(), cmpGrpList = cmpGrpList$lists, rfGrpList = rfGrpList$lists,# switchGrpList = switchGrpList$switchs,
-                                         xVar = xyAxis()[[1]], anovaType = anovaType(), ssType = ssType())
+            
+            cacheGSD <- memoise::memoise(generateStatData)
+            cacheGSD(data = ptable(), groupStat = groupStat(), groupVar = groupStatVarOption(), method = methodSt(), numericVar = numericVar(),
+                     catVar = catVar(), compRef = compareOrReference(),
+                     ttestMethod = ttestMethod(), paired = pairedData(), 
+                     model = model(), pAdjust = pAdjust(),
+                     pAdjustMethod = pAdjustMethod(), labelSignif = labelSt(), cmpGrpList = cmpGrpList$lists, rfGrpList = rfGrpList$lists,# switchGrpList = switchGrpList$switchs,
+                     xVar = xyAxis()[[1]], anovaType = anovaType(), ssType = ssType())
             
           })
           
