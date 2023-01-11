@@ -53,10 +53,11 @@ ui <- fluidPage(
                         <li>Bar plot</li>
                         <li>Box plot</li>
                         <li>Density plot</li>
-                        <li>Frequency polygone</li>
+                        <li>Frequency polygon</li>
                         <li>Histogram</li>
                         <li>Line plot</li>
                         <li>Scatter plot</li>
+                        <li>Violin plot</li>
                       </ul>
                       </p>
                       
@@ -3211,6 +3212,7 @@ server <- function(input, output){
         #       case iv: both applied - may or may not be equal with x-axis.
         #case 1:
         tryCatch({
+          browser()
           if(input$colorSet == "none" && !isTruthy(input$shapeLine)){
             xA_grp <- input$xAxis
             #end of case 1
@@ -3218,15 +3220,24 @@ server <- function(input, output){
             #case 2:
             if(input$colorSet != "none" && !isTruthy(input$shapeLine)){
               #case ii:
-              xA_grp <- ifelse(input$colorSet == input$xAxis, input$xAxis, c(input$xAxis, input$colorSet))
+              xA_grp <- if(input$colorSet == input$xAxis){
+                input$xAxis
+              }else c(input$xAxis, input$colorSet)
               
             }else if(input$colorSet == "none" && isTruthy(input$shapeLine)){
               #case iii:
               if(isTruthy(input$shapeSet) && !isTruthy(input$lineSet)){
-                xA_grp <- ifelse(input$shapeSet == input$xAxis, input$xAxis, c(input$xAxis, input$shapeSet))
+                xA_grp <- if(input$shapeSet == input$xAxis){
+                  input$xAxis 
+                }else c(input$xAxis, input$shapeSet) 
+                
               }else if(!isTruthy(input$shapeSet) && isTruthy(input$lineSet)){
-                xA_grp <- ifelse(input$lineSet == input$xAxis, input$xAxis, c(input$xAxis, input$lineSet))
+                
+                xA_grp <- if(input$lineSet == input$xAxis){
+                  input$xAxis
+                }else c(input$xAxis, input$lineSet)
               }
+              
             }else if(input$colorSet != "none" && isTruthy(input$shapeLine)){
               
               if(isTruthy(input$shapeSet)){
