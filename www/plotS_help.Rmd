@@ -73,28 +73,29 @@ add_header(., sample = "Table 2. Data in table 1 reshaped to long format.", top 
 > Aesthetic options mapped the variables to visual properties - color, shape or line type. It let user customize the visual properties and differentiate between variables. 
 
 
-#### **How was effect size estimated?**
+#### **Estimating the effect size**
 
-> Effect size is estimated using different methods based on the statistical test applied.
+> Effect size is estimated using different R packages.
 
 
-> - T-test: cohen's d of rstatix package is used for the test.
+> - We used **effectsize** package of R to estimate the effect size of _T-test_ and _ANOVA_.
 
-> - ANOVA : partial eta squared from effectsize package
 
-> - wilcoxon test: the effect size is measured as `z` statistic, derived from the wilcoxon test, divided by square root of the sample size. It is implemented using rstatix package. 
+> - **rstatix** package is used for measuring the effect size of _Wilcoxon_ and _Krukal-Wallis tests_.
 
-> - Kruskal-Wallis test: measured as eta squared based on H-statistic derived from the Kruskal-Wallis test. It is given as `eta2[H] = (H - k + 1)/(n - k)`. Where, `k` is the number of groups and `n` is the total number of observations. It is implemented using rstatix package.
+
+#### **Does the app save user data?**
+
+> No, after the session ends, all data is deleted.
 
 
 #### **R packages used for the application**
 
 - [ggplot2](https://ggplot2.tidyverse.org/) : most of the graphics in this app are created using ggplot2.
 
-- [rstatix](https://cran.r-project.org/web/packages/rstatix/index.html) : most of the statistical methods in the app use this pipe-friendly package.
-
 - [rmarkdown](https://rmarkdown.rstudio.com/) : creating documents for report.
 
+- [rstatix](https://cran.r-project.org/web/packages/rstatix/index.html) : most of the statistical methods in the app use this pipe-friendly package.
 
 - [shiny](https://shiny.rstudio.com/) : building the interactive web apps.
 

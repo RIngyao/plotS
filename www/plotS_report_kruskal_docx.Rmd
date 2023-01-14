@@ -10,6 +10,7 @@ params:
   table3: NA
   table4: NA
   table5: NA
+  subcaption: NA
 ---
 ```{r setup, include=FALSE, echo=FALSE} 
 knitr::opts_chunk$set(echo = FALSE)
@@ -36,7 +37,8 @@ knitr::kable(params$table3)
 
 # Table 4. Table of effect size. Measures the strength of relationship between variables.
 
-Eta-squared based on the H-statistic used as the measure of effect size.
+<!-- Eta-squared based on the H-statistic (of Kruskal-Wallis test) used as the measure of effect size. *Formula:* `Eta2[H] = (H - k + 1)/(n - k)`; Where `k` is the number of groups; `n` is the total number of observations. -->
+`r params$subcaption`
 ```{r}
 knitr::kable(params$table4)
 

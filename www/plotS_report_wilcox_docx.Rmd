@@ -10,6 +10,7 @@ params:
   caption: NA
   table3: NA
   table4: NA
+  subcaption: NA
 ---
 ```{r setup, include=FALSE, echo=FALSE} 
 knitr::opts_chunk$set(echo = FALSE)
@@ -37,7 +38,7 @@ knitr::kable(params$table3)
 # Table 4. Table of effect size. Measures the strength of relationship between variables.
 
 
-Effect size is computed using z statistic (of Wilcoxon test) and divided by square root of the sample size.
+`r params$subcaption`
 ```{r}
 knitr::kable(params$table4)
 

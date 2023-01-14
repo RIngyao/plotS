@@ -1,5 +1,6 @@
 
-options(shiny.maxRequestSize = 50*1024^2)
+# options(shiny.maxRequestSize = 50*1024^2)
+options(shiny.maxRequestSize = 100*1024^2)
 #library--------------------------------
 #can't use this method for loading library: shinyapps.io
 # libraries <- c("flextable", "openxlsx", "svglite",
@@ -976,6 +977,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     
     
   }else if (method == "kruskal-wallis"){
+    
     #Kruskal test------------------
     message("Kruskal test on2")
     allMean <- data %>% group_by(!!!rlang::syms(catVar)) %>% 
@@ -1058,10 +1060,9 @@ efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, meth
     }
     
     #properly arrange the column: mimic rstatix output
-    efs$y_variable <- y
-    efs$group1 <- x[1]
-    efs$group2 <- x[2]
-    message(efs)
+    efs$y_variable <- as.character(y)
+    efs$group1 <- as.vector(x[1])
+    efs$group2 <- as.vector(x[2])
     message(str(efs))
     efs2 <- efs %>% dplyr::select(y_variable, group1, group2, everything())
     #determine magnitude
@@ -1083,15 +1084,15 @@ efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, meth
     anov <- car::Anova(av, type = 3)
     pav <- parameters::model_parameters(anov) 
     
-    if(method == "Eta-squared (η2)"){
+    if(method == "Eta-squared"){
       final_df <- effectsize::eta_squared(pav, partial = FALSE) %>% as.data.frame()
       final_df["magnitude"] <- effectsize::interpret_eta_squared(final_df$Eta2) %>% as.data.frame()
-    }else if(method == "Partial-η2 (η2p)"){
+    }else if(method == "Partial eta-squared"){
       final_df <- effectsize::eta_squared(pav, partial = TRUE) %>% as.data.frame()
       print(final_df)
       print(colnames(final_df))
       final_df["magnitude"] <- effectsize::interpret_eta_squared(final_df$Eta2_partial) %>% as.data.frame()
-    }else if(method == "Generalized-η2p"){
+    }else if(method == "Generalized partial eta-squared"){
       final_df <- effectsize::eta_squared(pav, partial = TRUE, generalized = TRUE) %>% as.data.frame()
       final_df["magnitude"] <- effectsize::interpret_eta_squared(final_df$Eta2_generalized) %>% as.data.frame()
     }else if(method == "Epsilon-squared"){

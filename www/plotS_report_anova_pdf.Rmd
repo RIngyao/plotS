@@ -17,6 +17,7 @@ params:
   figure3: NA
   statment1: NA
   statment2: NA
+  subcaption: NA
 ---
 ```{r setup, include=FALSE, echo=FALSE} 
 knitr::opts_chunk$set(echo = FALSE)
@@ -59,7 +60,8 @@ knitr::kable(params$table3)
 
 # Table 4. Table of effect size. Measures the strength of relationship between variables.
 
-Eta2 is the Generalized eta squared (Eta2); CI is the confidence interval; CI_low and CI_high are the upper and lower bound.
+<!-- Eta2 is the Generalized eta squared (Eta2); CI is the confidence interval; CI_low and CI_high are the upper and lower bound. -->
+`r params$subcaption`
 ```{r echo=FALSE}
 knitr::kable(params$table4)
 

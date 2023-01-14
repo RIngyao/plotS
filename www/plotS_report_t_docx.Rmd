@@ -15,6 +15,7 @@ params:
   figure3: NA
   statment1: NA
   statment2: NA
+  subcaption: NA
 ---
 ```{r setup, include=FALSE, echo=FALSE} 
 knitr::opts_chunk$set(echo = TRUE)
@@ -60,7 +61,8 @@ knitr::kable(params$table3)
 
 # Table 4. Table of effect size. Measures the strength of relationship between variables.
 
-Effect size computed using Cohen's d.
+<!-- Effect size computed using Cohen's d. -->
+`r params$subcaption`
 ```{r echo=FALSE}
 knitr::kable(params$table4)
 

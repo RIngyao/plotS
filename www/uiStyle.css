@@ -304,6 +304,34 @@ body{
       float:left;
       }
       
+      .effectSizeMethodDiv{
+      margin-left:40%;
+      margin-right:40%;
+      margin-top:10px;
+      text-align:center;
+      font-weight:bold;
+      background:rgba(206,247,250, 0.4);
+      }
+      #effectSizeMethod{
+      margin:auto;
+      align:center;
+      }
+      #UiEffectSize{
+      margin-left:0px;
+      }
+      
+      .miscDiv, .dbBootStrapDiv{
+      background:rgba(206,247,250, 0.2);
+      font-size:14px;
+      }
+      #Ylimit, #UiRemoveBracket, #UiStripBackground{
+      text-align: center;
+      }
+      .dbBootStrapDiv{
+      text-align: center;
+      }
+      
+      
       .helpPanel{
       max-width: 1200px;
       margin-left:5%;
@@ -311,10 +339,4 @@ body{
       background-color:transparent;
       }
       
-      .miscDiv{
-      background:rgba(206,247,250, 0.2);
-      font-size:14px;
-      }
-      #Ylimit, #UiRemoveBracket, #UiStripBackground{
-      text-align: center;
-      }
+      

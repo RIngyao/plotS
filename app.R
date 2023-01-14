@@ -533,7 +533,8 @@ ui <- fluidPage(
                                    column(4, downloadButton("figDownload", label = NULL, class = "btn-info btn-l")),
                                  ) %>% tagAppendAttributes(class="figHWDFluidRow")
                           )
-                        )
+                        ),
+                        helpText("Image resolution is 300 dpi. Default dimension is 4 * 4 inches.", style = "font-style:italic; text-align:center; margin:0;")
                       )%>% tagAppendAttributes(class="figDownloadDiv"),
                       #display figure
                       div(
@@ -708,25 +709,32 @@ ui <- fluidPage(
                                    #sub caption for stat summary
                                    uiOutput("UiStatSubCaption"),
                                    #Ui for stat summary
-                                   reactableOutput("UiStatSummaryTable",
-                                                   width = '80%')
+                                   reactableOutput("UiStatSummaryTable")
                                    # verbatimTextOutput("UiStatSummaryTable")
                                    
                   ),
                   
                   #ui for effect size
                   conditionalPanel(condition = "input.stat != 'none'",
+                                   
                                    #Ui caption
                                    uiOutput("UiCapEffectSize"),
-                                   #ui effect size method
+                                   #ui effect size method and bootstrap
+                                   #effect size method for t.test and anova
+                                   #bootstrap for wilcox and kruskal
+                                   
                                    div(
                                      class="effectSizeMethodDiv",
                                      uiOutput("UiEffectSizeMethod")
+                                     # uiOutput("UiBootstrapWarn")
                                    ),
+                                   
+                                   # uiOutput("UiEffectSizeMethod"),
                                    #subcaption
                                    uiOutput("UiSubCapEffectSize"),
                                    #ui for effect size
-                                   reactableOutput("UiEffectSize", width = '80%')
+                                   reactableOutput("UiEffectSize") #, width = '80%'
+                                   
                   ),
                   #ui for post hoc test
                   conditionalPanel(condition = "input.stat== 'kruskal-wallis' | input.stat=='anova'",
@@ -3716,7 +3724,7 @@ server <- function(input, output){
   
   #effect size------------------
   observe({
-    req(ptable(), pltType(), input$stat %in% c("t.test", "anova"), computeFuncError(), twoAnovaError())
+    req(ptable(), pltType(), input$xAxis, input$yAxis, input$stat != "none", computeFuncError(), twoAnovaError())
     validate(
       need(computeFuncError() == 0 & twoAnovaError() == 0, "stop")
     )
@@ -3728,11 +3736,31 @@ server <- function(input, output){
         req(input$pairedData)
         if(input$pairedData == "one"){
           selectInput(inputId = "effectSizeMethod", list(icon("wrench"),tags$span("Method", style="color:#E11604")), 
-                      choices = c("Eta-squared (η2)", "Omega-squared", "Epsilon-squared", "Cohen's f"))
+                      choices = c("Eta-squared", "Omega-squared", "Epsilon-squared", "Cohen's f"))
         }else{
           selectInput(inputId = "effectSizeMethod", list(icon("wrench"),tags$span("Method", style="color:#E11604")), 
-                      choices = c("Eta-squared (η2)", "Partial-η2 (η2p)", "Generalized-η2p", "Omega-squared", "Epsilon-squared", "Cohen's f"), selected = "Partial-η2 (η2p)")
+                      choices = c("Eta-squared", "Partial eta-squared", "Generalized partial eta-squared", "Omega-squared", "Epsilon-squared", "Cohen's f"), selected = "Partial eta-squared")
         }
+        
+      }else if(input$stat %in% c("wilcoxon.test", "kruskal-wallis")){
+        req(input$stat %in% c("wilcoxon.test", "kruskal-wallis"))
+        dropdownButton(
+          inputId = "dbBootStrap",
+          label = "Bootstrap setting",
+          icon = icon("sliders"),
+          circle = FALSE,
+          up = TRUE,
+          margin = '5px',
+          status = "primary",
+          tooltip = tooltipOptions(title = "Click to adjust"),
+          div(
+            class= "dbBootStrapDiv",
+            sliderTextInput(inputId = "effectSizeMethod",
+                            label = "Number of replicates for bootstrap",
+                            choices = c(10, 100, 500, 1000, 1500, 2000, 2500, 3000), grid = TRUE),
+            helpText("The computation will be slower with more replicates!", style = "color:red; font-weight:normal")
+          )
+        )
         
       }
     })
@@ -3740,11 +3768,8 @@ server <- function(input, output){
   
   #determine effect size
   observe({
-    req(ptable(), input$stat != "none", input$yAxis, input$xAxis,
+    req(ptable(), input$stat != "none", input$yAxis, input$xAxis, input$effectSizeMethod,
         computeFuncError(), twoAnovaError())
-    
-    # input$compareOrReference, input$pairedD,
-    # input$ttestMethod, input$ssType,  input$anovaModel, input$choosePFormat, input$signifMethod, 
     
     validate(
       need(computeFuncError() == 0 & twoAnovaError() == 0, "stop")
@@ -3752,20 +3777,16 @@ server <- function(input, output){
     
     message(input$stat)
     #checks to avoid crash
-    
     if(input$stat == "t.test"){
       req(input$effectSizeMethod %in% c("Cohen's d", "Hedge's g", "Glass delta"))
     }else if(input$stat == "anova"){
-      req(input$effectSizeMethod %in% c("Eta-squared (η2)", "Partial-η2 (η2p)", "Generalized-η2p", "Omega-squared", "Epsilon-squared", "Cohen's f"))
+      req(input$effectSizeMethod %in% c("Eta-squared", "Partial eta-squared", "Generalized partial eta-squared", "Omega-squared", "Epsilon-squared", "Cohen's f"))
     }else if(input$stat == "wilcoxon.test"){
-      req(!input$effectSizeMethod %in% c("Cohen's d", "Hedge's g", "Glass delta", "Eta-squared (η2)", "Partial-η2 (η2p)", "Generalized-η2p", "Omega-squared", "Epsilon-squared", "Cohen's f"), input$compareOrReference)
+      req(!input$effectSizeMethod %in% c("Cohen's d", "Hedge's g", "Glass delta", "Eta-squared", "Partial eta-squared", "Generalized partial eta-squared", "Omega-squared", "Epsilon-squared", "Cohen's f"), input$compareOrReference)
     }else if(input$stat == "kruskal-wallis"){
-      req(!input$effectSizeMethod %in% c("Cohen's d", "Hedge's g", "Glass delta", "Eta-squared (η2)", "Partial-η2 (η2p)", "Generalized-η2p", "Omega-squared", "Epsilon-squared", "Cohen's f"))
+      req(!input$effectSizeMethod %in% c("Cohen's d", "Hedge's g", "Glass delta", "Eta-squared", "Partial eta-squared", "Generalized partial eta-squared", "Omega-squared", "Epsilon-squared", "Cohen's f"))
     }
-    # if(input$stat %in% c("t.test", "anova")){
-    #   req(input$effectSizeMethod)
-    #   message(input$effectSizeMethod)
-    # }
+    
     #categorical independent variable
     indpVar <- reactive({
       #case 1: aesthetic(s) not applied, use the variable of x-axis
@@ -3820,9 +3841,7 @@ server <- function(input, output){
       forml <- reformulate(response = glue::glue("{input$yAxis}"), termlabels = glue::glue("{indpVar()}")) 
       #get all possible combinations of variables
       if(!is.null(ref)){
-        message(ref)
         uniqVar <- unique(ptable()[ ptable()[indpVar()] != ref, indpVar()])
-        message(uniqVar)
         cbn <- lapply(as.vector(uniqVar), function(x) c(ref, x))
         
       }else if(!is.null(cmp)){
@@ -3830,16 +3849,10 @@ server <- function(input, output){
       }else {
         message(indpVar())
         cbn <- combn(unique(ptable()[,indpVar(),drop=T]), 2, simplify = FALSE)
-        message(cbn)
-        print(cbn)
       }
       
       #run the function to determine effect size
-      print(cbn)
-      str(cbn)
       message(cbn)
-      # welc <- if(req(input$ttestMethod) == "welch"){ FALSE } else TRUE #ifelse(req(input$ttestMethod) == "welch", FALSE, TRUE)
-      print(forml)
       efs_list <- lapply(cbn, efS, dt = ptable(), v = indpVar(), y = input$yAxis, method = input$effectSizeMethod, 
                          stat = input$stat, welchs = ifelse(req(input$ttestMethod) == "welch", TRUE, FALSE), fa = forml, paired = ifelse(input$pairedData == "no", FALSE, TRUE))
       #convert the list to data frame
@@ -3872,37 +3885,69 @@ server <- function(input, output){
       
     }else if(input$stat == "wilcoxon.test"){
       
-      # req(input$signifMethod, input$pairedData)
-      pAdjust <- reactive(ifelse(input$stat != "none" && isTruthy(req(input$choosePFormat)), TRUE, FALSE))
-      signifMethod <- reactive(
-        if(isTRUE(pAdjust())){ req(input$signifMethod) }else{'none'}
-      )
-      
-      pairedD <- reactive(req(input$pairedData))
+      #formula
       forml <- reformulate(response = glue::glue("{input$yAxis}"), termlabels = glue::glue("{indpVar()}"))
-      message(cmp)
-      efs_df <- rstatix::wilcox_effsize(data = ptable(), formula = forml,
-                                        ref.group = unlist(ref), 
-                                        comparisons = cmp, 
-                                        paired = ifelse(pairedD() == "no", FALSE, TRUE),
-                                        p.adjust.method = signifMethod())
-    }else if(input$stat == "kruskal-wallis"){
       
+      if(isTruthy(req(input$choosePFormat))){
+        efs_df <- rstatix::wilcox_effsize(data = ptable(), formula = forml,
+                                          ref.group = unlist(ref), 
+                                          comparisons = cmp, 
+                                          paired = ifelse(req(input$pairedData) == "no", FALSE, TRUE),
+                                          p.adjust.method = req(input$signifMethod),
+                                          ci = TRUE,
+                                          conf.level = 0.95,
+                                          nboot = as.numeric(input$effectSizeMethod)
+        )
+      }else if(!isTruthy(req(input$choosePFormat))){
+        efs_df <- rstatix::wilcox_effsize(data = ptable(), formula = forml,
+                                          ref.group = unlist(ref), 
+                                          comparisons = cmp, 
+                                          paired = ifelse(req(input$pairedData) == "no", FALSE, TRUE),
+                                          p.adjust.method = "none",
+                                          ci = TRUE,
+                                          conf.level = 0.95,
+                                          nboot = as.numeric(input$effectSizeMethod)
+        )
+      }
+      
+    }else if(input$stat == "kruskal-wallis"){
+      #wait for the message for bootstrap and then proceed
+      # req(repNo() > 0)
       #get the formula
       forml <- reformulate(response = glue::glue("{input$yAxis}"), termlabels = glue::glue("{indpVar()}"))
-      efs_df <- rstatix::kruskal_test(data=ptable(), formula = forml)
+      efs_df <- rstatix::kruskal_effsize(data=ptable(), formula = forml,
+                                         ci = TRUE,
+                                         conf.level = 0.95,
+                                         nboot = as.numeric(input$effectSizeMethod))
     }
     
-    message(efs_df)
+    
     effectSize$df <<- efs_df
     
   })
   
-  
+  #caption for report
+  reportSubCaption <- reactiveVal(NULL)
   #display effect size. 
   observe({
     
-    req( is.data.frame(ptable()), pltType() != 'none', input$stat %in% c(statList), input$effectSizeMethod, !is.null(effectSize$df), computeFuncError(), twoAnovaError() )
+    req( is.data.frame(ptable()), pltType() != "none", input$stat %in% statList, !is.null(effectSize$df), input$effectSizeMethod, computeFuncError(), twoAnovaError() )
+    # req( is.data.frame(ptable()), pltType() != "none", input$stat %in% statList, effectSize$df, input$effectSizeMethod, computeFuncError(), twoAnovaError() )
+    
+    
+    validate(
+      need(computeFuncError() == 0 & twoAnovaError() == 0, "stop")
+    )
+    #checks to avoid crash
+    if(input$stat == "t.test"){
+      req(input$effectSizeMethod %in% c("Cohen's d", "Hedge's g", "Glass delta"))
+    }else if(input$stat == "anova"){
+      req(input$effectSizeMethod %in% c("Eta-squared", "Partial eta-squared", "Generalized partial eta-squared", "Omega-squared", "Epsilon-squared", "Cohen's f"))
+    }else if(input$stat == "wilcoxon.test"){
+      req(!input$effectSizeMethod %in% c("Cohen's d", "Hedge's g", "Glass delta", "Eta-squared", "Partial eta-squared", "Generalized partial eta-squared", "Omega-squared", "Epsilon-squared", "Cohen's f"), input$compareOrReference)
+    }else if(input$stat == "kruskal-wallis"){
+      req(!input$effectSizeMethod %in% c("Cohen's d", "Hedge's g", "Glass delta", "Eta-squared", "Partial eta-squared", "Generalized partial eta-squared", "Omega-squared", "Epsilon-squared", "Cohen's f"))
+    }
     
     #caption for effect size
     output$UiCapEffectSize <- renderUI({
@@ -3935,24 +3980,32 @@ server <- function(input, output){
       )
       
       if(input$stat == 't.test'){
-        
-        subCaption <- glue::glue("Effect size computed using {input$effectSizeMethod}. CI represent the confidence interval; CI_low and CI_high are the upper and lower bound.")
+        # subCaption <- "Effect size computed using Cohen's d. 'conf.low' and 'conf.high' represents lower and upper bound of the effect size confidence interval (95% confidence level)."
+        subCaption <- glue::glue("Effect size computed using {input$effectSizeMethod}. CI is the confidence interval level; CI_low and CI_high are the upper and lower bound.")
       }else if(input$stat == "kruskal-wallis"){
-        subCaption <- "Eta-squared based on the H-statistic (of Kruskal-Wallis test) used as the measure of effect size."
+        # subCaption <- "Eta-squared based on the H-statistic used as the measure of effect size. 'conf.low' and 'conf.high' represents lower and upper bound of the effect size confidence interval (95% confidence level)."
+        subCaption <- glue::glue("Eta-squared based on the H-statistic (of Kruskal-Wallis test) used as the measure of effect size. Formula: Eta2[H] = (H - k + 1)/(n - k); Where k is the number of groups; n is the total number of observations.
+        The number of replicates use for bootstrap is {input$effectSizeMethod}. Measured at 95% confidence level: conf.low and
+        conf.high are the upper and lower bound.")
       }else if(input$stat == "wilcoxon.test"){
-        subCaption <- "Effect size is computed using z statistic (of Wilcoxon test) and divided by square root of the sample size."
+        subCaption <- glue::glue("Effect size is computed using z statistic (of Wilcoxon test) and divided by square root of the sample size. The number of replicates use for bootstrap is {input$effectSizeMethod}. Measured at 95% confidence interval level: conf.low and
+        conf.high are the upper and lower bound.")
       }else if(input$stat == "anova"){
-        subCaption <- glue::glue("Effect size measured using {input$effectSizeMethod}. CI represent the confidence interval; CI_low and CI_high are the upper and lower bound.")
+        subCaption <- glue::glue("Effect size measured using {input$effectSizeMethod}. CI is the confidence interval level; CI_low and CI_high are the upper and lower bound.")
       }
+      
+      reportSubCaption(subCaption) #require for report
       
       if(input$stat != 'none'){
         helpText(subCaption, style = "padding: 5px; margin-top:10px; margin-bottom:0;font-size:15px")
       }
     })
+    
+    
     #table for effect size
     output$UiEffectSize <- renderReactable({
       if(input$stat != 'none'){
-        
+        message(twoAnovaError())
         #check whether anova can be computed or not
         validate(
           need(twoAnovaError() == 0, " ")
@@ -3973,6 +4026,7 @@ server <- function(input, output){
       }
     })
   })
+  
   
   #post hoc---------------------
   observe({
@@ -4647,20 +4701,21 @@ server <- function(input, output){
           
           #compute statistic only when requested
           statData <- reactive({
+            
             #show notification
             computeMsg <- showNotification("Computing.. Please wait.....", duration = NULL, closeButton = FALSE,
                                            type ="message", id = "computeMsg")
             on.exit(removeNotification(computeMsg), add = TRUE)
             
-            
-            cacheGSD <- memoise::memoise(generateStatData)
-            cacheGSD(data = ptable(), groupStat = groupStat(), groupVar = groupStatVarOption(), method = methodSt(), numericVar = numericVar(),
-                     catVar = catVar(), compRef = compareOrReference(),
-                     ttestMethod = ttestMethod(), paired = pairedData(), 
-                     model = model(), pAdjust = pAdjust(),
-                     pAdjustMethod = pAdjustMethod(), labelSignif = labelSt(), cmpGrpList = cmpGrpList$lists, rfGrpList = rfGrpList$lists,# switchGrpList = switchGrpList$switchs,
-                     xVar = xyAxis()[[1]], anovaType = anovaType())#, ssType = ssType())
-            
+            # cacheGSD <- memoise::memoise(generateStatData)
+            # cacheGSD() #kruskal-wallis is not working for this
+            statData <- generateStatData(data = ptable(), groupStat = groupStat(), groupVar = groupStatVarOption(), 
+                                         method = methodSt(), numericVar = numericVar(),
+                                         catVar = catVar(), compRef = compareOrReference(),
+                                         ttestMethod = ttestMethod(), paired = pairedData(), 
+                                         model = model(), pAdjust = pAdjust(),
+                                         pAdjustMethod = pAdjustMethod(), labelSignif = labelSt(), cmpGrpList = cmpGrpList$lists, rfGrpList = rfGrpList$lists,# switchGrpList = switchGrpList$switchs,
+                                         xVar = xyAxis()[[1]], anovaType = anovaType())#, ssType = ssType())
           })
           
           statDataStore$df <<- isolate(statData()[[1]])
@@ -4959,12 +5014,12 @@ server <- function(input, output){
                        "PNG" = "png",
                        "SVG" = "svg",
                        "TIFF" = "tiff")
-        heights <- ifelse(isTruthy(input$figHeight) && !str_detect(input$figHeight, "[:alpha:]"), as.numeric(input$figHeight), NA)
-        widths <- ifelse(isTruthy(input$figWidth) && !str_detect(input$figWidth, "[:alpha:]"), as.numeric(input$figWidth), NA)
+        heights <- ifelse(isTruthy(input$figHeight) && !str_detect(input$figHeight, "[:alpha:]"), as.numeric(input$figHeight), 4)
+        widths <- ifelse(isTruthy(input$figWidth) && !str_detect(input$figWidth, "[:alpha:]"), as.numeric(input$figWidth), 4)
         plt <- if(!is.null(saveFigure())){
           saveFigure()
         }else{ NULL}
-        ggsave(file, plot = plt, device = pDev, height = heights, width = widths, dpi = 400, units = "in")
+        ggsave(file, plot = plt, device = pDev, height = heights, width = widths, dpi = 300, units = "in")
       }
     )
   })
@@ -5058,25 +5113,28 @@ server <- function(input, output){
             if(input$stat == "t.test"){
               param <- list(table1 = table1(), table2 = table2(), table3=table3(), table4 = table4(),
                             figure1 = figure1(), figure2 = figure2(), figure3 = figure3(),
-                            caption = input$ttestMethod, statment1 = statment1(), statment2 = statment2()
+                            caption = input$ttestMethod, statment1 = statment1(), statment2 = statment2(),
+                            subcaption = reportSubCaption()
               )
             }else if(input$stat == "wilcoxon.test"){
-              param <- list(table1 = table1(), table2 = table2(), table3=table3(), table4 = table4())
+              param <- list(table1 = table1(), table2 = table2(), table3=table3(), table4 = table4(), subcaption = reportSubCaption())
             }else if(input$stat == "anova"){
               if(input$pairedData == "one"){
                 param <- list(table1 = table1(), table2 = table2(), table3=table3(), table4 = table4(), table5 = table5(),
                               figure1 = figure1(), figure2 = figure2(), figure3 = figure3(),
-                              anovaType = input$pairedData, statment1 = statment1(), statment2 = statment2()
+                              anovaType = input$pairedData, statment1 = statment1(), statment2 = statment2(),
+                              subcaption = reportSubCaption()
                 )
-              }else{
+              }else if(input$pairedData == "two"){
                 param <- list(table1 = table1(), table2 = table2(), table3=table3(), table4 = table4(), table5 = table5(),
                               figure1 = figure1(), figure2 = figure2(), figure3 = figure3(),
-                              anovaType = input$pairedData, model = input$anovaModel, statment1 = statment1(), statment2 = statment2()
+                              anovaType = input$pairedData, model = input$anovaModel, 
+                              statment1 = statment1(), statment2 = statment2(), subcaption = reportSubCaption()
                 )
               }
               
             }else if(input$stat == "kruskal-wallis"){
-              param <- list(table1 = table1(), table2 = table2(), table3=table3(), table4 = table4(), table5 = table5())
+              param <- list(table1 = table1(), table2 = table2(), table3=table3(), table4 = table4(), table5 = table5(), subcaption = reportSubCaption())
             }
             
             dlFormat <- tolower(req(input$statSumDownFormat))
