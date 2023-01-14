@@ -90,7 +90,7 @@ ui <- fluidPage(
           #Analyze & visualize-------------------
           tabPanel(
             #This panel will be shown as interactive when the figure is ready
-            title = "Analyze & visualize", value = "chart", icon = icon("chart-pie"),
+            title = "Analyze & visualize", value = "chart", icon = icon("area-chart"),
             
             div(
               id="chartBox",
@@ -413,16 +413,16 @@ ui <- fluidPage(
                                                   uiOutput("UiTwoAovVar"),
                                                   #ui for anova error alert
                                                   uiOutput("UiAnovaErrorAlert"),
-                                                  #error type for anova
-                                                  conditionalPanel(condition = "input.stat == 'anova' && input.pairedData == 'one'",
-                                                                   {er_lst <- list(tags$span("I", style = "font-weight:bold; color:#0099e6"), 
-                                                                                   tags$span("II", style = "font-weight:bold; color:#0099e6"),
-                                                                                   tags$span("III", style = "font-weight:bold; color:#0099e6"))
-                                                                   # selectInput(inputId = "ssType", label = "Error type",
-                                                                   #              choice = c(1,2,3), selected = 2)
-                                                                   radioButtons(inputId = "ssType", label = "Type of sum of squares", inline = TRUE,
-                                                                                choiceNames = er_lst, choiceValues = list(1, 2, 3), selected = 2)
-                                                                   }),
+                                                  # #sum of square type for anova
+                                                  # conditionalPanel(condition = "input.stat == 'anova' && input.pairedData == 'one'",
+                                                  #                  {er_lst <- list(tags$span("I", style = "font-weight:bold; color:#0099e6"), 
+                                                  #                                  tags$span("II", style = "font-weight:bold; color:#0099e6"),
+                                                  #                                  tags$span("III", style = "font-weight:bold; color:#0099e6"))
+                                                  #                  # selectInput(inputId = "ssType", label = "Error type",
+                                                  #                  #              choice = c(1,2,3), selected = 2)
+                                                  #                  radioButtons(inputId = "ssType", label = "Type of sum of squares", inline = TRUE,
+                                                  #                               choiceNames = er_lst, choiceValues = list(1, 2, 3), selected = 2)
+                                                  #                  }),
                                                   #Ui for anova figure:
                                                   uiOutput("UiAnovaFigure"),
                                                   #Ui for color of anova. Different from the general colorSet
@@ -709,7 +709,7 @@ ui <- fluidPage(
                                    uiOutput("UiStatSubCaption"),
                                    #Ui for stat summary
                                    reactableOutput("UiStatSummaryTable",
-                                                   width = '70%')
+                                                   width = '80%')
                                    # verbatimTextOutput("UiStatSummaryTable")
                                    
                   ),
@@ -718,10 +718,15 @@ ui <- fluidPage(
                   conditionalPanel(condition = "input.stat != 'none'",
                                    #Ui caption
                                    uiOutput("UiCapEffectSize"),
+                                   #ui effect size method
+                                   div(
+                                     class="effectSizeMethodDiv",
+                                     uiOutput("UiEffectSizeMethod")
+                                   ),
                                    #subcaption
                                    uiOutput("UiSubCapEffectSize"),
                                    #ui for effect size
-                                   reactableOutput("UiEffectSize", width = '70%')
+                                   reactableOutput("UiEffectSize", width = '80%')
                   ),
                   #ui for post hoc test
                   conditionalPanel(condition = "input.stat== 'kruskal-wallis' | input.stat=='anova'",
@@ -2827,7 +2832,7 @@ server <- function(input, output){
     
     if(input$compareOrReference != "none"){
       #get the variables to be compare or reference
-      varCR <-reactive(unique(ptable()[[input$xAxis]]))
+      varCR <-reactive(as.vector(unique(ptable()[[input$xAxis]])))
       checkList <- reactive({ 
         #emptied the list every time user choose comparison or reference
         grpList <<- list()
@@ -2838,10 +2843,19 @@ server <- function(input, output){
       }else{
         if(input$pairedData == "yes"){
           #for paired data
-          selectInput(inputId = "listGroup", label = "Choose 1 variable as reference", choices = c("all",varCR()), multiple = FALSE)
-        }else{
-          #for unpaired data, 'all' is not applicable
           selectInput(inputId = "listGroup", label = "Choose 1 variable as reference", choices = varCR(), multiple = FALSE)
+        }else{
+          #for unpaired data
+          #count var
+          varC <- ptable() %>% count(.data[[input$xAxis]])
+          
+          if( any(varC$n != varC$n[1]) ){
+            varCh <- varCR()
+          }else if( all(varC$n == varC$n[1]) ){
+            varCh <- c("all", varCR())
+          }
+          
+          selectInput(inputId = "listGroup", label = "Choose 1 variable as reference", choices = varCh, multiple = FALSE)
         }
       }
     }
@@ -3212,7 +3226,7 @@ server <- function(input, output){
         #       case iv: both applied - may or may not be equal with x-axis.
         #case 1:
         tryCatch({
-          browser()
+          
           if(input$colorSet == "none" && !isTruthy(input$shapeLine)){
             xA_grp <- input$xAxis
             #end of case 1
@@ -3699,10 +3713,196 @@ server <- function(input, output){
     
   })
   
+  
+  #effect size------------------
+  observe({
+    req(ptable(), pltType(), input$stat %in% c("t.test", "anova"), computeFuncError(), twoAnovaError())
+    validate(
+      need(computeFuncError() == 0 & twoAnovaError() == 0, "stop")
+    )
+    output$UiEffectSizeMethod <- renderUI({
+      if(input$stat == "t.test"){
+        selectInput(inputId = "effectSizeMethod", list(icon("wrench"),tags$span("Method", style="color:#E11604")), 
+                    choices = c("Cohen's d", "Hedge's g", "Glass delta"), selected = "Hedge's g")
+      }else if(input$stat == "anova"){
+        req(input$pairedData)
+        if(input$pairedData == "one"){
+          selectInput(inputId = "effectSizeMethod", list(icon("wrench"),tags$span("Method", style="color:#E11604")), 
+                      choices = c("Eta-squared (η2)", "Omega-squared", "Epsilon-squared", "Cohen's f"))
+        }else{
+          selectInput(inputId = "effectSizeMethod", list(icon("wrench"),tags$span("Method", style="color:#E11604")), 
+                      choices = c("Eta-squared (η2)", "Partial-η2 (η2p)", "Generalized-η2p", "Omega-squared", "Epsilon-squared", "Cohen's f"), selected = "Partial-η2 (η2p)")
+        }
+        
+      }
+    })
+  })
+  
+  #determine effect size
+  observe({
+    req(ptable(), input$stat != "none", input$yAxis, input$xAxis,
+        computeFuncError(), twoAnovaError())
+    
+    # input$compareOrReference, input$pairedD,
+    # input$ttestMethod, input$ssType,  input$anovaModel, input$choosePFormat, input$signifMethod, 
+    
+    validate(
+      need(computeFuncError() == 0 & twoAnovaError() == 0, "stop")
+    )
+    
+    message(input$stat)
+    #checks to avoid crash
+    
+    if(input$stat == "t.test"){
+      req(input$effectSizeMethod %in% c("Cohen's d", "Hedge's g", "Glass delta"))
+    }else if(input$stat == "anova"){
+      req(input$effectSizeMethod %in% c("Eta-squared (η2)", "Partial-η2 (η2p)", "Generalized-η2p", "Omega-squared", "Epsilon-squared", "Cohen's f"))
+    }else if(input$stat == "wilcoxon.test"){
+      req(!input$effectSizeMethod %in% c("Cohen's d", "Hedge's g", "Glass delta", "Eta-squared (η2)", "Partial-η2 (η2p)", "Generalized-η2p", "Omega-squared", "Epsilon-squared", "Cohen's f"), input$compareOrReference)
+    }else if(input$stat == "kruskal-wallis"){
+      req(!input$effectSizeMethod %in% c("Cohen's d", "Hedge's g", "Glass delta", "Eta-squared (η2)", "Partial-η2 (η2p)", "Generalized-η2p", "Omega-squared", "Epsilon-squared", "Cohen's f"))
+    }
+    # if(input$stat %in% c("t.test", "anova")){
+    #   req(input$effectSizeMethod)
+    #   message(input$effectSizeMethod)
+    # }
+    #categorical independent variable
+    indpVar <- reactive({
+      #case 1: aesthetic(s) not applied, use the variable of x-axis
+      #case 2: aesthetic(s) applied
+      #     i. Variable of x-axis and aesthetic are equal, use variable of x-axis
+      #     ii. variables are different, use the variables of aesthetic as categorical or independent variable in the formula
+      if((input$stat == "anova" && req(input$pairedData) == "one") || !input$stat %in% c("none", "anova")){
+        
+        if( req(input$colorSet) == "none" && !isTruthy(input$shapeLine) ){
+          #case 1
+          input$xAxis
+        }else{
+          # case 2
+          if(req(input$colorSet) != "none"){
+            #case 2 i & ii
+            ifelse(input$colorSet == input$xAxis, input$xAxis, input$colorSet)
+          }else if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Shape"){
+            #case 2 i & ii
+            ifelse(input$shapeSet == input$xAxis, input$xAxis, input$shapeSet)
+          }else if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Line type"){
+            #case 2 i & ii
+            ifelse(input$lineSet == input$xAxis, input$xAxis, input$lineSet)
+          }
+          
+        }
+        
+      }else if(input$stat == "anova" && req(input$pairedData) == "two"){
+        # For two-way anova: select x-axis and one more independent variable choosen by the user
+        c(colnames(input$xAxis), req(input$twoAovVar))
+      }
+      
+    })
+    
+    
+    #get the list for comparison and reference group: applicable only for t test and wilcoxon
+    if(input$stat %in% c("t.test", "wilcoxon.test")){
+      #get compare and reference group
+      compRef <- reactive(req(input$compareOrReference))
+      ref <- if(compRef() == "reference group"){
+        if(is_empty(rfGrpList$lists)){ NULL }else { rfGrpList$lists}
+      }else { NULL }
+      
+      cmp <- if(compRef() == "comparison"){
+        if(!is_empty(cmpGrpList$lists)){ cmpGrpList$lists }else{ NULL }
+      }else { NULL }
+    }
+    
+    
+    if(input$stat == "t.test"){
+      
+      #get the formula
+      forml <- reformulate(response = glue::glue("{input$yAxis}"), termlabels = glue::glue("{indpVar()}")) 
+      #get all possible combinations of variables
+      if(!is.null(ref)){
+        message(ref)
+        uniqVar <- unique(ptable()[ ptable()[indpVar()] != ref, indpVar()])
+        message(uniqVar)
+        cbn <- lapply(as.vector(uniqVar), function(x) c(ref, x))
+        
+      }else if(!is.null(cmp)){
+        cbn <- cmp
+      }else {
+        message(indpVar())
+        cbn <- combn(unique(ptable()[,indpVar(),drop=T]), 2, simplify = FALSE)
+        message(cbn)
+        print(cbn)
+      }
+      
+      #run the function to determine effect size
+      print(cbn)
+      str(cbn)
+      message(cbn)
+      # welc <- if(req(input$ttestMethod) == "welch"){ FALSE } else TRUE #ifelse(req(input$ttestMethod) == "welch", FALSE, TRUE)
+      print(forml)
+      efs_list <- lapply(cbn, efS, dt = ptable(), v = indpVar(), y = input$yAxis, method = input$effectSizeMethod, 
+                         stat = input$stat, welchs = ifelse(req(input$ttestMethod) == "welch", TRUE, FALSE), fa = forml, paired = ifelse(input$pairedData == "no", FALSE, TRUE))
+      #convert the list to data frame
+      efs_df <- data.frame(matrix(nrow = 1, ncol = 8))
+      for (i in seq_along(efs_list)) {
+        col <- colnames(efs_list[[i]])
+        names(efs_df) <- col
+        efs_df[ i, ] <- efs_list[[i]]
+      }
+      
+      
+    }else if(input$stat == "anova"){
+      
+      
+      if(req(input$pairedData) == "one"){
+        #get the formula
+        avIndVar <- aovInFunc(indpVar())
+        forml <- reformulate(response = input$yAxis, termlabels = avIndVar)
+        efs_df <- efS(dt = ptable(), y = input$yAxis, method = input$effectSizeMethod, 
+                      stat = input$stat, fa = forml, x = NULL, v = NULL)
+      }else{
+        req(input$anovaModel)
+        message(input$anovaModel)
+        #get the formula
+        avIndVar <- aovInFunc(indpVar(), model = input$anovaModel)
+        forml <- reformulate(response = input$yAxis, termlabels = avIndVar)
+        efs_df <- efS(dt = ptable(), y = input$yAxis, method = input$effectSizeMethod, 
+                      stat = input$stat, fa = forml, x = NULL, v = NULL)
+      }
+      
+    }else if(input$stat == "wilcoxon.test"){
+      
+      # req(input$signifMethod, input$pairedData)
+      pAdjust <- reactive(ifelse(input$stat != "none" && isTruthy(req(input$choosePFormat)), TRUE, FALSE))
+      signifMethod <- reactive(
+        if(isTRUE(pAdjust())){ req(input$signifMethod) }else{'none'}
+      )
+      
+      pairedD <- reactive(req(input$pairedData))
+      forml <- reformulate(response = glue::glue("{input$yAxis}"), termlabels = glue::glue("{indpVar()}"))
+      message(cmp)
+      efs_df <- rstatix::wilcox_effsize(data = ptable(), formula = forml,
+                                        ref.group = unlist(ref), 
+                                        comparisons = cmp, 
+                                        paired = ifelse(pairedD() == "no", FALSE, TRUE),
+                                        p.adjust.method = signifMethod())
+    }else if(input$stat == "kruskal-wallis"){
+      
+      #get the formula
+      forml <- reformulate(response = glue::glue("{input$yAxis}"), termlabels = glue::glue("{indpVar()}"))
+      efs_df <- rstatix::kruskal_test(data=ptable(), formula = forml)
+    }
+    
+    message(efs_df)
+    effectSize$df <<- efs_df
+    
+  })
+  
+  
   #display effect size. 
   observe({
     
-    req( is.data.frame(ptable()), pltType() != 'none', input$stat %in% c(statList), !is.null(effectSize$df), computeFuncError(), twoAnovaError() )
+    req( is.data.frame(ptable()), pltType() != 'none', input$stat %in% c(statList), input$effectSizeMethod, !is.null(effectSize$df), computeFuncError(), twoAnovaError() )
     
     #caption for effect size
     output$UiCapEffectSize <- renderUI({
@@ -3735,15 +3935,14 @@ server <- function(input, output){
       )
       
       if(input$stat == 't.test'){
-        # subCaption <- "Effect size computed using Cohen's d. 'conf.low' and 'conf.high' represents lower and upper bound of the effect size confidence interval (95% confidence level)."
-        subCaption <- "Effect size computed using Cohen's d."
+        
+        subCaption <- glue::glue("Effect size computed using {input$effectSizeMethod}. CI represent the confidence interval; CI_low and CI_high are the upper and lower bound.")
       }else if(input$stat == "kruskal-wallis"){
-        # subCaption <- "Eta-squared based on the H-statistic used as the measure of effect size. 'conf.low' and 'conf.high' represents lower and upper bound of the effect size confidence interval (95% confidence level)."
         subCaption <- "Eta-squared based on the H-statistic (of Kruskal-Wallis test) used as the measure of effect size."
       }else if(input$stat == "wilcoxon.test"){
         subCaption <- "Effect size is computed using z statistic (of Wilcoxon test) and divided by square root of the sample size."
       }else if(input$stat == "anova"){
-        subCaption <- "Eta2 is the partial eta squared (Eta2); CI is the confidence interval; CI_low and CI_high are the upper and lower bound."
+        subCaption <- glue::glue("Effect size measured using {input$effectSizeMethod}. CI represent the confidence interval; CI_low and CI_high are the upper and lower bound.")
       }
       
       if(input$stat != 'none'){
@@ -3763,7 +3962,7 @@ server <- function(input, output){
           validate("")
         }else{
           if(input$stat == "anova" && input$pairedData == "two"){
-            
+            message(computeFuncError())
             validate(
               need(computeFuncError() == 0, glue::glue(computeFuncErrorMsg()))
             )
@@ -3775,7 +3974,7 @@ server <- function(input, output){
     })
   })
   
-  #post hoc table 
+  #post hoc---------------------
   observe({
     req(is.data.frame(ptable()), pltType() != "none", input$stat %in% c("anova", "kruskal-wallis"), !is.null(postHoc_table$df), computeFuncError(), twoAnovaError())
     
@@ -3882,7 +4081,7 @@ server <- function(input, output){
     
     #stat method
     methodSt <- reactive(req(input$stat))
-    ttestMethod <- reactive(ifelse(methodSt() == "t.test"&& input$ttestMethod == "student", TRUE, FALSE)) #welch = false, student=TRUE
+    ttestMethod <- reactive(ifelse(methodSt() == "t.test"&& req(input$ttestMethod) == "student", TRUE, FALSE)) #welch = false, student=TRUE
     pairedData <- reactive(ifelse(req(input$pairedData) == "no", FALSE, TRUE)) #either 'no' or 'yes': no means unpaired
     anovaType <- reactive( ifelse(req(input$stat) == "anova", req(input$pairedData), "no anova"))
     model <- reactive(if(anovaType() == "two") input$anovaModel)
@@ -4071,7 +4270,7 @@ server <- function(input, output){
     })
     
     twoAovVar <- reactive(if(methodSt() == "anova" && anovaType() == "two" && (varSet() != "none" || shapeLine() != "none")) req(input$twoAovVar))
-    ssType <- reactive(ifelse(methodSt() == "anova", input$ssType, "not anova"))
+    # ssType <- reactive(ifelse(methodSt() == "anova", input$ssType, "not anova"))
     #independent variable
     "For two-way anova: select x-axis and one more independent variable choosen by the user"
     catVar <- reactive({
@@ -4413,7 +4612,7 @@ server <- function(input, output){
         }else if(isTruthy(shapeSet()) && isTruthy(lineSet())){
           req(all(c(shapeSet(), lineSet()) %in% colms))
         }
-      }else if(methodSt() == "anova" && pairedData() == "two"){
+      }else if(methodSt() == "anova" && anovaType() == "two"){
         req(twoAovVar() %in% colms, twoAovVar() == varSet())
       }
       
@@ -4460,15 +4659,21 @@ server <- function(input, output){
                      ttestMethod = ttestMethod(), paired = pairedData(), 
                      model = model(), pAdjust = pAdjust(),
                      pAdjustMethod = pAdjustMethod(), labelSignif = labelSt(), cmpGrpList = cmpGrpList$lists, rfGrpList = rfGrpList$lists,# switchGrpList = switchGrpList$switchs,
-                     xVar = xyAxis()[[1]], anovaType = anovaType(), ssType = ssType())
+                     xVar = xyAxis()[[1]], anovaType = anovaType())#, ssType = ssType())
             
           })
           
           statDataStore$df <<- isolate(statData()[[1]])
         }
+        
+        computeFuncError(0)
+        
       }, error = function(e){
+        
+        computeFuncError(1)
+        computeFuncErrorMsg(e)
         print(e)
-        validate(glue::glue(computeFuncErrorMsg()))
+        # validate(glue::glue(computeFuncErrorMsg()))
       })
       
       

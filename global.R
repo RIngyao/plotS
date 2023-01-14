@@ -675,7 +675,7 @@ computeFuncErrorMsg <- reactiveVal(NULL)
 computFunc <- function(data = "data", method = "none", numericVar = "numericVar()",
                        catVar = "catVar()", compRef = "none",
                        pairedD = "pairedData", anovaType = "anovaType()", 
-                       ttestMethod = FALSE, ssType="ssType()", 
+                       ttestMethod = FALSE, ssType="I", 
                        model = "model", cmpGrpList = NULL, rfGrpList=NULL,
                        pAdjust = TRUE, pAdjustMethod='none'){ #switchGrpList = 0,
   message("entering computFunc()------------")
@@ -736,12 +736,6 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     message("ttest done2 ")
     #global
     testTable$df <<- test %>% as.data.frame()
-    #compute effect size
-    effectSize$df <<- rstatix::cohens_d(data, formula = forml,
-                               ref.group = unlist(ref),
-                               comparisons = cmp, 
-                               paired = pairedD, var.equal = ttestMethod,
-                               ci = FALSE) #ci = TRUE is too slow
     
     return(test)
     
@@ -756,13 +750,6 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     message("done------")
     #global
     testTable$df <<- test %>% as.data.frame()
-    #effect size: global. Display in the summary
-    effectSize$df <<- rstatix::wilcox_effsize(data = data, formula = forml,
-                                              ref.group = unlist(ref), 
-                                              comparisons = cmp, 
-                                              paired = pairedD,
-                                              p.adjust.method = pAdjustMethod)
-    
     return(test)
     
   }else if(method == "anova"){
@@ -771,8 +758,8 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     #formula for one-way and two-way is prepared by aovInFunc and reformulate
     message(glue::glue("running anova--=-="))
     if(anovaType == "one"){
-      av <- aov(data=data, formula=forml)
-      anova <- car::Anova(av, type = ssType) #Default sum of square type = 2
+      anova <- aov(data=data, formula=forml)
+      # anova <- car::Anova(av, type = ssType) #Default sum of square type = 2
     }else{
       anova <- aov(data=data, formula=forml)
     }
@@ -784,8 +771,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     #This will be used as summary data and for further analysis
     # testTable$df <<- rename(anovaTable,"DFn" = "Df", "DFd" = "Df_residual") 
     testTable$df <<- anovaTable
-    #effect size: partial eta_squared
-    effectSize$df <<- effectsize::eta_squared(anova, partial = TRUE)
+    
     message(glue::glue("------catVar: {catVar}-------"))
     
     #conduct post-hoc analysis for one-way and two-way ANOVA
@@ -1011,8 +997,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     #global
     testTable$df <<- kstat %>% as.data.frame()
     postHoc_table$df <<- posthoc %>% as.data.frame()
-    #effect size
-    effectSize$df <- kruskal_effsize(data=data, formula = forml, ci = FALSE) #ci = TRUE is too slow
+    
     message("kruskal post hooooooooooooooooooooooooooooooooooooooooooooooccc")
     #get compLetter
     names(pval) <- paste(posthoc$group1, posthoc$group2, sep="-")
@@ -1032,6 +1017,108 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
 }
 
 message("End of computFunc()------------")
+#function to calculate effect size
+"arguments:
+dt = data frame.
+x = vector of 2 variable names to compare the means. It will be used to subset data from data frame (dt). Require only for t.test
+v = single or multiple character. column name used in right-hand side of a model formula. Require only for t.test.
+y = single character. column name to be used in left-hand side of a model formula
+method = character. method name for estimating effect size. eg. cohen
+stat = character. Statistical method - 't.test' or 'anova'
+welchs = logical. TRUE for welch and FALSE for student. require only for t.test. 
+fa = formula. lm formula - eg. len ~ supp
+... = additional arguments. can be used to specify paired or unpaired data in t.test
+"
+
+efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, method = "cohen/hedge/glass/eta..", stat = "t.test/anova", welchs = FALSE, partial = TRUE, fa, ...){
+  
+  if(stat == "t.test"){
+    
+    dt2 <- dt %>% filter(.data[[v]] %in%  x) %>% as.data.frame()
+    message(dt2)
+    message(colnames(dt2)) 
+  }
+  # fs <- reformulate(response = y, termlabels = v) #replace fs with proper format
+  # 
+  if(stat == "t.test"){
+    
+    if(isTRUE(welchs)){
+      #hedge will be the default
+      efs <- switch(tolower(method),
+                    "cohen's d" = effectsize::cohens_d(data = dt2, x = fa, pooled_sd = FALSE, ...) %>% as.data.frame(),
+                    "hedge's g" = effectsize::hedges_g(data = dt2, x = fa, pooled_sd = FALSE, ...) %>% as.data.frame(),
+                    "glass delta" = effectsize::glass_delta(data = dt2, x = fa) %>% as.data.frame()
+      )
+    }else{
+      efs <- switch(tolower(method),
+                    "cohen's d" = effectsize::cohens_d(data = dt2, x = fa, pooled_sd = TRUE, ...) %>% as.data.frame(),
+                    "hedge's g" = effectsize::hedges_g(data = dt2, x = fa, pooled_sd = TRUE, ...) %>% as.data.frame(),
+                    "glass delta" = effectsize::glass_delta(data = dt2, x = fa) %>% as.data.frame()
+      )
+    }
+    
+    #properly arrange the column: mimic rstatix output
+    efs$y_variable <- y
+    efs$group1 <- x[1]
+    efs$group2 <- x[2]
+    message(efs)
+    message(str(efs))
+    efs2 <- efs %>% dplyr::select(y_variable, group1, group2, everything())
+    #determine magnitude
+    if(abs(efs2[4]) < 0.2){
+      efs2$magnitude <- "negligible"
+    }else if(abs(efs2[4]) >= 0.2 & abs(efs2[4]) < 0.5){
+      efs2$magnitude <- "small"
+    }else if(abs(efs2[4]) >= 0.5 & abs(efs2[4]) < 0.8){
+      efs2$magnitude <- "medium"
+    }else if(abs(efs2[4]) >= 0.8){
+      efs2$magnitude <- "large"
+    }
+    
+    final_df <- efs2
+    #end of t.test
+  }else if(stat =="anova"){
+    
+    av <- aov(data = dt, formula = fa) #replace fs with proper format
+    anov <- car::Anova(av, type = 3)
+    pav <- parameters::model_parameters(anov) 
+    
+    if(method == "Eta-squared (η2)"){
+      final_df <- effectsize::eta_squared(pav, partial = FALSE) %>% as.data.frame()
+      final_df["magnitude"] <- effectsize::interpret_eta_squared(final_df$Eta2) %>% as.data.frame()
+    }else if(method == "Partial-η2 (η2p)"){
+      final_df <- effectsize::eta_squared(pav, partial = TRUE) %>% as.data.frame()
+      print(final_df)
+      print(colnames(final_df))
+      final_df["magnitude"] <- effectsize::interpret_eta_squared(final_df$Eta2_partial) %>% as.data.frame()
+    }else if(method == "Generalized-η2p"){
+      final_df <- effectsize::eta_squared(pav, partial = TRUE, generalized = TRUE) %>% as.data.frame()
+      final_df["magnitude"] <- effectsize::interpret_eta_squared(final_df$Eta2_generalized) %>% as.data.frame()
+    }else if(method == "Epsilon-squared"){
+      final_df <- effectsize::epsilon_squared(pav, partial = FALSE) %>% as.data.frame()
+      final_df["magnitude"] <- effectsize::interpret_epsilon_squared(final_df$Epsilon2) %>% as.data.frame()
+    }else if(method == "Omega-squared"){
+      final_df <- effectsize::omega_squared(pav, partial = FALSE) %>% as.data.frame()
+      final_df["magnitude"] <- effectsize::interpret_omega_squared(final_df$Omega2) %>% as.data.frame()
+    }else if(method == "Cohen's f"){
+      coh <- effectsize::cohens_f(pav, partial = FALSE) %>% as.data.frame()
+      if(abs(coh$Cohens_f) < 0.10){
+        coh$magnitude <- "negligible"
+      }else if(abs(coh$Cohens_f) >= 0.10 & abs(coh$Cohens_f) < 0.25){
+        coh$magnitude <- "small"
+      }else if(abs(coh$Cohens_f) >= 0.25 & abs(coh$Cohens_f) < 0.40){
+        coh$magnitude <- "medium"
+      }else if(abs(coh$Cohens_f) >= 0.40){
+        coh$magnitude <- "large"
+      }
+      final_df <- coh
+    }#end of cohens_f
+    
+  }#end of anova
+  
+  return(final_df)
+}
+
 #function to generate data for stat
 #anova need more setting
 generateStatData <- function(data = "ptable()", groupStat = "groupStat()", groupVar = "groupStatVarOption()",
@@ -1042,7 +1129,7 @@ generateStatData <- function(data = "ptable()", groupStat = "groupStat()", group
                              model = "model", #model of anova
                              pAdjustMethod = NULL, labelSignif = "labelSt()",
                              cmpGrpList = NULL, rfGrpList = NULL, #switchGrpList = 0, #for ref.group and comparison: global list
-                             xVar = "xyAxis()[[1]]", anovaType = "anovaType", ssType ="ssType()"){
+                             xVar = "xyAxis()[[1]]", anovaType = "anovaType", ssType ="I"){
   #convert the x-axis or group_by variable to factor.  
   #converting to factor is necessary for further processing
   message("entering generateStatData()-------------------")
@@ -1078,7 +1165,7 @@ generateStatData <- function(data = "ptable()", groupStat = "groupStat()", group
         #formula: independent (numeric) ~ dependent (factor)
         computFunc(data = ., method = method, numericVar = numericVar, catVar = catVar, compRef = compRef, 
                    paired = pairedD, ttestMethod = ttestMethod,
-                   model = model, anovaType = anovaType, ssType = ssType, 
+                   model = model, anovaType = anovaType, #ssType = ssType, 
                    cmpGrpList = cmpGrpList, rfGrpList = rfGrpList, pAdjust = pAdjust, pAdjustMethod= pAdjustMethod) #switchGrpList = switchGrpList,
       
     }else if(groupStat == "yes"){
