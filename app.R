@@ -525,7 +525,7 @@ ui <- fluidPage(
                           column(6,
                                  radioButtons(inputId = "figDownloadFormat", label = NULL, choices = sort(c("PDF", "EPS", "PNG", "TIFF", "SVG")), selected = "PDF", inline = TRUE)
                           ),
-                          # column(6, downloadButton("figDownload"))
+                          
                           column(6,
                                  fluidRow(
                                    column(4, textInput(inputId = "figHeight", label = NULL, placeholder = "Height(in)")), #in inch 3.3 default for 1 coulmn wide (https://www.elsevier.com/__data/promis_misc/JBCDigitalArtGuidelines.pdf),
@@ -3758,7 +3758,7 @@ server <- function(input, output){
             sliderTextInput(inputId = "effectSizeMethod",
                             label = "Number of replicates for bootstrap",
                             choices = c(10, 100, 500, 1000, 1500, 2000, 2500, 3000), grid = TRUE),
-            helpText("The computation will be slower with more replicates!", style = "color:red; font-weight:normal")
+            helpText("Computation will be slower with more replicates!", style = "color:red; font-weight:normal")
           )
         )
         

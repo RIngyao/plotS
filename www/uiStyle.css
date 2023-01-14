@@ -239,6 +239,11 @@ body{
       border-bottom:solid;
       border-color:red;
       }
+      
+      #xAxisUi, #yAxisUi{
+      text-align:center;
+      }
+      
       /*aesthetic setting*/
       #UiColorSet{
       margin-top:0;
