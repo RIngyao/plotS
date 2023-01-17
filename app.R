@@ -1,5 +1,6 @@
 
 source("global.R", local = TRUE)
+#link: https://plots-application.shinyapps.io/plots/
 ui <- fluidPage(
   #link to CSS----------------
   includeCSS("www/uiStyle.css"),
@@ -3579,7 +3580,7 @@ server <- function(input, output){
           }
           
         }else{
-          normT <- ks.test(x, "pnorm")
+          normT <- ks.test(x, "pnorm", mean = mean(x), sd = sd(x))
           if(normT$p.value <= 0.05 | lvT[1,3] <= 0.05){
             statment1(round(lvT[1,3], digit=3))
             statment2(round(normT$p.value, digit = 3))
