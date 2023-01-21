@@ -127,10 +127,10 @@ ui <- fluidPage(
                       conditionalPanel(condition = "input.replicatePresent == 'yes'",
                                        helpText("Manage the replicates", style = "margin-top:5px; margin-bottom: 10px;"),
                                        div(
-                                         style = "border-top:dotted 1px; border-bottom:dotted 1px; margin-bottom:10px; padding:5px 0 5px 0;",
+                                         style = "border-top:dotted 1px; border-bottom:dotted 1px; margin-bottom:10px; padding:5px 0 5px 0; text-align:center",
                                          #Ui for number of header in the table
                                          # helpText("Provide correct number of header!", style = "margin-top:10px; margin-bottom:0;color:#F49F3A"), 
-                                         helpText("Provide number of header and group/variables.", style = "margin-top:20px; margin-bottom:7px;font-weight:bold; color:#F4763A"), 
+                                         helpText("Provide number of header row and group/variables of replicates.", style = "margin-top:20px; margin-bottom:7px;font-weight:bold; color:#F4763A"), 
                                          fluidRow(
                                            column(6,uiOutput("UiHeaderNumber")),
                                            #let user specify number of variables:
@@ -139,7 +139,7 @@ ui <- fluidPage(
                                          ),
                                          textOutput("UiVarList"),
                                          uiOutput("UiReplicateNumber"),
-                                         helpText("Provide variable's name and index of the replicate columns", style = "margin-top:15px; margin-bottom:7px;font-weight:bold;color:#F4763A"), #3ABFF4
+                                         helpText("Provide variable's name and index number of the replicate columns", style = "margin-top:15px; margin-bottom:7px;font-weight:bold;color:#F4763A; text-align:center"), #3ABFF4
                                          #Ui for adding variable name and replicates column
                                          uiOutput("UiVarNameRepCol"),
                                          # #Ui for replicate statistic
@@ -149,11 +149,11 @@ ui <- fluidPage(
                                                           helpText("'Mean' is appropriate for parametric statistical method and 'Median' for non-parametric method.", style= "margin-bottom:15px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)"), #Compute 'mean' to apply parametric statistic method, 'median' for non-parametric.
                                          ),
                                          uiOutput("UireplicateStatGroup"),
-                                         conditionalPanel(condition = "input.replicateStat != 'none'",
-                                                          helpText( list(tags$p("Specify one or more column index to group by and determine mean or median"),
-                                                                         tags$p("Note: only replicate mean and, if applied, variables used for grouping will be remained.")), style= "margin-bottom:20px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")
-                                                          
-                                         ),
+                                         uiOutput("UiReplicateStatGroupHelp"),
+                                         # conditionalPanel(condition = "input.replicateStat != 'none'",
+                                         #                  uiOutput("UiReplicateStatGroupHelp")
+                                         #                  
+                                         # ),
                                          #action button for running replicates parameter
                                          uiOutput("UiReplicateActionButton"),
                                          uiOutput("UiAfterReplicate"),
@@ -961,7 +961,7 @@ server <- function(input, output){
     req(pInputTable_orig$data(), input$replicatePresent == "yes")
     output$UiHeaderNumber <- renderUI({
       if(isTruthy(input$pInput) &&  input$replicatePresent == "yes"){
-        selectInput(inputId = "headerNumber", label = "Header", choices = 0:5, selected = 1)
+        selectInput(inputId = "headerNumber", label = "Header row", choices = 0:5, selected = 1)
         #Number of table's header
       }
     })
@@ -1050,7 +1050,8 @@ server <- function(input, output){
   
   #variables to group by for determining mean or median of replicates
   observe({
-    req(is.data.frame(pInputTable$data), input$dataVariables, input$replicateStat != "none")
+    # req(pInputTable$data, input$headerNumber, input$dataVariables, input$replicateStat)
+    req(is.data.frame(pInputTable$data), pInputTable$data, input$dataVariables, input$replicateStat != "none", eval( str2expression(paste0("input$Variable",1:input$dataVariables,"R")) ) )
     output$UireplicateStatGroup <- renderUI({
       if(input$replicateStat != "none"){
         #provide option for the column index
@@ -1066,6 +1067,36 @@ server <- function(input, output){
       }
     })
   })
+  
+  #add alert message to select at least one variable
+  # observeEvent(req(isTruthy(input$replicateActionButton)),{
+  #   if()
+  # })
+  #instructions and alert message to users for group_by usage in managing replicates
+  observe({
+    req(is.data.frame(pInputTable$data), pInputTable$data, input$dataVariables, input$replicateStat)
+    # req(input$replicateStat, input$replicateStatGroup)
+    output$UiReplicateStatGroupHelp <- renderUI({
+      
+      if(input$replicateStat != "none" && !isTruthy(input$replicateStatGroup)){
+        helpText( list(tags$p("Specify one or more column index to group by and determine mean or median"),
+                       tags$p("Note: only replicate mean and, if applied, variables used for grouping will be retained.")), style= "margin-bottom:20px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")
+        
+      }else if(input$replicateStat != "none" && isTruthy(input$replicateStatGroup)){
+        if(length(req(input$replicateStatGroup)) > 1  && any("none" %in% req(input$replicateStatGroup))){
+          helpText("Remove 'none' from the selection", style = "margin-bottom:20px; border-radius:10%; color:red; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")
+        }else if(length(req(input$replicateStatGroup)) == 1){
+          helpText( list(tags$p("Specify one or more column index to group by and determine mean or median"),
+                         tags$p("Note: only replicate mean and, if applied, variables used for grouping will be retained.")), style= "margin-bottom:20px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")
+        }
+      }
+      
+    })
+    
+  })
+  # helpText( list(tags$p("Specify one or more column index to group by and determine mean or median"),
+  #                tags$p("Note: only replicate mean and, if applied, variables used for grouping will be remained.")), style= "margin-bottom:20px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")
+  
   #notify the user to reshape the data after managing replicates
   observe({
     req(input$replicatePresent == "yes", isTruthy(input$replicateActionButton))
@@ -1083,7 +1114,8 @@ server <- function(input, output){
   #message to display for calculating replicates mean and median
   # value = 0, no error
   # value = 1, error occured, mostly unable to convert to numeric data type
-  replicateError <- eventReactive( req(input$replicatePresent) == "no", { 0 }) #use this to provide error message
+  # replicateError <- eventReactive( req(input$replicatePresent) == "no", { 0 }) #use this to provide error message
+  replicateError <- reactiveVal( 0 ) #use this to provide error message while processing replicates
   reshapeError <- eventReactive( req(input$transform) == "No", { 0 }) #user must not combine numeric and character column
   
   observe({
@@ -1095,12 +1127,14 @@ server <- function(input, output){
   })
   #end of error setting------------------------------------
   
+  replicateProcessingErrorMsg <- reactiveVal("Error: cannot convert to numeric. Provide correct header or replicate columns!!")
   #provide error message to the user
   observe({
     req(replicateError())
     output$UiReplicateError <- renderUI({
       message("replicaterrororrrrr")
-      if(isTruthy(input$replicateActionButton) && replicateError() == 1) helpText("Error: cannot convert to numeric. Provide correct header and replicate columns!!", style = "margin-top: 10px; font-size = 12; color:red; font-weight:bold")
+      message(replicateProcessingErrorMsg())
+      if(isTruthy(input$replicateActionButton) && replicateError() == 1) helpText(paste0("Error:",replicateProcessingErrorMsg()), style = "margin-top: 10px; font-size = 12; color:red; font-weight:bold")
     })
   })
   
@@ -1114,7 +1148,11 @@ server <- function(input, output){
     
     #check that user do not mixed with none and other options in multiple selection
     if(input$replicateStat != "none"){
-      if(length(req(input$replicateStatGroup)) > 1){
+      req(input$replicateStatGroup)
+      browser()
+      message(input$replicateStatGroup)
+      #for future
+      if(length(input$replicateStatGroup) > 1){
         validate(
           need( !any("none" %in% req(input$replicateStatGroup)), "Remove 'none' from the selection")
         )
@@ -1169,7 +1207,7 @@ server <- function(input, output){
       )
     )
     
-    #unlist and convert to numeric
+    #unlist and convert to numeric (it's a list of index number for columns)
     repCol <- repDetails %>% unlist() %>% as.numeric()
     
     #separate data to replicate and non-replicate [if any (not all data will have variables other than replicates)]
@@ -1191,59 +1229,46 @@ server <- function(input, output){
       noRep_df <- data[, -repCol, drop=FALSE] 
     }
     
-    
-    
     #dummy data frame to collect the replicates data after iteration and processing for each variable.
     mergeData <- data.frame()
     #stopwatch for processing columns other than replicates (inside the function: tidyReplicate())
     stp <- 0 # 0 to 1: 1 is to stop
-    #for loop to tidy up the replicate for each group [[change code later]]
-    for(i in seq_along(varId())){
-      
-      #name of variable given by the user
-      colName <- eval(str2expression(paste0("input$Variable",i)))
-      
-      #replicates column for the given variable
-      no <- eval(str2expression(paste0("input$Variable",i,"R")))
-      #convert to numeric: replicate columns
-      colNo <- as.numeric(no)
-      #use trycatch()
-      tryCatch({
-        #run the tidy function
-        rstat <- tidyReplicate(x=data, y = noRep_df, headerNo = 1:headerNo(),
-                               colName= colName, colNo = colNo, stp=stp)
-        stp <- 1
-        
-        message("000000000000000000000000helo")
-        replicateError <<- reactive(0)
-        
-      }, error = function(e){ 
-        
-        replicateError <<- reactive(1)
-        
-        print(e)
-        validate(
-          need(replicateError() == 0, "Error: cannot process the data!! Make sure that the table is in porper format (check Help section)")
-        )
-      })
-      
-      #tidy the computed data.: output will have all the columns and computed stat
-      #remove column not necessary 
-      rstat2 <- rstat %>% select(!starts_with("Replicate_"))
-      
-      if(is_empty(mergeData)){
-        mergeData <- rstat2
-      }else{
-        #select only the necessary column and append to the data frame
-        newDf <- rstat2 %>% select_if(is.numeric)
-        mergeData <- cbind(mergeData, newDf)
-      }
-      
-    }
-    
-    
     
     tryCatch({
+      #for loop to tidy up the replicate for each group [[change code later]]
+      for(i in seq_along(varId())){
+        
+        #name of variable given by the user
+        colName <- eval(str2expression(paste0("input$Variable",i)))
+        
+        #replicates column for the given variable
+        no <- eval(str2expression(paste0("input$Variable",i,"R")))
+        #convert to numeric: replicate columns
+        colNo <- as.numeric(no)
+        #use trycatch()
+        # tryCatch({
+          #run the tidy function
+          rstat <- tidyReplicate(x=data, y = noRep_df, headerNo = 1:headerNo(),
+                                 colName= colName, colNo = colNo, stp=stp)
+          stp <- 1
+          
+          message("000000000000000000000000helo")
+          
+        
+        #tidy the computed data.: output will have all the columns and computed stat
+        #remove column not necessary 
+        rstat2 <- rstat %>% select(!starts_with("Replicate_"))
+        
+        if(is_empty(mergeData)){
+          mergeData <- rstat2
+        }else{
+          #select only the necessary column and append to the data frame
+          newDf <- rstat2 %>% select_if(is.numeric)
+          mergeData <- cbind(mergeData, newDf)
+        }
+        
+      }
+      
       #Compute Mean or median:
       if(input$replicateStat != "none"){
         
@@ -1254,13 +1279,25 @@ server <- function(input, output){
           #no group_by
           gb_col <- NULL
         }
-        
+        # browser()
         #get the name of the columns for which to determine mean or median
         other_col <- colnames( mergeData[, 1:which(colnames(mergeData) == "replicates")-1] )
+        #check that the col must be numeric
+        
+        numericCheck_df <- mergeData %>% select(-all_of(other_col), -replicates)
+        # message(lapply(numericCheck_df, str))
+        # message(colnames(numericCheck_df))
+        # message(head(numericCheck_df))
+        # validate(
+        #   need(all(isTRUE(lapply(numericCheck_df, is.numeric))) || all(isTRUE(lapply(numericCheck_df, is.double))), "Must be numeric variables")
+        # )
+        
+        
+        #get only the names of the necessary columns to process futher
         mm_col <- mergeData %>% select(-all_of(other_col), -replicates) %>% colnames()
         
         #determine mean or median for each variables
-        mm_list <- lapply(mm_col, getMeanMedian, df = mergeData, stat = req(input$replicateStat), grp = gb_col, varNum = nrow(pInputTable_orig$data()), repNum = length(req(input$Variable1R)))
+        mm_list <- lapply(mm_col, getMeanMedian, df = mergeData, stat = req(input$replicateStat), grp = all_of(gb_col), varNum = nrow(pInputTable_orig$data()), repNum = length(req(input$Variable1R)))
         
         #convert to data frame
         mm_df <- mm_list %>% as.data.frame.list()
@@ -1270,30 +1307,50 @@ server <- function(input, output){
           # keep only the unique
           nr_df_uniq <- nR_df %>% distinct(!!!rlang::syms(colnames(nR_df))) %>% as.data.frame()
           #append
+          message(nr_df_uniq)
+          message(mm_df)
+          message(str(nr_df_uniq))
+          message(str(mm_df))
           mergeData <- cbind(nr_df_uniq, mm_df)
         }else{
           
           mergeData <- mm_df
         }
-      }
+      }#computation completed
+      
+      #save the final data for display
+      replicateData$df <<- mergeData
+      
+      #update error message
+      replicateError <<- reactive(0)
+      replicateProcessingErrorMsg(NULL)
     }, error = function(e){ 
       
       replicateError <<- reactive(1)
-      
+      replicateProcessingErrorMsg(e)
       print(e)
-      validate(
-        need(replicateError() == 0, "Error: cannot process the data!! Make sure that the table is in porper format (check Help section)")
-      )
+      # validate(
+      #   need(replicateError() == 0, "Error: cannot process the data!! Make sure that the table is in porper format (check Help section)")
+      # )
     })
-    #save the final data for display
-    replicateData$df <<- mergeData
     
+  })
+  
+  #replicateData must be reset to null 
+  # case 1. if user choose no to 'Data with replicates/multiple headers'
+  # case 2. if there is error in computation for the replicates
+  observe({
+    req(input$replicateData, unequalReplicateError())
+    if(input$replicateData == "no" || unequalReplicateError() != 0){
+      replicateData$df <- NULL
+    }
   })
   #Alert message for unequal replicates
   observe({
     req(unequalReplicateError() != 0)
-    #reset the data to null
-    replicateData$df <<- NULL
+    # #reset the data to null if there is error
+    # replicateData$df <<- NULL
+    
     #check error:
     # case 1: must have equal replicates for all the group
     # case 2: must not select the same replicate column more than once
@@ -1458,9 +1515,10 @@ server <- function(input, output){
   
   #data before transformation------------------
   bf_ptable <- reactive({
-    #browser()
-    message("ptable")
+   
     req(refresh_1(), input$normalizeStandardize)
+    # browser()
+    message("ptable")
     if( input$pInput == "" || (input$pInput != "" & is.null(input$pFile)) ){
       message("still empty ptable")
       #This is require to avoid error message in the UI (more settings)
@@ -1528,8 +1586,9 @@ server <- function(input, output){
   # step 3: update variable of y-axis.
   
   ns_input <- reactive(input$normalizeStandardize)
-  
+  transformationError <- reactiveVal(0)
   ns_ptable <- eventReactive(req(isTruthy(input$nsActionButton)), {
+    # browser()
     #browser()
     if(ns_input() != 'none'){
       
@@ -1545,7 +1604,17 @@ server <- function(input, output){
       }
       #transformed given numeric variable
       message("inside ns and table")
-      ns_df <- ns_func(data = bf_ptable(), ns_method = ns_input(), x = cVar, y = nVar)
+      tryCatch({
+        
+        ns_df <- ns_func(data = bf_ptable(), ns_method = ns_input(), x = cVar, y = nVar)
+        transformationError(0)
+      }, error = function(e){
+        transformationError(1)
+        validate(
+          need(transformationError() == 0, glue::glue("{e}"))
+        )
+      })
+      
       message("transofrm done]]]]]]]]]]]]]]]]]")
       ns_df
     }
@@ -1556,7 +1625,8 @@ server <- function(input, output){
   # To be used for all further analysis: graph and statistics
   # Must pass all errorless condition
   ptable <- reactive({
-    
+    # browser()#
+    message(replicateError())
     if(ns_input() == 'none'){
       #using the name 'variable' for column (x-axis) generate duplicate name error
       # while using T-test and wilcox-test. So, change the name to variables, if exists
@@ -1718,8 +1788,12 @@ server <- function(input, output){
   #display the tidied or transformed table
   
   observe({ 
-    req(input$replicatePresent, input$transform, unequalReplicateError() == 0, replicateError() == 0, reshapeError() == 0, input$normalizeStandardize) #must not have error while calculating mean and median of replicates
+    req(ptable(), input$replicatePresent, input$transform, unequalReplicateError(), replicateError(), reshapeError(), input$normalizeStandardize) #must not have error while calculating mean and median of replicates
     
+    # browser()#
+    validate(
+      need(unequalReplicateError() == 0 && replicateError() == 0 && reshapeError() == 0, "wait")
+    )
     
     #for caption
     if( input$normalizeStandardize == 'none' || (input$normalizeStandardize != 'none' && !isTruthy(input$nsActionButton)) ){
@@ -3837,18 +3911,23 @@ server <- function(input, output){
     
     
     if(input$stat == "t.test"){
-      
+      message("preparing compareOrReference list")
       #get the formula
       forml <- reformulate(response = glue::glue("{input$yAxis}"), termlabels = glue::glue("{indpVar()}")) 
       #get all possible combinations of variables
       if(!is.null(ref)){
+        req(indpVar() %in% colnames(ptable()))
         uniqVar <- unique(ptable()[ ptable()[indpVar()] != ref, indpVar()])
         cbn <- lapply(as.vector(uniqVar), function(x) c(ref, x))
         
       }else if(!is.null(cmp)){
+        req(all(c(input$xAxis, input$yAxis) %in% c(colnames(ptable()))))
+        browser()
+        message(cmp)
         cbn <- cmp
       }else {
         message(indpVar())
+        req(indpVar() %in% colnames(ptable()))
         cbn <- combn(unique(ptable()[,indpVar(),drop=T]), 2, simplify = FALSE)
       }
       

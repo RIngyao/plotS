@@ -194,6 +194,7 @@ x = character. variable of x-axis. Require only for box-cox.
 y = chharacter. variable of y-axis.
 "
 ns_func <- function(data, ns_method, x=NULL, y){
+  
   #if data has 0 than add +1
   if(any(data[, y] == 0)){
     data[, y] <- data[y]+1
@@ -432,17 +433,27 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
   # it will execute irrespective of stp
   
   #select only the specified columns
-  x2 <- x[, colNo]
-  #remove the header
-  x2 <- x2[-c(headerNo),] %>% as.data.frame() # all columns will be present
+  x2 <- x[, colNo, drop = FALSE] 
+  #remove the header 
+  message(headerNo)
+  message(head(x2))
+  message(str(x2))
+  x2 <- x2[-c(headerNo),] %>% as.data.frame() 
   
   message("replicate selection")
   # convert to numeric
   onlyNumeric <- x2 %>% as.data.frame() %>% mutate_if(is.character, as.numeric)  #%>% as_tibble()
-  
-  
-  # browser()
-  
+  #validate whether the replicate data is in numeric, if not, than the column
+  # cannot be used as replicates. It is a categorical variable(s).
+  message(str(onlyNumeric)) 
+  validate(
+    need(
+        #must not contain any alphabets in the column: added here just to avoid repeated writing (not recommended)
+        all( unlist( lapply(x2, function(x) !str_detect(x, regex("[:alpha:]"))) ) ) &&
+        #must have been converted to numeric
+        all( unlist( lapply(onlyNumeric, is.numeric) ) ), "Specified replicate column(s) must be numeric!"
+        )
+  )
   
   message("converted to numeric")
   #generate and add column names
@@ -487,14 +498,13 @@ getMeanMedian <- function(x, df, stat='none', grp = NULL, varNum = NULL, repNum 
     #user provide no column to group by
     
     #add unique id to each sample to be used in group by
-    
     df2$newId <- rep(1:varNum, each = repNum)
     
     #group by based on the ID
     if(stat == "mean"){
       gb_df <- df2 %>% group_by(newId) %>% summarise(mean= mean(.data[[x]])) %>% as.data.frame() 
       
-      #proper name for calculated stat
+      #proper name to calculated stat
       gb_df[, paste0(x,"_mean")] <- gb_df$mean
       final <- gb_df[, paste0(x,"_mean"), drop=FALSE]
     }else if(stat == "median"){

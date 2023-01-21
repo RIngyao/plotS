@@ -72,6 +72,11 @@ add_header(., sample = "Table 2. Data in table 1 reshaped to long format.", top 
 
 > Aesthetic options mapped the variables to visual properties - color, shape or line type. It let user customize the visual properties and differentiate between variables. 
 
+#### **What is the statistical methods used for conducting normality test?**
+
+
+> In PlotS, we used Shapiro-Wilk's test if the sample size is less than 5000, otherwise, Kolmogorov-Smirnov's test is used.
+
 
 #### **Estimating the effect size**
 
