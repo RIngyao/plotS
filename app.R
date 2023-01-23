@@ -111,13 +111,33 @@ ui <- fluidPage(
                       #panel for input parameters of table
                       #This parameter will have option for choosing the data
                       h3("", br(), align = "center", style = "color:green"), #just in case if i want to add text
-                      selectInput(inputId = "pInput", label = "Input data", choices = list("example","upload data"), selected = ""),
+                      #input option
+                      div({
+                        inptOpt <- list(tags$span("Example", style = "font-weight:bold; color:#0099e6"), 
+                                       tags$span("Upload", style = "font-weight:bold; color:#0099e6"))
+                        radioButtons(inputId = "pInput", label = "Input data", choiceNames = inptOpt, choiceValues = list("example","upload data"), inline = TRUE) 
+                      }),
+                      #ui for na 
+                      div(
+                        style= "border-top:dotted 1px; border-bottom:dotted 1px; margin-bottom:20px; margin-right:0; text-align:center;
+                                                      background-image:linear-gradient(rgba(206,247,250, 0.3), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5))",
+                        class = "NAdiv",
+                        h4("Manage missing values", align = "center", style = "color:green; margin-bottom:20px"),
+                        textInput(inputId = "selectNA", label = "Specify missing values", placeholder = "space or comma separated"),
+                        helpText("'NA' and empty cell are considered as missing values. You can specify more than one missing values."),#, style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;"),
+                        {
+                          naOpt <- list(tags$span("Remove NA", style = "font-weight:bold; color:#0099e6"), 
+                                         tags$span("Replace with 0", style = "font-weight:bold; color:#0099e6"))
+                          radioButtons(inputId = "remRepNa", label = NULL, choiceNames = naOpt, choiceValues = c("remove", "replace"), inline = TRUE) 
+                        }
+                      ),
+                      # selectInput(inputId = "pInput", label = "Input data", choices = list("example","upload data"), selected = ""),
                       #ui for uploading the data, 
                       uiOutput(outputId = "pUpload"),
                       #ui explanation for example
                       conditionalPanel(condition = "input.pInput == 'example'",
                                        helpText("Data for 'long' and 'wide' formats are the same. Wide format data need to be reshaped to compare between variables - ctrl, tr1, tr2.",
-                                                style = "text-align:center")
+                                                style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
                       ),
                       #ui for alerting invalid file type
                       uiOutput(outputId = "UiUploadInvalid"),
@@ -146,10 +166,13 @@ ui <- fluidPage(
                                          uiOutput("UiReplicateStat"),
                                          #message on when to use mean and median
                                          conditionalPanel(condition = "input.replicateStat != 'none'",
-                                                          helpText("'Mean' is appropriate for parametric statistical method and 'Median' for non-parametric method.", style= "margin-bottom:15px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)"), #Compute 'mean' to apply parametric statistic method, 'median' for non-parametric.
+                                                          helpText("'Mean' is appropriate for parametric statistical method and 'Median' for non-parametric method.", 
+                                                                   style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
+                                                          #style= "margin-bottom:15px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)"), #Compute 'mean' to apply parametric statistic method, 'median' for non-parametric.
                                          ),
                                          uiOutput("UireplicateStatGroup"),
-                                         uiOutput("UiReplicateStatGroupHelp"),
+                                         uiOutput("UiReplicateStatGroupMsg"), #warning message
+                                         uiOutput("UiReplicateStatGroupHelp"), #general message
                                          # conditionalPanel(condition = "input.replicateStat != 'none'",
                                          #                  uiOutput("UiReplicateStatGroupHelp")
                                          #                  
@@ -162,19 +185,26 @@ ui <- fluidPage(
                                        )
                       ),
                       
-                      #reshape input data
-                      selectInput(inputId = "transform", label = "Reshape the data", choices = list("No", "Yes"), selected = "No"),
+                      #reshape input data: though the ID says tranform [would be confusing]
+                      div({
+                        trsOpt <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
+                                       tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
+                        radioButtons(inputId = "transform", label = "Reshape the data", choiceNames = trsOpt, choiceValues = c("No", "Yes"), inline = TRUE) 
+                      }),
+                      # selectInput(inputId = "transform", label = "Reshape the data", choi, selected = "No"),
                       conditionalPanel(condition = "input.transform == 'Yes'",
                                        helpText(list(tags$p("Reshape will transpose column to row (long formate)."), tags$p("It facilitate comparison between variables.")), style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")),
                       #ui output for choosing columns to transform the data
                       #for names 
                       uiOutput(outputId = "trName"),
+                      # conditionalPanel(condition = "input.transform == 'Yes'",
+                      #                  helpText("Choose the multiple variables to transpose and compare", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")),
                       #for value
                       uiOutput(outputId = "trValue"),
                       #error message for reshape
-                      conditionalPanel(condition = "input.enterName == 'value'",
+                      conditionalPanel(condition = "input.transform == 'Yes' & input.enterName == 'value'",
                                        helpText("Provide a different name, not 'value'.",
-                                                style = "color:red; margin-bottom: 10px; font-weight:bold; font-size:12")
+                                                style = "color:red; margin-bottom: 10px; font-weight:bold; font-size:12; text-align:center")
                       ),
                       #error message for reshape: when user try to combine numeric and character column
                       uiOutput("UiReshapeError"),
@@ -183,7 +213,6 @@ ui <- fluidPage(
                       
                       #Ui for normalization and standardization of data  
                       selectInput(inputId = "normalizeStandardize", label = "Transform", choices = c('none', NS_methods), selected = 'none'),
-                      
                       conditionalPanel(condition = "input.normalizeStandardize != 'box-cox'",
                                        uiOutput("UiNsNumVar")
                       ),
@@ -791,12 +820,14 @@ server <- function(input, output){
   refresh_afterColor <- reactive({if(isTruthy(input$colorSet)) TRUE})
   refresh_afterStat <- reactive({if(isTruthy(input$stat)) TRUE})
   #various input parameters--------------------------------
+  #manage missing values and then upload
   
   #input option for uploading data
   observe({
     req(input$pInput)
     output$pUpload <- renderUI(
       if(input$pInput == "upload data"){
+        # req(input$remRepNa)
         fileInput(inputId = "pFile", label = "Upload", placeholder = "csv/tsv/xlsx/rds/txt", accept = c(".csv",".tsv", ".txt",".xlsx",".rds"))
       }else if(input$pInput == "example"){
         # selectInput(inputId = "pFile", label = "Select", choices = list(`Long format` = c("long format", ""), `Wide format` = c("iris", "")))
@@ -815,13 +846,38 @@ server <- function(input, output){
   #First point to collect the data based on user's input--------------------------
   #I've use reactiveValues, just in case if required to convert the data to Null
   # This will be updated to manage replicates in the data
-  uploadError <- 0 #for alerting error
   
-  pInputTable_orig <- reactiveValues(data = reactive({
+  # #ui for na 
+  # div(
+  #   style= "border-top:dotted 1px; border-bottom:dotted 1px; margin-bottom:20px; margin-right:0; text-align:center;
+  #                                                     background-image:linear-gradient(rgba(206,247,250, 0.3), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5))",
+  #   class = "NAdiv",
+  #   h4("Manage missing values", align = "center", style = "color:green; margin-bottom:20px"),
+  #   textInput(inputId = "selectNA", label = "Specify missing values", placeholder = "space or comma separated"),
+  #   helpText("'NA' and empty cell are considered as missing values. You can specify more than one missing values."),#, style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;"),
+  #   {
+  #     naOpt <- list(tags$span("Remove NA", style = "font-weight:bold; color:#0099e6"),
+  #                   tags$span("Replace with 0", style = "font-weight:bold; color:#0099e6"))
+  #     radioButtons(inputId = "remRepNa", label = NULL, choiceNames = naOpt, choiceValues = c("remove", "replace"), inline = TRUE)
+  #   }
+  # ),
+  # 
+  # uploadError <- 0 #for alerting error
+  # 
+  # pInputTable_orig <- reactiveValues(data = reactive(PlantGrowth))
+  
+  observe({
+    req(input$remRepNa, upPath())
+    browser()
+    if(!isTruthy(input$selectNA)){
+      naList <- c("", " ", "NA")
+    }else if(isTruthy(input$selectNA)){
+      #process the given list
+      naList <- strsplit(str_trim(gsub(" |,", " ", input$selectNA))," +") %>% unlist()
+    }
     
     #get data based on users input
     if(req(input$pInput) == "upload data"){
-      # req(upPath())
       #get the extension of the file
       ext <- tools::file_ext(req(upPath()$datapath))
       
@@ -838,11 +894,11 @@ server <- function(input, output){
       tryCatch({
         #read the data
         pData <- switch(ext,
-                        "csv" = vroom::vroom(upPath()$datapath) %>% as.data.frame(),
+                        "csv" = vroom::vroom(upPath()$datapath, na = naList) %>% as.data.frame(),
                         "tsv" = vroom::vroom(upPath()$datapaht) %>% as.data.frame(),
                         "txt" = vroom::vroom(upPath()$datapaht) %>% as.data.frame(),
-                        "xlsx" = read_excel(upPath()$datapath),
-                        "xls" = read_excel(upPath()$datapath),
+                        "xlsx" = read_xlsx(upPath()$datapath),
+                        "xls" = read_xls(upPath()$datapath),
                         "rds" = readRDS(upPath()$datapath))
         uploadError <<- 0
         pData
@@ -858,14 +914,14 @@ server <- function(input, output){
       
     }else if(input$pInput == "example"){
       if(req(input$pFile) == "long format"){
-        df <- PlantGrowth
+        pData <- PlantGrowth
       }else if(req(input$pFile) == "wide format"){
         # df <- PlantGrowth
         # dput(df)
         # df$new <- rep(1:10, 3) 
         # df2 <- df %>% pivot_wider(names_from = group, values_from = weight) %>% select(-new)
         # dput(df2)
-        structure(list(ctrl = c(4.17, 5.58, 5.18, 6.11, 4.5, 4.61, 5.17,4.53, 5.33, 5.14), 
+        pData <- structure(list(ctrl = c(4.17, 5.58, 5.18, 6.11, 4.5, 4.61, 5.17,4.53, 5.33, 5.14), 
                        trt1 = c(4.81, 4.17, 4.41, 3.59, 5.87, 3.83,6.03, 4.89, 4.32, 4.69), 
                        trt2 = c(6.31, 5.12, 5.54, 5.5, 5.37,5.29, 4.92, 6.15, 5.8, 5.26)), 
                   row.names = c(NA, -10L), class = c("data.frame"))
@@ -874,7 +930,7 @@ server <- function(input, output){
       }else if (req(input$pFile) == "replicate"){
         # x <- read_excel("~/Desktop/temp/replicates_ex.xlsx")
         # dput(x)
-        structure(list(...1 = c("variable", "ob1", "ob2", "ob3", "ob4", "ob5", "ob6", "ob7"), 
+        pData <- structure(list(...1 = c("variable", "ob1", "ob2", "ob3", "ob4", "ob5", "ob6", "ob7"), 
                        control = c("R1","23", "41", "24", "5", "23", "56", "23"), 
                        ...3 = c("R2","23", "54", "65", "32", "57", "73", "42"), 
                        treatment = c("R1", "2", "3", "4", "67", "2", "45", "24"), 
@@ -883,8 +939,10 @@ server <- function(input, output){
       }
     }
     
+    message(str(pData))
+    pInputTable_orig <<- reactiveValues(data = reactive({pData}))
   })
-  )
+  
   
   #signal the change of data-----------------
   oldData <- reactiveValues(df = NULL)
@@ -1005,10 +1063,12 @@ server <- function(input, output){
   })
   #User choice for mean or median of replicates
   output$UiReplicateStat <- renderUI({
-    lst <- list(tags$span("None", style = "font-weight:bold; color:#0099e6"),
-                tags$span("Mean", style = "font-weight:bold; color:#0099e6"),
-                tags$span("Median", style = "font-weight:bold; color:#0099e6"))
-    radioButtons(inputId = "replicateStat", label = "Compute (for the replicates)", choiceNames = lst, choiceValues = c("none", "mean", "median"), inline = TRUE)
+    if(input$replicatePresent == "yes"){
+      lst <- list(tags$span("None", style = "font-weight:bold; color:#0099e6"),
+                  tags$span("Mean", style = "font-weight:bold; color:#0099e6"),
+                  tags$span("Median", style = "font-weight:bold; color:#0099e6"))
+      radioButtons(inputId = "replicateStat", label = "Compute (for the replicates)", choiceNames = lst, choiceValues = c("none", "mean", "median"), inline = TRUE) 
+    }
   })
   
   #action button to run the replicate parameters
@@ -1055,23 +1115,28 @@ server <- function(input, output){
     output$UireplicateStatGroup <- renderUI({
       if(input$replicateStat != "none"){
         #provide option for the column index
-        #make sure than no index overlapped with replicates index
+        #make sure that no index overlapped with replicates index
         df_col <- 1:ncol(pInputTable$data)
-        # browser()
         replicateIndx <- lapply( 1:as.numeric(input$dataVariables), function(x) as.numeric(eval( str2expression(paste0("input$Variable",x,"R")) )) ) %>% unlist()
         
         #get the index not present in the replicates
         gr_col <- df_col[!df_col %in% replicateIndx]
-        
-        selectInput(inputId = "replicateStatGroup", label = "Specify column to group by", choices = c("none", gr_col), multiple = TRUE)
+        #get the column name from the table
+        gr_col_name <- pInputTable$data[, gr_col, drop = FALSE] %>% colnames()
+        selectInput(inputId = "replicateStatGroup", label = "Specify column to group by", choices = c("none", gr_col_name), multiple = TRUE)
       }
     })
   })
   
-  #add alert message to select at least one variable
-  # observeEvent(req(isTruthy(input$replicateActionButton)),{
-  #   if()
-  # })
+  # add alert message to select at least one variable
+  observe({
+    # req(isTruthy(input$replicateActionButton))
+    output$UiReplicateStatGroupMsg <- renderUI({
+      if(req(input$replicateStat) != "none" && !isTruthy(input$replicateStatGroup)){
+        helpText("Provide at least one variable to group by!", style = "color:red; font-weight:bold; background-color:white; margin-top:0")
+      }
+    })
+  })
   #instructions and alert message to users for group_by usage in managing replicates
   observe({
     req(is.data.frame(pInputTable$data), pInputTable$data, input$dataVariables, input$replicateStat)
@@ -1080,14 +1145,17 @@ server <- function(input, output){
       
       if(input$replicateStat != "none" && !isTruthy(input$replicateStatGroup)){
         helpText( list(tags$p("Specify one or more column index to group by and determine mean or median"),
-                       tags$p("Note: only replicate mean and, if applied, variables used for grouping will be retained.")), style= "margin-bottom:20px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")
+                       tags$p("Note: only replicate mean and, if applied, variables used for grouping will be retained.")), 
+                  style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
+                  # style= "margin-bottom:20px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")
         
       }else if(input$replicateStat != "none" && isTruthy(input$replicateStatGroup)){
         if(length(req(input$replicateStatGroup)) > 1  && any("none" %in% req(input$replicateStatGroup))){
           helpText("Remove 'none' from the selection", style = "margin-bottom:20px; border-radius:10%; color:red; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")
         }else if(length(req(input$replicateStatGroup)) == 1){
           helpText( list(tags$p("Specify one or more column index to group by and determine mean or median"),
-                         tags$p("Note: only replicate mean and, if applied, variables used for grouping will be retained.")), style= "margin-bottom:20px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")
+                         tags$p("Note: only replicate mean and, if applied, variables used for grouping will be retained.")), 
+                    style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")#style= "margin-bottom:20px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")
         }
       }
       
@@ -1104,7 +1172,8 @@ server <- function(input, output){
     output$UiAfterReplicate <- renderUI({
       if(input$replicatePresent == "yes" && isTruthy(input$replicateActionButton)){
         helpText("Apply reshape after managing replicates (Recommended)", 
-                 style = "margin-top:7px; margin-bottom:10px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")
+                 style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
+                 # style = "margin-top:7px; margin-bottom:10px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")
       }
       
     })
@@ -1127,16 +1196,6 @@ server <- function(input, output){
   })
   #end of error setting------------------------------------
   
-  replicateProcessingErrorMsg <- reactiveVal("Error: cannot convert to numeric. Provide correct header or replicate columns!!")
-  #provide error message to the user
-  observe({
-    req(replicateError())
-    output$UiReplicateError <- renderUI({
-      message("replicaterrororrrrr")
-      message(replicateProcessingErrorMsg())
-      if(isTruthy(input$replicateActionButton) && replicateError() == 1) helpText(paste0("Error:",replicateProcessingErrorMsg()), style = "margin-top: 10px; font-size = 12; color:red; font-weight:bold")
-    })
-  })
   
   #get the tidied data of replicates for each group------
   replicateData <- reactiveValues(df=NULL)
@@ -1149,7 +1208,7 @@ server <- function(input, output){
     #check that user do not mixed with none and other options in multiple selection
     if(input$replicateStat != "none"){
       req(input$replicateStatGroup)
-      browser()
+      
       message(input$replicateStatGroup)
       #for future
       if(length(input$replicateStatGroup) > 1){
@@ -1168,7 +1227,8 @@ server <- function(input, output){
       
       if( !any("none" %in% req(input$replicateStatGroup)) ){
         #For mean and median, if user specified group by, then, keep the variable in the first column of the table
-        data <- data %>% select(colnames(data[, as.numeric(input$replicateStatGroup), drop=FALSE]), everything())
+        # data <- data %>% select(colnames(data[, as.numeric(input$replicateStatGroup), drop=FALSE]), everything())
+        data <- data %>% select(!!!rlang::syms(input$replicateStatGroup), everything())
       }
     }
     
@@ -1345,33 +1405,46 @@ server <- function(input, output){
       replicateData$df <- NULL
     }
   })
-  #Alert message for unequal replicates
+  
+  
+  replicateProcessingErrorMsg <- reactiveVal("Error: cannot convert to numeric. Provide correct header or replicate columns!!")
+  #provide error message to the user
   observe({
-    req(unequalReplicateError() != 0)
-    # #reset the data to null if there is error
-    # replicateData$df <<- NULL
-    
-    #check error:
-    # case 1: must have equal replicates for all the group
-    # case 2: must not select the same replicate column more than once
+    req(replicateError())
     output$UiReplicateError <- renderUI({
-      
-      if( unequalReplicateError() == 1 ){
-        #case 1
-        helpText("Error: variables have unequal replicates", style="color:red; ")
-        validate("Variables have unequal replicates")
-      }else if( unequalReplicateError() == 2 ){
-        #case 2
-        helpText("Error: replicate column is duplicated", style="color:red; ")
-        validate("Replicate column is duplicated")
-      }else if( unequalReplicateError() == 3 ){
-        #case 1 and 2
-        helpText("Error: variables have unequal replicates and replicate column is duplicated", style="color:red; ")
-        validate("Variables have unequal replicates and replicate column is duplicated")
-      }
+      message("replicaterrororrrrr")
+      message(replicateProcessingErrorMsg())
+      if(isTruthy(input$replicateActionButton) && replicateError() == 1) helpText(paste0("Error:",replicateProcessingErrorMsg()), style = "margin-top: 10px; font-size = 12; color:red; font-weight:bold")
     })
-    
   })
+  
+  #Alert message for unequal replicates:may not be required
+  # observe({
+  #   req(unequalReplicateError())
+  #   # #reset the data to null if there is error
+  #   # replicateData$df <<- NULL
+  # 
+  #   #check error:
+  #   # case 1: must have equal replicates for all the group
+  #   # case 2: must not select the same replicate column more than once
+  #   output$UiReplicateError <- renderUI({
+  # 
+  #     if( unequalReplicateError() == 1 ){
+  #       #case 1
+  #       helpText("Error: variables have unequal replicates", style="color:red; ")
+  #       validate("Variables have unequal replicates")
+  #     }else if( unequalReplicateError() == 2 ){
+  #       #case 2
+  #       helpText("Error: replicate column is duplicated", style="color:red; ")
+  #       validate("Replicate column is duplicated")
+  #     }else if( unequalReplicateError() == 3 ){
+  #       #case 1 and 2
+  #       helpText("Error: variables have unequal replicates and replicate column is duplicated", style="color:red; ")
+  #       validate("Variables have unequal replicates and replicate column is duplicated")
+  #     }
+  #   })
+  # 
+  # })
   
   #plot input table----------------------------
   output$textInputTable <- renderText({
@@ -1403,9 +1476,9 @@ server <- function(input, output){
     req(pInputTable$data, input$transform == "Yes")
     
     if(req(input$replicatePresent) == "no"){
-      if(input$transform == "Yes") varSelectInput(inputId = "variables", label = "Specify the column(s) to reshape", data = pInputTable$data, multiple = TRUE)
+      if(input$transform == "Yes") varSelectInput(inputId = "variables", label = "Specify the columns to reshape", data = pInputTable$data, multiple = TRUE)
     }else if(req(input$replicatePresent) == "yes" && isTruthy(input$replicateActionButton) && !is_empty(replicateData$df)){
-      if(input$transform == "Yes") varSelectInput(inputId = "variables", label = "Specify the column(s) to reshape", data = replicateData$df, multiple = TRUE)
+      if(input$transform == "Yes") varSelectInput(inputId = "variables", label = "Specify the columns to reshape", data = replicateData$df, multiple = TRUE)
     }
     
   }
@@ -1420,24 +1493,30 @@ server <- function(input, output){
   })
   
   #Action for transforming the data
-  output$trAction <- renderUI({
-    req(input$pInput, 
-        input$variables,
-        isTruthy(input$enterName)
+  observe({
+    #input$pInput,
+    # req(pInputTable$data, input$transform, input$variables, isTruthy(input$enterName))
+    req(pInputTable$data, input$transform, input$variables, input$enterName)
+    # browser()
+    #check the presence of the input in the choosen data and proceed
+    validate(
+      need(input$variables %in% colnames(pInputTable$data), "")
     )
-    
-    if(input$transform == "Yes") actionButton(inputId = "goAction", label = span("Reshape", style="color:white"), class = "btn-primary", width = "100%")
+    output$trAction <- renderUI({
+      if(input$transform == "Yes" && !is_empty(input$variables) && isTruthy(input$enterName)) actionButton(inputId = "goAction", label = span("Reshape", style="color:white"), class = "btn-primary", width = "100%")
+    })
   })
   
-  
+  #table for reshape
   tidy_tb <- reactiveValues(df=NULL)
-  
+  #reshape error message:not in use
+  reshapeErrorMsg <- reactiveVal(NULL)
+  #reshape the data-----------------
   #include the table from replicates in the final reshaped table, if data has replicates
   observeEvent(req(isTruthy(input$goAction)),{
     
     #choosen name for the reshaped column
     name_col <- input$enterName
-    
     #reshape the data
     tryCatch({
       
@@ -1472,11 +1551,21 @@ server <- function(input, output){
       reshapedDone <<- "rehaped" #require for table caption
       message("reshape donessssss")
       reshapeError <<- reactive(0) #no error message
-      
+      reshapeErrorMsg(NULL)
     }, error = function(e){
-      
+      # browser()
+      #assign the original table to tidy_tb so that failure will still provide the original data for plotting
+      if( input$replicatePresent == "yes" && isTruthy(input$replicateActionButton) && !is_empty(replicateData$df) ){
+        #data has replicates
+        tidy_tb$df <- req(replicateData$df)
+      }else{
+        #without replicates
+        tidy_tb$df <<- req(pInputTable$data)
+      }
       message("wrong reshape")
+      # message(e)
       reshapeError <<- reactive(1) #error message to  be displayed to the user
+      reshapeErrorMsg(glue::glue("Failed to reshape the column. {e}!"))
       print(e)
     }) #end of trycatch
     
@@ -1486,9 +1575,13 @@ server <- function(input, output){
   # Mostly, when user try to combine numeric and character column
   observe({
     req(reshapeError())
+    # browser()
     output$UiReshapeError <- renderUI({
       
-      if(isTruthy(input$goAction) && req(reshapeError()) == 1 ){
+      if(input$transform == "Yes" && isTruthy(input$goAction) && req(reshapeError()) == 1 ){
+        # browser()
+        # message(reshapeErrorMsg())
+        # helpText(reshapeErrorMsg(), style = "color:red; margin-bottom: 10px; font-weight:bold; font-size:12")
         helpText("Error: failed to reshape the column. Select different columns!",
                  style = "color:red; margin-bottom: 10px; font-weight:bold; font-size:12")
       }
@@ -1538,7 +1631,18 @@ server <- function(input, output){
     }
   })
   
-  
+  #update data transformation: normalization and standardization
+  observe({
+    # need(unequalReplicateError() == 0 && replicateError() == 0 && reshapeError() == 0, "wait")
+    req(input$replicatePresent, replicateError(), input$transform, reshapeError())
+    # browser()
+    if( (input$replicatePresent == "yes" && isTruthy(input$replicateActionButton) && replicateError() == 1) | (input$transform == "Yes" && isTruthy(input$goAction) && reshapeError() == 1) ){
+      updateSelectInput(inputId = "normalizeStandardize", label = "Transform", choices = "none")
+    }else{
+      updateSelectInput(inputId = "normalizeStandardize", label = "Transform", choices = c('none', NS_methods), selected = 'none')
+    }
+  })
+
   #select variable to transform
   observe({
     req(is.data.frame(bf_ptable()), input$normalizeStandardize != 'none')
@@ -1595,6 +1699,11 @@ server <- function(input, output){
       #get variables for transformation
       if(ns_input() == 'box-cox'){
         req(input$nsCatVar, input$nsNumVar2)
+        #check that the selected variable has at least 2 levels
+        selCol <- bf_ptable() %>% select(.data[[input$nsCatVar]]) %>% distinct() %>% nrow()
+        validate(
+          need(selCol >= 2, "Error: selected categorical variable must have 2 or more levels")
+        )
         cVar <- input$nsCatVar
         nVar <- input$nsNumVar2
       }else{
@@ -1602,14 +1711,17 @@ server <- function(input, output){
         cVar <- NULL
         nVar <- input$nsNumVar
       }
+      
       #transformed given numeric variable
       message("inside ns and table")
       tryCatch({
-        
+        browser()
         ns_df <- ns_func(data = bf_ptable(), ns_method = ns_input(), x = cVar, y = nVar)
+        message(ns_df)
         transformationError(0)
       }, error = function(e){
         transformationError(1)
+        # transformationErrorMsg(e)
         validate(
           need(transformationError() == 0, glue::glue("{e}"))
         )
@@ -1790,7 +1902,6 @@ server <- function(input, output){
   observe({ 
     req(ptable(), input$replicatePresent, input$transform, unequalReplicateError(), replicateError(), reshapeError(), input$normalizeStandardize) #must not have error while calculating mean and median of replicates
     
-    # browser()#
     validate(
       need(unequalReplicateError() == 0 && replicateError() == 0 && reshapeError() == 0, "wait")
     )
