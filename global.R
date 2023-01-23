@@ -473,6 +473,10 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
   }
   
   message("merge done3")
+  message(newDf)
+  message(str(newDf))
+  
+  
   #Reshape the data: keep replicate row-wise i.e. longer format (pivot_longer())
   newDf2 <- pivot_longer(newDf, cols = colnames(onlyNumeric), names_to = "replicates", values_to = colName)
   message("reshape done inside replicate func")
@@ -495,16 +499,20 @@ repNum = numeric. Number of replicates for each variables.
 return one column data frame
 "
 getMeanMedian <- function(x, df, stat='none', grp = NULL, varNum = NULL, repNum = NULL){
+  browser()
   #get the columns for which mean and median are to be determine
   df2 <- df[, c(x), drop = FALSE]
   final <- NULL
   
   if(is.null(grp)){
     #user provide no column to group by
+    message(varNum)
+    
     
     #add unique id to each sample to be used in group by
     df2$newId <- rep(1:varNum, each = repNum)
-    
+    message(df2)
+    message(str(df2))
     #group by based on the ID
     if(stat == "mean"){
       gb_df <- df2 %>% group_by(newId) %>% summarise(mean= mean(.data[[x]])) %>% as.data.frame() 

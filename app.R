@@ -117,28 +117,31 @@ ui <- fluidPage(
                                        tags$span("Upload", style = "font-weight:bold; color:#0099e6"))
                         radioButtons(inputId = "pInput", label = "Input data", choiceNames = inptOpt, choiceValues = list("example","upload data"), inline = TRUE) 
                       }),
-                      #ui for na 
-                      div(
-                        style= "border-top:dotted 1px; border-bottom:dotted 1px; margin-bottom:20px; margin-right:0; text-align:center;
-                                                      background-image:linear-gradient(rgba(206,247,250, 0.3), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5))",
-                        class = "NAdiv",
-                        h4("Manage missing values", align = "center", style = "color:green; margin-bottom:20px"),
-                        textInput(inputId = "selectNA", label = "Specify missing values", placeholder = "space or comma separated"),
-                        helpText("'NA' and empty cell are considered as missing values. You can specify more than one missing values."),#, style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;"),
-                        {
-                          naOpt <- list(tags$span("Remove NA", style = "font-weight:bold; color:#0099e6"), 
-                                         tags$span("Replace with 0", style = "font-weight:bold; color:#0099e6"))
-                          radioButtons(inputId = "remRepNa", label = NULL, choiceNames = naOpt, choiceValues = c("remove", "replace"), inline = TRUE) 
-                        }
-                      ),
+                      
                       # selectInput(inputId = "pInput", label = "Input data", choices = list("example","upload data"), selected = ""),
                       #ui for uploading the data, 
                       uiOutput(outputId = "pUpload"),
+                      
+                      #ui for na 
+                      conditionalPanel(condition = "input.pInput == 'upload data'",
+                                       div(
+                                         style= "border-top:dotted 1px; border-bottom:dotted 1px; margin-bottom:20px; margin-right:0; text-align:center;
+                                                      background-image:linear-gradient(rgba(206,247,250, 0.3), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5))",
+                                         class = "NAdiv",
+                                         h4("Manage missing values", align = "center", style = "color:green; margin-bottom:20px"),
+                                         uiOutput("UiSelectNA"),
+                                         helpText("'NA' and empty cell are considered as missing values by default. You can specify more than one missing values.", style = "margin-top:0;"),#, style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;"),
+                                         uiOutput("UiRemRepNA")
+                                       )
+                                       ),
+                     
                       #ui explanation for example
-                      conditionalPanel(condition = "input.pInput == 'example'",
-                                       helpText("Data for 'long' and 'wide' formats are the same. Wide format data need to be reshaped to compare between variables - ctrl, tr1, tr2.",
-                                                style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
-                      ),
+                      uiOutput("UiExampleDes"),
+                      # conditionalPanel(condition = "input.pFile == 'example'",
+                      #                  helpText("Data for 'long' and 'wide' formats are the same. Wide format data need to be reshaped to compare between variables - ctrl, tr1, tr2.",
+                      #                           style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
+                      # ),
+                      
                       #ui for alerting invalid file type
                       uiOutput(outputId = "UiUploadInvalid"),
                       #ui for present or absent of replicates
@@ -821,10 +824,24 @@ server <- function(input, output){
   refresh_afterStat <- reactive({if(isTruthy(input$stat)) TRUE})
   #various input parameters--------------------------------
   #manage missing values and then upload
-  
-  #input option for uploading data
   observe({
     req(input$pInput)
+    
+    
+    output$UiSelectNA <- renderUI({
+      if(input$pInput == "upload data"){
+        textInput(inputId = "selectNA", label = "Specify missing values", placeholder = "space or comma separated")
+      }
+    })
+    
+    output$UiRemRepNA <- renderUI({
+      if(input$pInput == "upload data"){
+        naOpt <- list(tags$span("Remove NA", style = "font-weight:bold; color:#0099e6"), 
+                      tags$span("Replace with 0", style = "font-weight:bold; color:#0099e6"))
+        radioButtons(inputId = "remRepNa", label = NULL, choiceNames = naOpt, choiceValues = c("remove", "replace"), inline = TRUE) 
+      }
+    })
+    
     output$pUpload <- renderUI(
       if(input$pInput == "upload data"){
         # req(input$remRepNa)
@@ -834,9 +851,23 @@ server <- function(input, output){
         selectInput(inputId = "pFile", label = "Choose example", choices = list("long format", "wide format", "replicate"))
       }
     )
+    
   })
   
-  
+  #description of example
+  observe({
+    req(input$pInput, input$pFile)
+    output$UiExampleDes <- renderUI({
+      if(input$pInput == "example" && input$pFile %in% c("long format", "wide format")){
+        helpText("Data for 'long' and 'wide' formats are the same. Wide format data need reshape to compare between variables - ctrl, tr1, tr2.",
+                 style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
+      }else if(input$pInput == "example" && input$pFile == "replicate"){
+        helpText("It has two header rows and two replicates (R1 and R2) each for two groups/variables - control and treatment.",
+                 style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
+      }
+    })
+    
+  })
   #Get the input data for the plot
   #user's file path: reactive value so that user can change the file
   upPath <- reactive({
@@ -864,20 +895,14 @@ server <- function(input, output){
   # 
   # uploadError <- 0 #for alerting error
   # 
-  # pInputTable_orig <- reactiveValues(data = reactive(PlantGrowth))
+  pInputTable_orig <- reactiveVal(PlantGrowth)
   
   observe({
-    req(input$remRepNa, upPath())
-    browser()
-    if(!isTruthy(input$selectNA)){
-      naList <- c("", " ", "NA")
-    }else if(isTruthy(input$selectNA)){
-      #process the given list
-      naList <- strsplit(str_trim(gsub(" |,", " ", input$selectNA))," +") %>% unlist()
-    }
+    req(input$pInput, input$pFile)
     
     #get data based on users input
     if(req(input$pInput) == "upload data"){
+      
       #get the extension of the file
       ext <- tools::file_ext(req(upPath()$datapath))
       
@@ -891,16 +916,32 @@ server <- function(input, output){
         need(ext %in% c("csv","tsv","xlsx", "xls","rds", "txt"), "Please upload a valid file: csv/tsv/txt/xlsx/xls/rds")
       )
       
+      
+      # req(input$remRepNA)
+      # #manage missing values
+      if(!isTruthy(input$selectNA)){
+        naList <- c("", " ", "NA", "na")
+      }else if(isTruthy(input$selectNA)){
+        #process the given list
+        naList <- strsplit(str_trim(gsub(" |,", " ", input$selectNA))," +") %>% unlist()
+      }
       tryCatch({
         #read the data
-        pData <- switch(ext,
-                        "csv" = vroom::vroom(upPath()$datapath, na = naList) %>% as.data.frame(),
-                        "tsv" = vroom::vroom(upPath()$datapaht) %>% as.data.frame(),
-                        "txt" = vroom::vroom(upPath()$datapaht) %>% as.data.frame(),
-                        "xlsx" = read_xlsx(upPath()$datapath),
-                        "xls" = read_xls(upPath()$datapath),
-                        "rds" = readRDS(upPath()$datapath))
+        up_df <- switch(ext,
+                        "csv" = vroom::vroom(upPath()$datapath, na = naList) %>% as.data.frame(), #, na = naList
+                        "tsv" = vroom::vroom(upPath()$datapaht, na = naList) %>% as.data.frame(),
+                        "txt" = vroom::vroom(upPath()$datapaht, na = naList) %>% as.data.frame(),
+                        "xlsx" = read_xlsx(upPath()$datapath, na = naList),
+                        "xls" = read_xls(upPath()$datapath, na = naList),
+                        "rds" = readRDS(upPath()$datapath, na = naList))
         uploadError <<- 0
+        
+        #remove or replace na 
+        if(input$remRepNa == "remove"){
+          pData <- na.omit(up_df)
+        }else if(input$remRepNa == "replace"){
+          pData <- up_df %>% mutate_if(is.numeric, ~ replace(., is.na(.), 0)) %>% as.data.frame()
+        }
         pData
       }, error = function(e){
         uploadError <<- 1
@@ -913,6 +954,7 @@ server <- function(input, output){
       
       
     }else if(input$pInput == "example"){
+      req(input$pFile %in% c("long format", "wid format", "replicate"))
       if(req(input$pFile) == "long format"){
         pData <- PlantGrowth
       }else if(req(input$pFile) == "wide format"){
@@ -940,7 +982,7 @@ server <- function(input, output){
     }
     
     message(str(pData))
-    pInputTable_orig <<- reactiveValues(data = reactive({pData}))
+    pInputTable_orig(pData) 
   })
   
   
@@ -955,18 +997,18 @@ server <- function(input, output){
     Initial value will be null.
     If user change the data, than it will be TRUE, else FALSE.
     "
-      req(oldData$df, pInputTable_orig$data())
+      req(oldData$df, pInputTable_orig())
       if(is_empty(oldData$df)){
         
         #No data: start of program
-        oldData$df <- pInputTable_orig$data()
+        oldData$df <- pInputTable_orig()
         oldPath$df <- upPath()$datapath 
         NULL
       }else{
         
-        if(nrow(pInputTable_orig$data()) == nrow(oldData$df) &&
-           ncol(pInputTable_orig$data()) == ncol(oldData$df) &&
-           colnames(pInputTable_orig$data()) == colnames(oldData$df) #&& oldPath$df == upPath()$dataPath
+        if(nrow(pInputTable_orig()) == nrow(oldData$df) &&
+           ncol(pInputTable_orig()) == ncol(oldData$df) &&
+           colnames(pInputTable_orig()) == colnames(oldData$df) #&& oldPath$df == upPath()$dataPath
         ){
           
           #data remain unchanged
@@ -974,7 +1016,7 @@ server <- function(input, output){
         }else{
           
           #Data has changed
-          oldData$df <<- pInputTable_orig$data()
+          oldData$df <<- pInputTable_orig()
           oldPath$df <<- upPath()$datapath
           
           #reset all other data
@@ -1016,7 +1058,7 @@ server <- function(input, output){
   })
   
   observe({
-    req(pInputTable_orig$data(), input$replicatePresent == "yes")
+    req(pInputTable_orig(), input$replicatePresent == "yes")
     output$UiHeaderNumber <- renderUI({
       if(isTruthy(input$pInput) &&  input$replicatePresent == "yes"){
         selectInput(inputId = "headerNumber", label = "Header row", choices = 0:5, selected = 1)
@@ -1121,9 +1163,11 @@ server <- function(input, output){
         
         #get the index not present in the replicates
         gr_col <- df_col[!df_col %in% replicateIndx]
+        selectInput(inputId = "replicateStatGroup", label = "Specify column(s) to group by", choices = c("none", gr_col), multiple = TRUE)
+        #below code: use it for data base (ibdc), but not for plotS
         #get the column name from the table
-        gr_col_name <- pInputTable$data[, gr_col, drop = FALSE] %>% colnames()
-        selectInput(inputId = "replicateStatGroup", label = "Specify column to group by", choices = c("none", gr_col_name), multiple = TRUE)
+        # gr_col_name <- pInputTable$data[, gr_col, drop = FALSE] %>% colnames()
+        # selectInput(inputId = "replicateStatGroup", label = "Specify column(s) to group by", choices = c("none", gr_col_name), multiple = TRUE)
       }
     })
   })
@@ -1227,8 +1271,9 @@ server <- function(input, output){
       
       if( !any("none" %in% req(input$replicateStatGroup)) ){
         #For mean and median, if user specified group by, then, keep the variable in the first column of the table
-        # data <- data %>% select(colnames(data[, as.numeric(input$replicateStatGroup), drop=FALSE]), everything())
-        data <- data %>% select(!!!rlang::syms(input$replicateStatGroup), everything())
+        data <- data %>% select(colnames(data[, as.numeric(input$replicateStatGroup), drop=FALSE]), everything())
+        #below code: use it for data base (ibdc), but not for plotS
+        # data <- data %>% select(!!!rlang::syms(input$replicateStatGroup), everything())
       }
     }
     
@@ -1356,9 +1401,15 @@ server <- function(input, output){
         #get only the names of the necessary columns to process futher
         mm_col <- mergeData %>% select(-all_of(other_col), -replicates) %>% colnames()
         
-        #determine mean or median for each variables
-        mm_list <- lapply(mm_col, getMeanMedian, df = mergeData, stat = req(input$replicateStat), grp = all_of(gb_col), varNum = nrow(pInputTable_orig$data()), repNum = length(req(input$Variable1R)))
+        #arrange the varNum for the arguments of getMeanMedian
+        # more than one hheader row need to be consider while proceeding
+        if(headerNo() > 1){
+          forVarNum <- nrow(pInputTable_orig()) - (headerNo() - 1)
+          #for 0 and 1, no need to worry
+        }
         
+        #determine mean or median for each variables
+        mm_list <- lapply(mm_col, getMeanMedian, df = mergeData, stat = req(input$replicateStat), grp = all_of(gb_col), varNum = forVarNum, repNum = length(req(input$Variable1R)))
         #convert to data frame
         mm_df <- mm_list %>% as.data.frame.list()
         if(!is_empty(gb_col)){
@@ -1715,7 +1766,7 @@ server <- function(input, output){
       #transformed given numeric variable
       message("inside ns and table")
       tryCatch({
-        browser()
+        
         ns_df <- ns_func(data = bf_ptable(), ns_method = ns_input(), x = cVar, y = nVar)
         message(ns_df)
         transformationError(0)
@@ -1791,10 +1842,10 @@ server <- function(input, output){
   # change in header number will trigger the processing
   updated_df <- reactiveVal(NULL)
   observe({
-    req(pInputTable_orig$data(), input$replicatePresent == "yes" )
+    req(pInputTable_orig(), input$replicatePresent == "yes" )
     
     if(input$replicatePresent == "yes" && req(input$headerNumber) > 0){
-      df_nproper <- pInputTable_orig$data() %>% as.data.frame()
+      df_nproper <- pInputTable_orig() %>% as.data.frame()
       
       #data has header
       #get all the header and add as row dataset
@@ -1833,7 +1884,7 @@ server <- function(input, output){
       #update the oiginal input table
       updated_df(df_nproper2)
     }else{
-      updated_df(pInputTable_orig$data())
+      updated_df(pInputTable_orig())
     }
     
   })
@@ -1841,14 +1892,14 @@ server <- function(input, output){
   #Table to be used for input display and further analysis for replicates or reshape or transformation
   pInputTable <- reactiveValues(data = NULL)
   observe({
-    req(pInputTable_orig$data(), input$replicatePresent, input$transform)
-    
+    req(pInputTable_orig(), input$replicatePresent, input$transform)
+    # browser()
     if(input$replicatePresent == "yes" && !is.null(updated_df())){
       
       pInputTable$data <- updated_df()
     }else{
       #original input table
-      pInputTable$data <- pInputTable_orig$data()
+      pInputTable$data <- pInputTable_orig()
     }
   })
   #Table: input and reshaped table---------------------------
