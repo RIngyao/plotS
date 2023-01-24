@@ -494,12 +494,12 @@ x = Single character. Column names to get the mean or median.
 df = data frame. Data frame that has all the columns that need to be process.
 stat = character. Specify 'mean' or 'median'.
 grp = character. Specify column name to use for grouping to determine mean or median.
-varNum = numeric. Number of variables. 
+varNum = numeric. Number of rows [confuse! 1st version: number of variables]
 repNum = numeric. Number of replicates for each variables.
 return one column data frame
 "
 getMeanMedian <- function(x, df, stat='none', grp = NULL, varNum = NULL, repNum = NULL){
-  browser()
+  
   #get the columns for which mean and median are to be determine
   df2 <- df[, c(x), drop = FALSE]
   final <- NULL
@@ -507,8 +507,6 @@ getMeanMedian <- function(x, df, stat='none', grp = NULL, varNum = NULL, repNum 
   if(is.null(grp)){
     #user provide no column to group by
     message(varNum)
-    
-    
     #add unique id to each sample to be used in group by
     df2$newId <- rep(1:varNum, each = repNum)
     message(df2)
@@ -702,8 +700,8 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
                        ttestMethod = FALSE, ssType="I", 
                        model = "model", cmpGrpList = NULL, rfGrpList=NULL,
                        pAdjust = TRUE, pAdjustMethod='none'){ #switchGrpList = 0,
-  message("entering computFunc()------------")
   
+  message("entering computFunc()------------")
   message("catVar---------")
   message(catVar)
   message("for formula")
@@ -1157,7 +1155,6 @@ generateStatData <- function(data = "ptable()", groupStat = "groupStat()", group
   #convert the x-axis or group_by variable to factor.  
   #converting to factor is necessary for further processing
   message("entering generateStatData()-------------------")
-  
   #for anova, every independent variable has to be a factor
   #for other tests, it will depend on the type of computation
   if(method %in% c("anova", "kruskal-wallis")){

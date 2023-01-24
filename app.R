@@ -130,7 +130,7 @@ ui <- fluidPage(
                                          class = "NAdiv",
                                          h4("Manage missing values", align = "center", style = "color:green; margin-bottom:20px"),
                                          uiOutput("UiSelectNA"),
-                                         helpText("'NA' and empty cell are considered as missing values by default. You can specify more than one missing values.", style = "margin-top:0;"),#, style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;"),
+                                         helpText("You can specify more than one missing values. If no value is specified, 'NA' and empty cell are treated as missing values by default.", style = "margin-top:0;"),#, style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;"),
                                          uiOutput("UiRemRepNA")
                                        )
                                        ),
@@ -148,7 +148,7 @@ ui <- fluidPage(
                       uiOutput(outputId = "UiReplicatePresent"),
                       
                       conditionalPanel(condition = "input.replicatePresent == 'yes'",
-                                       helpText("Manage the replicates", style = "margin-top:5px; margin-bottom: 10px;"),
+                                       helpText("Manage the replicates. Data must have at least one header.", style = "margin-top:5px; margin-bottom: 10px;"),
                                        div(
                                          style = "border-top:dotted 1px; border-bottom:dotted 1px; margin-bottom:10px; padding:5px 0 5px 0; text-align:center",
                                          #Ui for number of header in the table
@@ -299,6 +299,10 @@ ui <- fluidPage(
                                  column(6, uiOutput("xAxisUi")),
                                  column(6, uiOutput("yAxisUi"))
                                ),
+                               #message for choosing x and y axis
+                               conditionalPanel(condition = "input.plotType != 'none'",
+                                                helpText("Variable for Y-axis must be numeric", style = "text-align:center")
+                                                ),
                                # #Ui for normalization and standardization
                                # conditionalPanel(condition = "input.plotType != 'none'",
                                #                  uiOutput("UiNormStand")
@@ -830,7 +834,7 @@ server <- function(input, output){
     
     output$UiSelectNA <- renderUI({
       if(input$pInput == "upload data"){
-        textInput(inputId = "selectNA", label = "Specify missing values", placeholder = "space or comma separated")
+        textInput(inputId = "selectNA", label = "Specify missing values", placeholder = "comma separated only!!")
       }
     })
     
@@ -923,7 +927,7 @@ server <- function(input, output){
         naList <- c("", " ", "NA", "na")
       }else if(isTruthy(input$selectNA)){
         #process the given list
-        naList <- strsplit(str_trim(gsub(" |,", " ", input$selectNA))," +") %>% unlist()
+        naList <- strsplit(gsub(",", "_", input$selectNA),"_") %>% unlist()#strsplit(str_trim(gsub(",", " ", input$selectNA))," +") %>% unlist()
       }
       tryCatch({
         #read the data
@@ -1061,7 +1065,7 @@ server <- function(input, output){
     req(pInputTable_orig(), input$replicatePresent == "yes")
     output$UiHeaderNumber <- renderUI({
       if(isTruthy(input$pInput) &&  input$replicatePresent == "yes"){
-        selectInput(inputId = "headerNumber", label = "Header row", choices = 0:5, selected = 1)
+        selectInput(inputId = "headerNumber", label = "Header row", choices = 1:5, selected = 1)
         #Number of table's header
       }
     })
@@ -1163,7 +1167,7 @@ server <- function(input, output){
         
         #get the index not present in the replicates
         gr_col <- df_col[!df_col %in% replicateIndx]
-        selectInput(inputId = "replicateStatGroup", label = "Specify column(s) to group by", choices = c("none", gr_col), multiple = TRUE)
+        selectInput(inputId = "replicateStatGroup", label = "Specify column(s) to group by", choices = c("none", gr_col), multiple = TRUE, selected = "none")
         #below code: use it for data base (ibdc), but not for plotS
         #get the column name from the table
         # gr_col_name <- pInputTable$data[, gr_col, drop = FALSE] %>% colnames()
@@ -1262,8 +1266,12 @@ server <- function(input, output){
       }
     }
     
-    #main data
+    #number of header
+    headerNo <- reactive(as.numeric(input$headerNumber))
+    
+    #main data: process the data based on the header
     data <- pInputTable$data %>% as.data.frame()
+    
     #keep the columns selected for group by in the beginning
     
     if(req(input$replicateStat) != "none"){
@@ -1277,8 +1285,7 @@ server <- function(input, output){
       }
     }
     
-    #number of header
-    headerNo <- reactive(as.numeric(input$headerNumber))
+    
     #variables id 
     varId <- reactive(paste0("Variable", seq_len(input$dataVariables)))
     
@@ -1406,8 +1413,10 @@ server <- function(input, output){
         if(headerNo() > 1){
           forVarNum <- nrow(pInputTable_orig()) - (headerNo() - 1)
           #for 0 and 1, no need to worry
+        }else{
+          forVarNum <- nrow(pInputTable_orig())
         }
-        
+        message(forVarNum)
         #determine mean or median for each variables
         mm_list <- lapply(mm_col, getMeanMedian, df = mergeData, stat = req(input$replicateStat), grp = all_of(gb_col), varNum = forVarNum, repNum = length(req(input$Variable1R)))
         #convert to data frame
@@ -1856,7 +1865,7 @@ server <- function(input, output){
       if(as.numeric(input$headerNumber) > 1){
         #if user specified more than 1 header, than require more steps to process
         #get the data for the header from the row
-        userColN <- df_nproper[1:as.numeric(input$headerNumber), ,drop=FALSE]
+        userColN <- df_nproper[1:as.numeric(input$headerNumber), ,drop=FALSE] #not require
         
         #create one duplicate rows and append real colnames to it
         add_df <- df_nproper[1, ,drop=FALSE]
@@ -1873,7 +1882,7 @@ server <- function(input, output){
         df_nproper2[1, ] <- realColN
       }
       
-      #Note:R will add header if needed (not always)
+      #Note:R will add header if needed (not always) [when using fread(), instead of vroom()]
       # check for addition of header by R: V1, V2, .....Vn
       # removed the header if present. 
       
@@ -2873,9 +2882,10 @@ server <- function(input, output){
     req(ptable(), pltType() != "none", input$stat == "anova", input$pairedData == "two")
     varName <- list(`Main effect` = c(colnames(xVar()), input$twoAovVar))
     if(input$anovaModel == "additive"){
-      selectInput(inputId = "anovaFigure", label = "Show figure", choices = varName)
+      selectInput(inputId = "anovaFigure", label = tags$span("Choose ANOVA figure", style= "color:#BD1403"), choices = varName)
+      # radioButtons(inputId = "anovaFigure", label = "Show figure", choices = varName)
     }else if(input$anovaModel == "non-additive"){
-      selectInput(inputId = "anovaFigure", label = "Show figure", choices = c("Interaction",varName))
+      selectInput(inputId = "anovaFigure", label = tags$span("Choose ANOVA figure", style= "color:#BD1403"), choices = c("Interaction",varName))
     }
   })
   
@@ -3944,9 +3954,8 @@ server <- function(input, output){
             need(twoAnovaError() == 0, " ")
           )
           
-          
           validate(
-            need(computeFuncError() == 0, glue::glue(computeFuncErrorMsg()))
+            need(computeFuncError() == 0, "Error: cannot compute! Please, check the data")
           )
         }
         table3(testTable$df)
@@ -4003,6 +4012,8 @@ server <- function(input, output){
     })
   })
   
+  #error msg
+  efsErrorMsg <- reactiveVal(NULL)
   #determine effect size
   observe({
     req(ptable(), input$stat != "none", input$yAxis, input$xAxis, input$effectSizeMethod,
@@ -4010,6 +4021,9 @@ server <- function(input, output){
     
     validate(
       need(computeFuncError() == 0 & twoAnovaError() == 0, "stop")
+    )
+    validate(
+      need( all( c(input$yAxis, input$xAxis) %in% colnames(ptable()) ), "" )
     )
     
     message(input$stat)
@@ -4071,100 +4085,105 @@ server <- function(input, output){
       }else { NULL }
     }
     
-    
-    if(input$stat == "t.test"){
-      message("preparing compareOrReference list")
-      #get the formula
-      forml <- reformulate(response = glue::glue("{input$yAxis}"), termlabels = glue::glue("{indpVar()}")) 
-      #get all possible combinations of variables
-      if(!is.null(ref)){
-        req(indpVar() %in% colnames(ptable()))
-        uniqVar <- unique(ptable()[ ptable()[indpVar()] != ref, indpVar()])
-        cbn <- lapply(as.vector(uniqVar), function(x) c(ref, x))
+    #compute effect size
+    tryCatch({
+      if(input$stat == "t.test"){
+        message("preparing compareOrReference list")
+        #get the formula
+        forml <- reformulate(response = glue::glue("{input$yAxis}"), termlabels = glue::glue("{indpVar()}")) 
+        #get all possible combinations of variables
+        if(!is.null(ref)){
+          req(indpVar() %in% colnames(ptable()))
+          uniqVar <- unique(ptable()[ ptable()[indpVar()] != ref, indpVar()])
+          cbn <- lapply(as.vector(uniqVar), function(x) c(ref, x))
+          
+        }else if(!is.null(cmp)){
+          req(all(c(input$xAxis, input$yAxis) %in% c(colnames(ptable()))))
+          browser()
+          message(cmp)
+          cbn <- cmp
+        }else {
+          message(indpVar())
+          req(indpVar() %in% colnames(ptable()))
+          cbn <- combn(unique(ptable()[,indpVar(),drop=T]), 2, simplify = FALSE)
+        }
         
-      }else if(!is.null(cmp)){
-        req(all(c(input$xAxis, input$yAxis) %in% c(colnames(ptable()))))
-        browser()
-        message(cmp)
-        cbn <- cmp
-      }else {
-        message(indpVar())
-        req(indpVar() %in% colnames(ptable()))
-        cbn <- combn(unique(ptable()[,indpVar(),drop=T]), 2, simplify = FALSE)
-      }
-      
-      #run the function to determine effect size
-      message(cbn)
-      efs_list <- lapply(cbn, efS, dt = ptable(), v = indpVar(), y = input$yAxis, method = input$effectSizeMethod, 
-                         stat = input$stat, welchs = ifelse(req(input$ttestMethod) == "welch", TRUE, FALSE), fa = forml, paired = ifelse(input$pairedData == "no", FALSE, TRUE))
-      #convert the list to data frame
-      efs_df <- data.frame(matrix(nrow = 1, ncol = 8))
-      for (i in seq_along(efs_list)) {
-        col <- colnames(efs_list[[i]])
-        names(efs_df) <- col
-        efs_df[ i, ] <- efs_list[[i]]
-      }
-      
-      
-    }else if(input$stat == "anova"){
-      
-      
-      if(req(input$pairedData) == "one"){
+        #run the function to determine effect size
+        message(cbn)
+        efs_list <- lapply(cbn, efS, dt = ptable(), v = indpVar(), y = input$yAxis, method = req(input$effectSizeMethod), 
+                           stat = input$stat, welchs = ifelse(req(input$ttestMethod) == "welch", TRUE, FALSE), fa = forml, paired = ifelse(input$pairedData == "no", FALSE, TRUE))
+        #convert the list to data frame
+        efs_df <- data.frame(matrix(nrow = 1, ncol = 8))
+        for (i in seq_along(efs_list)) {
+          col <- colnames(efs_list[[i]])
+          names(efs_df) <- col
+          efs_df[ i, ] <- efs_list[[i]]
+        }
+        
+        
+      }else if(input$stat == "anova"){
+        
+        
+        if(req(input$pairedData) == "one"){
+          #get the formula
+          avIndVar <- aovInFunc(indpVar())
+          forml <- reformulate(response = input$yAxis, termlabels = avIndVar)
+          efs_df <- efS(dt = ptable(), y = input$yAxis, method = input$effectSizeMethod, 
+                        stat = input$stat, fa = forml, x = NULL, v = NULL)
+        }else{
+          req(input$anovaModel)
+          message(input$anovaModel)
+          #get the formula
+          avIndVar <- aovInFunc(indpVar(), model = input$anovaModel)
+          forml <- reformulate(response = input$yAxis, termlabels = avIndVar)
+          efs_df <- efS(dt = ptable(), y = input$yAxis, method = input$effectSizeMethod, 
+                        stat = input$stat, fa = forml, x = NULL, v = NULL)
+        }
+        
+      }else if(input$stat == "wilcoxon.test"){
+        
+        #formula
+        forml <- reformulate(response = glue::glue("{input$yAxis}"), termlabels = glue::glue("{indpVar()}"))
+        
+        if(isTruthy(req(input$choosePFormat))){
+          efs_df <- rstatix::wilcox_effsize(data = ptable(), formula = forml,
+                                            ref.group = unlist(ref), 
+                                            comparisons = cmp, 
+                                            paired = ifelse(req(input$pairedData) == "no", FALSE, TRUE),
+                                            p.adjust.method = req(input$signifMethod),
+                                            ci = TRUE,
+                                            conf.level = 0.95,
+                                            nboot = as.numeric(input$effectSizeMethod)
+          )
+        }else if(!isTruthy(req(input$choosePFormat))){
+          efs_df <- rstatix::wilcox_effsize(data = ptable(), formula = forml,
+                                            ref.group = unlist(ref), 
+                                            comparisons = cmp, 
+                                            paired = ifelse(req(input$pairedData) == "no", FALSE, TRUE),
+                                            p.adjust.method = "none",
+                                            ci = TRUE,
+                                            conf.level = 0.95,
+                                            nboot = as.numeric(input$effectSizeMethod)
+          )
+        }
+        
+      }else if(input$stat == "kruskal-wallis"){
+        #wait for the message for bootstrap and then proceed
+        # req(repNo() > 0)
         #get the formula
-        avIndVar <- aovInFunc(indpVar())
-        forml <- reformulate(response = input$yAxis, termlabels = avIndVar)
-        efs_df <- efS(dt = ptable(), y = input$yAxis, method = input$effectSizeMethod, 
-                      stat = input$stat, fa = forml, x = NULL, v = NULL)
-      }else{
-        req(input$anovaModel)
-        message(input$anovaModel)
-        #get the formula
-        avIndVar <- aovInFunc(indpVar(), model = input$anovaModel)
-        forml <- reformulate(response = input$yAxis, termlabels = avIndVar)
-        efs_df <- efS(dt = ptable(), y = input$yAxis, method = input$effectSizeMethod, 
-                      stat = input$stat, fa = forml, x = NULL, v = NULL)
+        forml <- reformulate(response = glue::glue("{input$yAxis}"), termlabels = glue::glue("{indpVar()}"))
+        efs_df <- rstatix::kruskal_effsize(data=ptable(), formula = forml,
+                                           ci = TRUE,
+                                           conf.level = 0.95,
+                                           nboot = as.numeric(input$effectSizeMethod))
       }
       
-    }else if(input$stat == "wilcoxon.test"){
       
-      #formula
-      forml <- reformulate(response = glue::glue("{input$yAxis}"), termlabels = glue::glue("{indpVar()}"))
-      
-      if(isTruthy(req(input$choosePFormat))){
-        efs_df <- rstatix::wilcox_effsize(data = ptable(), formula = forml,
-                                          ref.group = unlist(ref), 
-                                          comparisons = cmp, 
-                                          paired = ifelse(req(input$pairedData) == "no", FALSE, TRUE),
-                                          p.adjust.method = req(input$signifMethod),
-                                          ci = TRUE,
-                                          conf.level = 0.95,
-                                          nboot = as.numeric(input$effectSizeMethod)
-        )
-      }else if(!isTruthy(req(input$choosePFormat))){
-        efs_df <- rstatix::wilcox_effsize(data = ptable(), formula = forml,
-                                          ref.group = unlist(ref), 
-                                          comparisons = cmp, 
-                                          paired = ifelse(req(input$pairedData) == "no", FALSE, TRUE),
-                                          p.adjust.method = "none",
-                                          ci = TRUE,
-                                          conf.level = 0.95,
-                                          nboot = as.numeric(input$effectSizeMethod)
-        )
-      }
-      
-    }else if(input$stat == "kruskal-wallis"){
-      #wait for the message for bootstrap and then proceed
-      # req(repNo() > 0)
-      #get the formula
-      forml <- reformulate(response = glue::glue("{input$yAxis}"), termlabels = glue::glue("{indpVar()}"))
-      efs_df <- rstatix::kruskal_effsize(data=ptable(), formula = forml,
-                                         ci = TRUE,
-                                         conf.level = 0.95,
-                                         nboot = as.numeric(input$effectSizeMethod))
-    }
-    
-    
-    effectSize$df <<- efs_df
+      effectSize$df <<- efs_df
+    }, error = function(e){
+      efsErrorMsg(glue::glue("{e}")) #not implemented yet
+      print(e)
+    })
     
   })
   
@@ -4259,7 +4278,7 @@ server <- function(input, output){
           if(input$stat == "anova" && input$pairedData == "two"){
             message(computeFuncError())
             validate(
-              need(computeFuncError() == 0, glue::glue(computeFuncErrorMsg()))
+              need(computeFuncError() == 0, efsErrorMsg())
             )
           }
           table4(effectSize$df)
@@ -4968,7 +4987,7 @@ server <- function(input, output){
       }, error = function(e){
         
         computeFuncError(1)
-        computeFuncErrorMsg(e)
+        computeFuncErrorMsg(glue::glue("{e}"))
         print(e)
         # validate(glue::glue(computeFuncErrorMsg()))
       })
