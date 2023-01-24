@@ -303,6 +303,7 @@ ui <- fluidPage(
                                conditionalPanel(condition = "input.plotType != 'none'",
                                                 helpText("Variable for Y-axis must be numeric", style = "text-align:center")
                                                 ),
+                               #add filter as drop down menu
                                # #Ui for normalization and standardization
                                # conditionalPanel(condition = "input.plotType != 'none'",
                                #                  uiOutput("UiNormStand")
