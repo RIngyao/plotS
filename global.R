@@ -1434,15 +1434,24 @@ plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "g
               letr <- col[5]
             }else if(aovX == "group1"){
               y_name <- col[3]
+              message(y_name)
               letr <- col[4]
+              message(letr)
             }else{
               x_name <- aovX
+              message(x_name)
               y_name <- col[3]
+              message(y_name)
               letr <- col[4]
+              message(letr)
             }
             
+            message(plt)
+            message(textData)
+            message(statData)
             plt <- plt + coord_cartesian(clip="off") + geom_text(data=textData, aes(x=eval(str2expression(x_name)), y = eval(str2expression(y_name)),
                                                       label = eval(str2expression(letr))), position= position_dodge2(0.9), size = 7, vjust=-0.25, na.rm = TRUE)
+            
           }#end of two-way anova
           #end of anova
         }else if(methodSt == "kruskal-wallis"){

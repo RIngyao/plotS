@@ -4100,7 +4100,6 @@ server <- function(input, output){
           
         }else if(!is.null(cmp)){
           req(all(c(input$xAxis, input$yAxis) %in% c(colnames(ptable()))))
-          browser()
           message(cmp)
           cbn <- cmp
         }else {
@@ -4367,7 +4366,7 @@ server <- function(input, output){
         computeFuncError() #this is require for anova: it will reset between non-additive and additive.
     )
   },{
-    
+    # browser()
     #required parameters
     figType <- reactive(req(input$plotType))
     
@@ -4642,7 +4641,8 @@ server <- function(input, output){
     labelSt <- reactive({ 
       
       if(choosePLabel() == "p.adj.signif"){
-        ifelse(isTRUE(pAdjust()),"p.adj.signif","p.signif")
+        "p.adj.signif"
+        # ifelse(isTRUE(pAdjust()),"p.adj.signif","p.signif")
       }else if(choosePLabel() == "p.adj"){
         ifelse(isTRUE(pAdjust()),"p.adj","p")
       }
@@ -4900,6 +4900,7 @@ server <- function(input, output){
     
     #display the plot
     output$figurePlot <- renderPlot({
+      # browser()
       #resolution for the plot
       res=400
       
