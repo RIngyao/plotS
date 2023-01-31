@@ -562,7 +562,10 @@ ui <- fluidPage(
                                
                                #Ui for additional layer
                                uiOutput("UiLayer"),
-                               uiOutput("UiLayerSize")
+                               uiOutput("UiLayerSize"),
+                               conditionalPanel(condition = "input.addLayer == 'point' | input.addLayer == 'jitter'",
+                                                sliderInput(inputId = "layerAlpha", label = "Transparency",min = 0, max = 1, value = 0.5)
+                                                )
                         ) #end of 2nd column
                       )
                     ) %>% tagAppendAttributes(class="figureSidebarPanel"), #end of figure sidebar panel
@@ -605,29 +608,34 @@ ui <- fluidPage(
                                          div(
                                            class = "preViewDiv",
                                            fluidRow(
-                                             column(6, dropdownButton(inputId = "filterData", label = tags$b("Filter", style="color:#C622FA"), circle = FALSE, size = "sm", tooltip = tooltipOptions(title = "Filter the input data"), icon = icon("sliders"),
-                                                                      div(
-                                                                        class = "filterDataDiv",
-                                                                        h4("Apply filter", align = "center", style = "color:green; margin-bottom:5px"),
-                                                                        #UI option for variable selection
-                                                                        uiOutput("UiVarFilterOpts"),
-                                                                        fluidRow(
-                                                                          column(4, #ui to add condition
-                                                                                 uiOutput("UiFilterCondition")),
-                                                                          column(6, #ui filter value
-                                                                                 uiOutput("UiFilterValue")),
-                                                                          column(2, uiOutput("UiFilterAndOr"))
-                                                                        ),
-                                                                        #Filter instruction
-                                                                        uiOutput("UiFilterMsgGeneral"),
-                                                                        # actionBttn(inputId = "applyFilter", label = "Apply filter", block = TRUE, size = "md")
-                                                                        fluidRow(
-                                                                          column(6, uiOutput("UiApplyFilter")),
-                                                                          column(6, uiOutput("UiClearAllFilter"))
-                                                                        ),
-                                                                        uiOutput("UiFilterMsg")
-                                                                      )
-                                             )#end of dropdownbutton
+                                             column(6, 
+                                                    fluidRow(
+                                                      dropdownButton(inputId = "filterData", label = tags$b("Filter", style="color:#C622FA"), circle = FALSE, size = "sm", tooltip = tooltipOptions(title = "Filter the input data"), icon = icon("sliders"),
+                                                                     div(
+                                                                       class = "filterDataDiv",
+                                                                       h4("Apply filter", align = "center", style = "color:green; margin-bottom:5px"),
+                                                                       #UI option for variable selection
+                                                                       uiOutput("UiVarFilterOpts"),
+                                                                       fluidRow(
+                                                                         column(4, #ui to add condition
+                                                                                uiOutput("UiFilterCondition")),
+                                                                         column(6, #ui filter value
+                                                                                uiOutput("UiFilterValue")),
+                                                                         column(2, uiOutput("UiFilterAndOr"))
+                                                                       ),
+                                                                       #Filter instruction
+                                                                       uiOutput("UiFilterMsgGeneral"),
+                                                                       # actionBttn(inputId = "applyFilter", label = "Apply filter", block = TRUE, size = "md")
+                                                                       fluidRow(
+                                                                         column(6, uiOutput("UiApplyFilter")),
+                                                                         column(6, uiOutput("UiClearAllFilter"))
+                                                                       ),
+                                                                       uiOutput("UiFilterMsg")
+                                                                     )
+                                                      ),#end of dropdownbutton
+                                                      
+                                                      uiOutput("UiAppliedFilterInfo")
+                                                    )
                                              ),
                                              # column(4, actionBttn("previewActionButton", label = "Preview image",  style = "minimal", size = "xs", color = "royal")),
                                              column(6, uiOutput("UiClickBrushDownload"))
@@ -656,9 +664,9 @@ ui <- fluidPage(
                         #text label for x-axis
                         conditionalPanel(condition = "input.plotType != 'none'",
                                          div(
-                                           style= "margin:0; text-align:center;
+                                           style= "border-top:dotted 1px;margin:0; text-align:center;
                                                       background-image:linear-gradient(rgba(206,247,250, 0.2), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5))",
-                                           h4("Change variable name of x-axis", align = "center", style = "color:green; margin-bottom:5px"),
+                                           h4("Change variable name of x-axis", align = "center", style = "color:green; margin-bottom:7px"),
                                            fluidRow(
                                              column(4, uiOutput("uiXAxisTextLabelChoice")),
                                              column(8, uiOutput("uiXAxisTextLabel"))
@@ -1315,7 +1323,7 @@ server <- function(input, output){
       map(req(input$varFilterOpts), ~ fluidRow({
 
         if(is.numeric(df[,.x]) || is.double(df[,.x])){
-          textInput(inputId = paste0("filterVal_", .x), label = "value", placeholder = "one numeric value")
+          textInput(inputId = paste0("filterVal_", .x), label = "value", placeholder = "numeric value")
         }else{
           textInput(inputId = paste0("filterVal_", .x), label = "value", placeholder = "comma separated!")
         }
@@ -1441,11 +1449,20 @@ server <- function(input, output){
 
     ptable(data)
   })
-
+  
+  #Info for filter beeing applied
+  observe({
+    req(isTruthy(input$applyFilter), filterMsg())
+    output$UiAppliedFilterInfo <- renderUI({
+      if(!is.null(filterMsg()) && filterMsg() == 0){
+        helpText("Filter applied!", style = "color:red; font-weight:bold")
+      }
+    })
+  })
   #Filter message
   output$UiFilterMsgGeneral <- renderUI({
     req(input$varFilterOpts)
-    helpText(list(tags$p("Note:", style = "font-style:italic; font-weigth:bold;"), tags$p("1. Numeric variable: provide only one numeric value"),
+    helpText(list(tags$p("Note:", style = "font-style:italic; font-weigth:bold;"), tags$p("1. Numeric variable: provide only one numeric value. To filter 'between', enter two values separated by colon - e.g., 10:34"),
                   tags$p('2. Non-numeric variable: allow multiple values separated by comma. Use double quotes (""), if space or comma is included in the value')), style = "text-align:left")
   })
   output$UiFilterMsg <- renderUI({
@@ -2376,18 +2393,18 @@ server <- function(input, output){
     )
     #get number of variables in x-axis
     x <- req(input$xAxis)
-    # nVar <- ptable() %>% distinct(.data[[x]]) %>% nrow()
-    cVar <- ptable() %>% distinct(.data[[x]])
+    cVar <- unique(ptable()[,x]) %>% as.character() #this will avoid issue with factor variable
+    
     output$uiXAxisTextLabelChoice <- renderUI({
       if( req(input$plotType) != "none" ){
-        selectInput(inputId = "xTextLabelChoice", label = "Choose variable", choices = c("All", cVar), selected = "ALL", multiple = TRUE)
+        selectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = c("All", cVar), selected = "ALL", multiple = TRUE)
       }
     })
     
     output$uiXAxisTextLabel <- renderUI({
       if( req(input$plotType) != "none" ){
         if(req(input$xTextLabelChoice) == "All" || "All" %in% req(input$xTextLabelChoice)){
-          nVar <- nrow(cVar)
+          nVar <- length(cVar)
         }else{
           nVar <- length(input$xTextLabelChoice)
         }
@@ -2978,7 +2995,7 @@ server <- function(input, output){
   statList <- c("t.test", "anova", "wilcoxon.test","kruskal-wallis")
   #Choose statistical method
   output$UiStatMethod <- renderUI({
-    req(refresh_2(), pltType())
+    req(refresh_2(), pltType(), ptable())
     #to apply statistic, it require both x and y-axis
     if(pltType() %in% c("none",plotList)){ 
       selectInput(inputId = "stat", label = "Statistical method", choices = c("none",statMethods), selected = "none") 
@@ -5161,6 +5178,13 @@ server <- function(input, output){
         input$layerSize
       }else{1}
     })
+    layerAlpha <- reactive({
+      if(layer() %in% c("point","jitter")){
+        req(input$layerAlpha)
+      }else{
+        NULL
+      }
+    })
     #get the computed data for annotating in plot
     
     #display the plot
@@ -5273,7 +5297,7 @@ server <- function(input, output){
                                  histLine = histLine(), lineParam = lineParam(),
                                  facet = facet(), facetType = faceType(), varRow = varRow(), varColumn = varColumn(), 
                                  nRow = nRow(), nColumn = nColumn(), scales = scales(), 
-                                 layer = layer(), layerSize = layerSize(),  barSize = freqPolySize(),
+                                 layer = layer(), layerSize = layerSize(),  layerAlpha = layerAlpha(), barSize = freqPolySize(),
                                  xTextLabels = xTextLabels(),
                                  
                                  #aesthetics
@@ -5288,7 +5312,7 @@ server <- function(input, output){
                                  histLine = histLine(), lineParam = lineParam(),
                                  facet = facet(), facetType = faceType(), varRow = varRow(), varColumn = varColumn(), 
                                  nRow = nRow(), nColumn = nColumn(), scales = scales(), 
-                                 layer = layer(), layerSize = layerSize(),  barSize = freqPolySize(),
+                                 layer = layer(), layerSize = layerSize(),  layerAlpha = layerAlpha(), barSize = freqPolySize(),
                                  xTextLabels = xTextLabels(),
                                  
                                  #aesthetics are wild cards in the function
@@ -5323,7 +5347,7 @@ server <- function(input, output){
                                    histLine = histLine(), lineParam = lineParam(),
                                    facet = facet(), facetType = faceType(), varRow = varRow(), varColumn = varColumn(), 
                                    nRow = nRow(), nColumn = nColumn(), scales = scales(), 
-                                   layer = layer(), layerSize = layerSize(),  barSize = freqPolySize(),
+                                   layer = layer(), layerSize = layerSize(),  layerAlpha = layerAlpha(), barSize = freqPolySize(),
                                    xTextLabels = xTextLabels(),
                                    
                                    #aesthetics
@@ -5338,7 +5362,7 @@ server <- function(input, output){
                                    histLine = histLine(), lineParam = lineParam(),
                                    facet = facet(), facetType = faceType(), varRow = varRow(), varColumn = varColumn(), 
                                    nRow = nRow(), nColumn = nColumn(), scales = scales(), 
-                                   layer = layer(), layerSize = layerSize(),  barSize = freqPolySize(),
+                                   layer = layer(), layerSize = layerSize(),  layerAlpha = layerAlpha(), barSize = freqPolySize(),
                                    xTextLabels = xTextLabels(),
                                    
                                    #aesthetics are wild cards in the function
@@ -5365,7 +5389,7 @@ server <- function(input, output){
                                    histLine = histLine(), lineParam = lineParam(),
                                    facet = facet(), facetType = faceType(), varRow = varRow(), varColumn = varColumn(), 
                                    nRow = nRow(), nColumn = nColumn(), scales = scales(), 
-                                   layer = layer(), layerSize = layerSize(),  barSize = freqPolySize(),
+                                   layer = layer(), layerSize = layerSize(),  layerAlpha = layerAlpha(), barSize = freqPolySize(),
                                    xTextLabels = xTextLabels(),
                                    
                                    #aesthetics
@@ -5380,7 +5404,7 @@ server <- function(input, output){
                                    histLine = histLine(), lineParam = lineParam(),
                                    facet = facet(), facetType = faceType(), varRow = varRow(), varColumn = varColumn(), 
                                    nRow = nRow(), nColumn = nColumn(), scales = scales(), 
-                                   layer = layer(), layerSize = layerSize(),  barSize = freqPolySize(),
+                                   layer = layer(), layerSize = layerSize(),  layerAlpha = layerAlpha(), barSize = freqPolySize(),
                                    xTextLabels = xTextLabels(),
                                    
                                    #aesthetics are wild cards in the function

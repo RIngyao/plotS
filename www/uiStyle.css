@@ -338,6 +338,9 @@ body{
       #UiFilterAndOr{
       margin-left:5px;
       }
+      #UiAppliedFilterInfo{
+      margin:0;
+      }
       #Ylimit, #UiRemoveBracket, #UiStripBackground{
       text-align: center;
       }

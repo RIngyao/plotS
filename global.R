@@ -1346,7 +1346,7 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
                     colr = NULL, shapes = NULL, linetypes = NULL, sizes = NULL,
                     histLine = "meanLine", lineParam = "lineParam",
                     facet = FALSE, facetType = 'grid_wrap', varRow = NULL, varColumn = NULL, nRow = NULL, nColumn = NULL, scales = "fixed",  
-                    layer = "none", layerSize = "layerSize", barSize = 0.2, 
+                    layer = "none", layerSize = "layerSize", layerAlpha = NULL, barSize = 0.2, 
                     xTextLabels = "label",
                     #color aesthetic
                     autoCust, colorTxt, varSet = "none"
@@ -1410,8 +1410,8 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
     plt <- switch(layer,
                   "line" = plt + stat_summary(fun = cal, geom = 'line', aes(group = 1), size = layerSize),
                   "smooth" = plt + geom_smooth(size = layerSize),
-                  "point" = plt + geom_point(size = layerSize),
-                  "jitter" = plt + geom_jitter(size = layerSize)
+                  "point" = plt + geom_point(size = layerSize, alpha = layerAlpha),
+                  "jitter" = plt + geom_jitter(size = layerSize, alpha = layerAlpha)
     )
   }
   #facet
