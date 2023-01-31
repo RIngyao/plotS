@@ -1,6 +1,5 @@
 
-# options(shiny.maxRequestSize = 50*1024^2)
-options(shiny.maxRequestSize = 100*1024^2)
+options(shiny.maxRequestSize = 50*1024^2) #too large
 #library--------------------------------
 #can't use this method for loading library: shinyapps.io
 # libraries <- c("flextable", "openxlsx", "svglite",
@@ -9,12 +8,7 @@ options(shiny.maxRequestSize = 100*1024^2)
 #                "rstatix", "shiny", "tidyverse", "reactable")
 # lapply(libraries, library, character.only = TRUE)
 # 
-lib <- c("memoise", "effectsize", "vroom", "car","glue",
-         "flextable", "openxlsx", "svglite","MASS", "rlang",
-         "skimr","coin","DT","data.table","readxl","markdown",
-         "shinydashboard","ggpubr","multcompView","rstatix",
-         "shiny", "tidyverse","reactable","shinyWidgets")
-sort(lib)
+library(shinyBS)
 library(memoise)
 library(effectsize)
 library(vroom)
@@ -71,7 +65,7 @@ Function to determine the names of either numeric or character variables present
 checks = character. use 'integer' for numeric variable or 'character' for character variable
 data = dataframe.
 "
-#i have use data.table (fread), so it will be integer, instead of numeric
+#if data.table (fread), it will be integer, instead of numeric
 allNumCharVar <- function(checks = "integer", data = "ptable()"){
   
   #get the data types of the column in the data frame
@@ -110,6 +104,100 @@ selectedVar2 <- function(data = "ptable()", check = "character", index = 1){ #in
   }
 }
 
+#function for filtering data----------------
+"function for filtering the data
+date: 30/01/23
+arguments:
+  df = data frame.
+  col = character. Column name to apply the filter
+  filterType = character. Type of filter to apply - 'contain', 'equal', 'greater than', etc
+  val = character. apply filterType on this given value
+"
+
+filterData <- function(df, col, filterType, val){
+  # User's input for filterType is -
+  #   case 1. case sensitive
+  #         i. Character variable -  contain or not contain : each value must be comma separated and bound by double quotes if comma needs to be included
+  #         ii. Character variable - equal or not equal : option will be in vector, so apply filter directly.
+  #   case 2. Numeric variable - 
+  #         i. not between - must be of length 1 and must be able to convert to numeric
+  #         ii. between - must be able to convert to numeric and must be colon separated. E.g., 1:10 or 20:40
+  
+  #dummy data frame 
+  filtr_df <- NULL
+  #detect error: not in use
+  erorDetected <- 0
+  
+  if(filterType %in% c("contain", "not contain")){
+    
+    #case 1. i.
+    inputVal <- str_split(val, ',(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)') %>% unlist()
+    
+    if(filterType == "contain"){
+      filtr_df <- df[ str_detect(df[,col], inputVal, negate = FALSE), , drop = FALSE]
+      # f <- c("O","V")
+      # ToothGrowth[str_detect(ToothGrowth[,x], "J", negate = FALSE), ]
+    }else if(filterType == "not contain"){
+      filtr_df <- df[ str_detect(df[,col], inputVal, negate = TUE), , drop=FALSE]
+      #Stop if no data is left
+      validate(
+        need(nrow(filtr_df) >= 1, "Zero rows. Require at least 1 row")
+      )
+    }
+    
+    #end of contain
+  }else if(filterType %in% c("equal to", "not equal to")){
+    #case 1. ii.
+    inputVal <- str_split(val, ',(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)') %>% unlist()
+    if(filterType == "equal to"){
+      filtr_df <- df %>% filter( .data[[col]] %in% inputVal )
+    }else{
+      filtr_df <- df %>% filter( !.data[[col]] %in% inputVal )
+    }
+    #end of equal to ...
+    
+    #End of case 1: character variable
+  }else{
+    #start case 2: numeric variable
+    if(filterType != "between"){
+      #case 2. i.
+      
+      #input must be able to convert to numeric
+      validate({
+        erorDetected <- 1
+        #convert to numeric
+        need(numValue <- as.numeric(val), "Error: cannot convert to numeric! provide one numeric value")
+      })
+      if(filterType == "not equal"){
+        filtr_df <- df %>% filter( .data[[col]] != numValue)
+      }else if(filterType == "equal"){
+        filtr_df <- df %>% filter( .data[[col]] == numValue)
+      }else if(filterType == "equal to or greater"){
+        filtr_df <- df %>% filter( .data[[col]] >= numValue)
+      }else if(filterType == "equal to or less"){
+        filtr_df <- df %>% filter( .data[[col]] <= numValue)
+      }else if(filterType == "greater than"){
+        filtr_df <- df %>% filter( .data[[col]] > numValue)
+      }else if(filterType == "less than"){
+        filtr_df <- df %>% filter( .data[[col]] < numValue)
+      }
+      
+    }else if(filterType == "between"){
+      validate({
+        erorDetected <- 1
+        need(numRange <- eval(str2expression(val)), "Error: cannot convert to numeric!")
+      })
+      filtr_df <- df %>% filter( .data[[col]] >= min(numRange), .data[[col]] <= max(numRange))
+    }
+  }
+  
+  if(is.null(filtr_df)){
+    #for no data found for the filter: provide null data
+    filtr_df <- as.data.frame(matrix(nrow = 1, ncol = ncol(df)))
+    names(filtr_df) <- colnames(df)
+  }
+  return(filtr_df)
+}
 #function for downloading figure-------------------
 "arguments:
 fig = output plot object.
@@ -1252,6 +1340,7 @@ autoCust = character. either the color should be auto filled or customize.
 colorTxt = character. color name specified for the variables.
 varSet = character. same as fills or colr.
 "
+
 plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_",
                     xl = NULL, yl = NULL, fills = NULL,
                     colr = NULL, shapes = NULL, linetypes = NULL, sizes = NULL,
@@ -1263,16 +1352,25 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
                     autoCust, colorTxt, varSet = "none"
                     #, ...
 ){ #if y axis is required specifically mention in function parameter
-  # browser() 
   if(types == "none"){
     break
-  }else {
-    # browser()
+  }else if(!types %in% c("frequency polygon", "histogram")){
     #aesthetics will be filled based on requirement
     gp <- ggplot(data = data, 
                  
                  aes_string(
                    x = xl, y = if(!is.null(yl)){ yl }else{ NULL },
+                   fill = if(!is.null(fills) && fills != "none"){ fills }else{ NULL },
+                   shape = if(!is.null(shapes)){ shapes }else{ NULL},
+                   linetype = if(!is.null(linetypes)){ linetypes }else{ NULL },
+                   size = if(!is.null(sizes)){ sizes }else{ NULL },
+                   color = if(!is.null(colr) && colr != "none"){ colr }else{ NULL }
+                 )
+    )
+  }else{
+    gp <- ggplot(data = data, 
+                 aes_string(
+                   x = xl,
                    fill = if(!is.null(fills) && fills != "none"){ fills }else{ NULL },
                    shape = if(!is.null(shapes)){ shapes }else{ NULL},
                    linetype = if(!is.null(linetypes)){ linetypes }else{ NULL },
@@ -1290,6 +1388,7 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
       geom_type
     
   }else if(types == "histogram"){
+    # plt <- gp + geom_type + histLine
     plt <- gp + geom_type + histLine
   }else{
     #other plot
@@ -1358,6 +1457,9 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
         #Select only the required number of colors if user provide more than 
         #the required number.
         message(glue::glue("end of processing color: {inputC}"))
+        message(glue::glue("length of inputC: {length(inputC)}"))
+        message(glue::glue("countVar: {countVar}"))
+        
         if(length(inputC) > countVar){
           inputC[1:countVar]
         }else{ inputC }
@@ -1367,6 +1469,7 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
       if(editC != "not provided" && length(editC) < countVar){
         #display the color of the global plot
         message(glue::glue("editC less number : {editC}"))
+        message(glue::glue("edit length: {length(editC)}"))
         newPlt
       }else if(length(editC) == countVar){
         message(glue::glue("editC final color: {editC}"))
@@ -1383,6 +1486,8 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
   
   message(xTextLabels)
   #change variable name of x-axis
+  message(plt)
+  
   plt <<- plt
   plt + scale_x_discrete(labels = xTextLabels ) 
   

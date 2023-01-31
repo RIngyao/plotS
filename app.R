@@ -4,7 +4,22 @@ source("global.R", local = TRUE)
 ui <- fluidPage(
   #link to CSS----------------
   includeCSS("www/uiStyle.css"),
-  
+  #link: https://stackoverflow.com/questions/27965931/tooltip-when-you-mouseover-a-ggplot-on-shiny
+  tags$script('
+    $(document).ready(function(){
+      $("#figurePlot").mousemove(function(e){ 
+      
+        var xCord = e.pageX - $(this).offset().left;
+        var yCord = e.pageY - $(this).offset().top;
+        
+        $("#UiHover_display").show();         
+        $("#UiHover_display").css({  
+          top: (yCord - 30) + "px",           
+          left: (xCord - 140) + "px"
+        });     
+      });     
+    });
+  '),
   #header-------------
   # Application title
   div(class="header",
@@ -311,6 +326,8 @@ ui <- fluidPage(
                                
                                #Ui for bar graph positon: stack or dodge
                                uiOutput(outputId = "UiStackDodge"),
+                               #ui for bin width of histogram
+                               fluidRow(column(8, uiOutput("uiBinWidth"))),
                                # #Ui color and fill for histogram
                                fluidRow(
                                  column(6, uiOutput("UiHistBarColor")),
@@ -579,34 +596,56 @@ ui <- fluidPage(
                         width = 12,
                         # style= "position:fixed;width:inherit",
                         height = '400px',
+                        plotOutput(outputId = "figurePlot", 
+                                   hover = hoverOpts(id = "hover_info", delay = 0, nullOutside = TRUE), 
+                                   click = clickOpts(id = "click_info"), 
+                                   brush = brushOpts(id = "brush_info", delay = 100, resetOnNew = TRUE, fill= "rgba(190, 237, 253)", stroke = "rgba(60, 186, 249)")),
                         
-                        # column(6,
-                        #        fluidRow(
-                        #          column(8, 
-                        #                 fluidRow(
-                        #                   tags$div(
-                        #                     tags$label(class= "col-sm-4 control-label", `for`="figHeight", br(), "Height"),
-                        #                     column(5, textInput(inputId = "figHeight", label = NULL))), #in inch 3.3 default for 1 coulmn wide (https://www.elsevier.com/__data/promis_misc/JBCDigitalArtGuidelines.pdf),
-                        #                   tags$div(
-                        #                     tags$label(class ="col-sm-4 control-label", `for`="figWidth", "Width"),
-                        #                     column(5, textInput(inputId = "figWidth", label = NULL)))
-                        #                 )
-                        #          ),
-                        #          column(4, downloadButton("figDownload")),
-                        #        )
-                        # ),
-                        # column(6, 
-                        #        fluidRow(
-                        #          column(5, textInput(inputId = "figHeight", label = "Height")) in inch 3.3 default for 1 coulmn wide (https://www.elsevier.com/__data/promis_misc/JBCDigitalArtGuidelines.pdf),
-                        #          column(5, textInput(inputId = "figWidth", label = "Width")),
-                        #          column(2, downloadButton("figDownload")),
-                        #        )
-                        #        )
-                        
-                        plotOutput(outputId = "figurePlot", hover = "hover_info"),
-                        conditionalPanel(condition = "input.hover_info",{
-                          verbatimTextOutput("plotDataInfo")
-                        })
+                        conditionalPanel(condition = "input.plotType != 'none'",
+                                         div(
+                                           class = "preViewDiv",
+                                           fluidRow(
+                                             column(6, dropdownButton(inputId = "filterData", label = tags$b("Filter", style="color:#C622FA"), circle = FALSE, size = "sm", tooltip = tooltipOptions(title = "Filter the input data"), icon = icon("sliders"),
+                                                                      div(
+                                                                        class = "filterDataDiv",
+                                                                        h4("Apply filter", align = "center", style = "color:green; margin-bottom:5px"),
+                                                                        #UI option for variable selection
+                                                                        uiOutput("UiVarFilterOpts"),
+                                                                        fluidRow(
+                                                                          column(4, #ui to add condition
+                                                                                 uiOutput("UiFilterCondition")),
+                                                                          column(6, #ui filter value
+                                                                                 uiOutput("UiFilterValue")),
+                                                                          column(2, uiOutput("UiFilterAndOr"))
+                                                                        ),
+                                                                        #Filter instruction
+                                                                        uiOutput("UiFilterMsgGeneral"),
+                                                                        # actionBttn(inputId = "applyFilter", label = "Apply filter", block = TRUE, size = "md")
+                                                                        fluidRow(
+                                                                          column(6, uiOutput("UiApplyFilter")),
+                                                                          column(6, uiOutput("UiClearAllFilter"))
+                                                                        ),
+                                                                        uiOutput("UiFilterMsg")
+                                                                      )
+                                             )#end of dropdownbutton
+                                             ),
+                                             # column(4, actionBttn("previewActionButton", label = "Preview image",  style = "minimal", size = "xs", color = "royal")),
+                                             column(6, uiOutput("UiClickBrushDownload"))
+                                           ),
+                                           bsTooltip(id = "UiClickBrushDownload", title = "Download the snippet", placement = "top", trigger = "hover",
+                                                     options = list(container = "body"))
+
+                                         )
+                        ),
+                        #table for click and brush to be able to download by the user
+                        div(
+                          class = "hoverClickBrushDiv",
+                          # style = "margin-bottom:10px; border-color: brown; background-color:rgba(253, 231, 203, 0.4);",
+                          uiOutput("UiHover_display"),
+                          uiOutput("UiBrushClick_display"),
+                          bsTooltip(id = "UiBrushClick_display", title = "Click on the image area to close this snippet", placement = "top", trigger = "hover",
+                                    options = list(container = "body"))
+                        )
                       ) %>% tagAppendAttributes(class = "figurePlotBox"),
                       #box for figure settings:theme  
                       box(
@@ -615,7 +654,17 @@ ui <- fluidPage(
                         width = 12,
                         
                         #text label for x-axis
-                        uiOutput("uiXAxisTextLabel"),
+                        conditionalPanel(condition = "input.plotType != 'none'",
+                                         div(
+                                           style= "margin:0; text-align:center;
+                                                      background-image:linear-gradient(rgba(206,247,250, 0.2), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5))",
+                                           h4("Change variable name of x-axis", align = "center", style = "color:green; margin-bottom:5px"),
+                                           fluidRow(
+                                             column(4, uiOutput("uiXAxisTextLabelChoice")),
+                                             column(8, uiOutput("uiXAxisTextLabel"))
+                                           )
+                                         )
+                        ),
                         #font size
                         column(6, uiOutput("uiTitleSize")),
                         column(6, uiOutput("uiTextSize")),
@@ -623,8 +672,6 @@ ui <- fluidPage(
                           column(6, uiOutput("uiYlable")),
                           column(6, uiOutput("uiXlable")),
                         ),
-                        #ui for bin width of histogram
-                        fluidRow(column(8, uiOutput("uiBinWidth"))),
                         #ui for legend
                         fluidRow(
                           fluidRow(
@@ -1230,6 +1277,193 @@ server <- function(input, output){
       
     })
   })
+  
+  #filter data-----------------------------
+  #list of variable for filtering: use the cleanData
+  output$UiVarFilterOpts <- renderUI({
+    selectInput(inputId = "varFilterOpts", label = "Choose variable(s)", choices = colnames(cleanData()), multiple = TRUE)
+  })
+
+  #filter type and value
+  observe({
+    req(cleanData(), pltType(), input$xAxis, input$varFilterOpts)
+    #validate
+    validate(
+      if(pltType() %in% xyRequire){
+        need( c(input$xAxis,input$yAxis) %in% colnames(cleanData()), "" )
+      }else{
+        need(input$xAxis %in% colnames(cleanData()), "")
+      }
+    )
+
+    #get the column name
+    coln <- colnames(cleanData())
+    #keep only necessary columns
+    df <- cleanData() %>% select(!!!rlang::syms(coln))
+    #determine the class
+    df_class <- lapply(df, class)
+
+    #what filter to apply?
+    output$UiFilterCondition <- renderUI({
+      map(req(input$varFilterOpts), ~ fluidRow(
+        selectInput( inputId = .x, label = .x, choices = if(is.character(df[,.x]) || is.factor(df[,.x])){c("contain", "equal to", "not contain", "not equal to")}else if(is.numeric(df[,.x]) || is.double(df[,.x])){ c("not equal", "equal", "equal to or greater", "equal to or less", "geater than", "less than", "between")} )
+      ))
+    })
+
+    #option to provide values for filter
+    output$UiFilterValue <- renderUI({
+      map(req(input$varFilterOpts), ~ fluidRow({
+
+        if(is.numeric(df[,.x]) || is.double(df[,.x])){
+          textInput(inputId = paste0("filterVal_", .x), label = "value", placeholder = "one numeric value")
+        }else{
+          textInput(inputId = paste0("filterVal_", .x), label = "value", placeholder = "comma separated!")
+        }
+      })#fluidRow end
+      )#map end
+
+    })
+
+    #tooltip for numeric: so that user don't confuse: doesn't work
+    # map(
+    #   input$varFilterOpts, ~ fluidRow({
+    #     if(is.numeric(df[,.x]) || is.double(df[,.x])) addTooltip(session = session, id = paste0("filterVal_", .x), title = "Must be numeric")
+    #   })
+    # )
+
+    #logical condition: AND or OR
+    output$UiFilterAndOr <- renderUI({
+      if(length(input$varFilterOpts) > 1){
+        map(length(input$varFilterOpts)-1, ~fluidRow(
+          prettyRadioButtons(
+            inputId = paste0("filterLogical",.x),
+            label = "Logical",
+            choices = c("AND", "OR"),
+            inline = TRUE,
+            status = "danger",
+            fill = TRUE,
+            selected = "AND"
+          )
+        ))
+      }
+
+    })
+  })
+
+  #apply and reset button for filter
+  observe({
+    req(input$varFilterOpts)
+
+    validate(
+      need(is.null(filterMsg()) || filterMsg() == 0, "")
+    )
+
+    #don't provide apply and clear all option until all parameters are provided
+    output$UiApplyFilter <- renderUI(NULL)
+    output$UiClearAllFilter <- renderUI(NULL)
+    df_coln <- cleanData() %>% select(!!!rlang::syms(input$varFilterOpts)) %>% colnames()
+    #check for paramters satisfaction
+    for(i in seq_along(df_coln)) req( eval(str2expression(paste0("input$filterVal_",df_coln[i]))))
+    #proceed
+    output$UiApplyFilter <- renderUI({
+      if(!is.null(input$varFilterOpts) ) actionButton(inputId = "applyFilter", label = span("Apply", style="color:white; font-weight:bold"), class = "btn-primary btn-sm")
+    })
+
+    output$UiClearAllFilter <- renderUI({
+      if(!is.null(input$varFilterOpts)) actionButton(inputId = "clearAllFilter", label = span("Clear all", style="color:white; font-weight:bold"), class = "btn-danger btn-sm")
+    })
+  })
+
+  #update the list of variables to none if user click 'clear all'
+  observeEvent(req(isTruthy(input$clearAllFilter)),{
+    #get the column name
+    coln <- colnames(cleanData())
+    #option for the user to choose the variable for filter
+    updateSelectInput(inputId = "varFilterOpts", label = "Choose variable(s)", choices = coln)
+    filterMsg(NULL)
+  })
+
+  #filter the data base on input
+  filterMsg <- reactiveVal(NULL) #msg for filter
+  observeEvent(req(isTruthy(input$applyFilter)),{
+    #user's choice of variable for filter: this is necessary to get the correct input ID
+    df_coln <- cleanData() %>% select(!!!rlang::syms(input$varFilterOpts)) %>% colnames()
+    #dummy data
+    data <- as.data.frame(matrix(nrow = 1, ncol = ncol(cleanData())))
+    names(data) <- colnames(cleanData())
+
+    # filter the data
+    tryCatch({
+
+      for(i in seq_along(df_coln)){
+        # isTruthy(eval(str2expression(paste0("input$",df_coln[i]))))
+        req(isTruthy(eval(str2expression(paste0("input$filterVal_",df_coln[i])))))
+        flTy <- eval(str2expression(paste0("input$",df_coln[i])))
+        flVal <- eval(str2expression(paste0("input$filterVal_",df_coln[i])))
+        if(nrow(data) == 1){
+          data <- filterData(df = cleanData(), col = df_coln[i], filterType = flTy, val = flVal)
+        }else if(nrow(data) > 1){
+          #check for logical and provide different data
+
+          message(i)
+          if( eval( str2expression(paste0("input$filterLogical", i-1)) ) == "AND" ){
+            data <- filterData(df = data, col = df_coln[i], filterType = flTy, val = flVal)
+          }else{
+            #provide the original data
+            df <- filterData(df = cleanData(), col = df_coln[i], filterType = flTy, val = flVal)
+
+            #retain similar data for previous and present filter
+            df_similar <- semi_join(data, df)
+            #present only in the new filter
+            df_present <- anti_join(df, data)
+            #present only in the earlier filter data
+            df_previous <- anti_join(data, df)
+            #merge all and update the data
+            data <- rbind(df_similar, df_previous, df_present)
+
+          }
+
+        }
+      }
+
+    }, error = function(e){
+      print(e)
+    })
+
+    if( nrow(data) == 0 || (nrow(data) == 1 && all(is.na(data))) ){
+      filterMsg(1)
+      validate(
+        need(filterMsg() == 0, "")
+      )
+    }else{
+      filterMsg(0)
+    }
+
+    ptable(data)
+  })
+
+  #Filter message
+  output$UiFilterMsgGeneral <- renderUI({
+    req(input$varFilterOpts)
+    helpText(list(tags$p("Note:", style = "font-style:italic; font-weigth:bold;"), tags$p("1. Numeric variable: provide only one numeric value"),
+                  tags$p('2. Non-numeric variable: allow multiple values separated by comma. Use double quotes (""), if space or comma is included in the value')), style = "text-align:left")
+  })
+  output$UiFilterMsg <- renderUI({
+    if( !is.null(req(filterMsg())) ){
+      if(filterMsg() == 0){
+        helpText(list(tags$p("Filter applied!"), tags$p("Clear all to return to the original data")), style = "color:green; font-weight:bold")
+      }else if(filterMsg() == 1){
+
+        helpText(list(tags$p("Filtered: no value match!")), style = "color:red; font-weight:bold") #, tags$p("Clear all to return to the original data")
+      }
+    }
+  })
+
+  #update the data if user clear all the filter
+  observeEvent(req(isTruthy(input$clearAllFilter)),{
+    ptable(cleanData())
+  })
+  #end of filter data-------------------------
   #error setting-------------------------------------------
   #Message to display for various type of errors
   #message to display for calculating replicates mean and median
@@ -1670,30 +1904,6 @@ server <- function(input, output){
   })
   
   
-  #data before transformation------------------
-  bf_ptable <- reactive({
-   
-    req(refresh_1(), input$normalizeStandardize)
-    # browser()
-    message("ptable")
-    if( input$pInput == "" || (input$pInput != "" & is.null(input$pFile)) ){
-      message("still empty ptable")
-      #This is require to avoid error message in the UI (more settings)
-      #Those that depend of ptable() require data frame.
-      ""
-    }else if( (req(input$replicatePresent) == "yes" && isTruthy(input$replicateActionButton) && !is_empty(replicateData$df)) && (req(input$transform) == "Yes" && isTruthy(input$goAction) && !is_empty(tidy_tb$df)) ){
-      tidy_tb$df #reshape table with replicates rearrange
-    }else if(req(input$transform) == "Yes" && isTruthy(input$goAction) && (is_empty(replicateData$df) || !isTruthy(input$replicateActionButton)) ){
-      tidy_tb$df #reshaped table without replicates
-      #previous and this data are derived from the same data name, but keep different not to confuse the usage
-    }else if( (req(input$replicatePresent) == "yes" && isTruthy(input$replicateActionButton)) && !is.null(replicateData$df) ){#&& (is_empty(tidy_tb$df) || !isTruthy(input$goAction))
-      replicateData$df #replicate table not requested for re-arrangement
-    }else{
-      #show the input table, if nothin apply
-      message("no other available for ptable")
-      pInputTable$data
-    }
-  })
   
   #update data transformation: normalization and standardization
   observe({
@@ -1747,6 +1957,32 @@ server <- function(input, output){
   })
   
   
+  
+  #data before transformation------------------
+  bf_ptable <- reactive({
+    
+    req(refresh_1(), input$normalizeStandardize)
+    # browser()
+    message("ptable")
+    if( input$pInput == "" || (input$pInput != "" & is.null(input$pFile)) ){
+      message("still empty ptable")
+      #This is require to avoid error message in the UI (more settings)
+      #Those that depend of ptable() require data frame.
+      ""
+    }else if( (req(input$replicatePresent) == "yes" && isTruthy(input$replicateActionButton) && !is_empty(replicateData$df)) && (req(input$transform) == "Yes" && isTruthy(input$goAction) && !is_empty(tidy_tb$df)) ){
+      tidy_tb$df #reshape table with replicates rearrange
+    }else if(req(input$transform) == "Yes" && isTruthy(input$goAction) && (is_empty(replicateData$df) || !isTruthy(input$replicateActionButton)) ){
+      tidy_tb$df #reshaped table without replicates
+      #previous and this data are derived from the same data name, but keep different not to confuse the usage
+    }else if( (req(input$replicatePresent) == "yes" && isTruthy(input$replicateActionButton)) && !is.null(replicateData$df) ){#&& (is_empty(tidy_tb$df) || !isTruthy(input$goAction))
+      replicateData$df #replicate table not requested for re-arrangement
+    }else{
+      #show the input table, if nothin apply
+      message("no other available for ptable")
+      pInputTable$data
+    }
+  })
+  
   #transform the data: normalize or standardize
   # step 1: transform y-axis
   # step 2: update ptable() by adding the transformed column, saved the 
@@ -1756,8 +1992,6 @@ server <- function(input, output){
   ns_input <- reactive(input$normalizeStandardize)
   transformationError <- reactiveVal(0)
   ns_ptable <- eventReactive(req(isTruthy(input$nsActionButton)), {
-    # browser()
-    #browser()
     if(ns_input() != 'none'){
       
       #get variables for transformation
@@ -1796,13 +2030,10 @@ server <- function(input, output){
     }
   })
   
-  #Final data:---------------------
   # Includes all data before and/or after transformation
   # To be used for all further analysis: graph and statistics
   # Must pass all errorless condition
-  ptable <- reactive({
-    # browser()#
-    message(replicateError())
+  cleanData <- reactive({
     if(ns_input() == 'none'){
       #using the name 'variable' for column (x-axis) generate duplicate name error
       # while using T-test and wilcox-test. So, change the name to variables, if exists
@@ -1832,7 +2063,17 @@ server <- function(input, output){
       }
     }
   })
-  #end of final data---------------
+  
+  #This will be the data use in downstream analysis
+  #Can be further modified, if required (as in filter data)
+  ptable <- reactiveVal(NULL)
+  observe({
+    req(cleanData())
+    ptable(cleanData())
+  })
+  
+  
+  #end of data processing---------------
   
   #create switch:
   # This will be used to display as table (below)
@@ -2135,52 +2376,57 @@ server <- function(input, output){
     )
     #get number of variables in x-axis
     x <- req(input$xAxis)
-    nVar <- ptable() %>% distinct(.data[[x]]) %>% nrow()
+    # nVar <- ptable() %>% distinct(.data[[x]]) %>% nrow()
+    cVar <- ptable() %>% distinct(.data[[x]])
+    output$uiXAxisTextLabelChoice <- renderUI({
+      if( req(input$plotType) != "none" ){
+        selectInput(inputId = "xTextLabelChoice", label = "Choose variable", choices = c("All", cVar), selected = "ALL", multiple = TRUE)
+      }
+    })
     
     output$uiXAxisTextLabel <- renderUI({
       if( req(input$plotType) != "none" ){
-        textAreaInput(inputId = "xTextLabel", label = glue::glue("Change variable name of x-axis (enter {nVar} names):"), placeholder = "Comma or space separated",  height = "35px", width = "650px")
+        if(req(input$xTextLabelChoice) == "All" || "All" %in% req(input$xTextLabelChoice)){
+          nVar <- nrow(cVar)
+        }else{
+          nVar <- length(input$xTextLabelChoice)
+        }
+        textAreaInput(inputId = "xTextLabel", label = glue::glue("Enter {nVar} new name(s):"), placeholder = "Comma or space separated", height = "35px", width = "650px")
       }
     })
   })
   #get the input name and passed it to the figure function 
   xTextLabel <- reactive({
-    if(isTruthy(input$xTextLabel)){
+    if(isTruthy(input$xTextLabel) && isTruthy(input$xTextLabelChoice)){
       
       #get name of variables in x-axis
       varName <- unique(ptable()[,input$xAxis]) %>% as.vector()
-      #get number of variables in x-axis
-      nVar <- ptable() %>% distinct(.data[[input$xAxis]]) %>% nrow()
+      #get name of variables user want to change
+      userChoice <- if(req(input$xTextLabelChoice) == "All" || "All" %in% req(input$xTextLabelChoice)){
+        varName
+      }else{req(input$xTextLabelChoice)}
+      #get number of variables choosen by user
+      nVar <- length(userChoice)
+      
       #user given name
       givenName <- strsplit(str_trim(gsub(" |,", " ", input$xTextLabel))," +") %>% unlist()
       
-      
       #Use the name based on the user's input
-      # case 1: given name is less than the variables available in x-axis:
-      #         use given name + remaining original name
-      #case 2: given name is equal to the variables available in x-axis:
-      #         use the given name.
-      #case3: given name is longer - remove the extra name
-      
-      if(length(givenName) < nVar){
-        #case 1:
-        c(givenName, varName[-c(1:length(givenName))])
-      }else{
-        if(length(givenName) == nVar){
-          givenName
-        }else if(length(givenName) > nVar){
-          givenName[1:nVar]
-        }
+      if(length(givenName) != nVar){
+        #show the original name
+        return(varName)
+      }else if(length(givenName) == nVar){
+        varName[which(varName %in% userChoice)] <- as.vector(givenName)
+        #new name
+        return(varName)
       }
-      
     }else{
+      #display the original name
       unique(req(ptable()[,input$xAxis])) %>% as.vector()
     }
+    
   })
   
-  
-  # nVar <- c("white", "red", "blue", "gree", "purple", "black")
-  # givenName <- c("smith", "cooper", "leonard")
   #Bar graph settings---------------------
   output$UiStackDodge <- renderUI({
     #Bar plot and histogram will have this option
@@ -4457,13 +4703,12 @@ server <- function(input, output){
     densityPos <- reactive(if(figType() == "density" && isTRUE(trueVarSet())) req(input$densityPosition))
     alpha <- reactive(if(figType() == "density" && isTRUE(trueVarSet())) input$alpha)
     
-    #xVar <- ptable() %>% dplyr::select(.data[[input$xAxis]])
     geomType <- reactive({
-      # message(glue::glue("connectVar: {connectVar()}"))
       switch(figType(),
              "box plot" = geom_boxplot(width = freqPolySize()),
              "violin plot" = geom_violin(width = freqPolySize()),
-             "histogram" = if(xVarType()[1] == "character"){ 
+             "histogram" = if( xVarType()[1] %in% c("character", "factor") ){ 
+               
                #Discrete variable
                if(varSet() == "none"){
                  stat_count(color = histBarColor(), fill = histBarFill(), position= stackDodge())#this is default, add color must override
@@ -4478,7 +4723,7 @@ server <- function(input, output){
                  stat_bin(binwidth = binwd(), position= stackDodge())
                }
              },
-             "frequency polygon" = if(xVarType()[1] == "character"){
+             "frequency polygon" = if(xVarType()[1] %in% c("character", "factor")){
                geom_freqpoly(stat = "count", group = 1, size = freqPolySize(), binwidth = binwd())
              }else if(xVarType()[1] %in% c("integer", "numeric", "double")){
                geom_freqpoly(size = freqPolySize(), binwidth = binwd())
@@ -5333,18 +5578,134 @@ server <- function(input, output){
     
   })#end of advance plot
   #end plot figures--------------------------------
-  #hover infor for the plot
+  #hover info for the plot
   observe({
-    req(ptable(), input$hover_info)
-    output$plotDataInfo <- renderPrint({
-      df <- nearPoints(ptable(), input$hover_info, xvar = req(input$xAxis), yvar = req(input$yAxis) )
-      if(nrow(df) >= 1){
+    req(ptable(), pltType(), input$hover_info)
+    
+    df <- nearPoints(ptable(), input$hover_info, xvar = req(input$xAxis), yvar = req(input$yAxis) )
+    output$UiHover_display <- renderUI({
+      # df <- nearPoints(ptable(), input$hover_info, xvar = req(input$xAxis), yvar = req(input$yAxis) )
+      if(nrow(df) != 0){
+        verbatimTextOutput("hover_display")
+      }
+      
+    })
+    
+    output$hover_display <- renderPrint({
+      # req(input$UiHover_display)
+      # browser()
+      # df <- nearPoints(ptable(), input$hover_info, xvar = req(input$xAxis), yvar = req(input$yAxis) )
+      if(nrow(df) != 0){
         df
       }
       
     })
   })
+  
+  clickBrush_df <- reactiveVal(NULL)
+  #display table for the click 
+  observe({
+    req(ptable(), pltType(), input$xAxis, input$yAxis, input$click_info)# input$UiHover_display)
+    #get brush data
+    validate(
+      need(input$xAxis %in% colnames(ptable()) && input$yAxis %in% colnames(ptable()), "")
+    )
+    #get click data
+    df <- nearPoints(ptable(),coordinfo = input$click_info, xvar = input$xAxis, yvar = input$yAxis)
+    clickBrush_df(df)#save it for download
+    
+    if(nrow(df) != 0){
+      output$UiClickBrushDownload <- renderUI({
+        downloadBttn(
+          outputId = "clickBrushDownload",
+          label = tags$b("CSV"),
+          style = "minimal",
+          size = "xs",
+          block = FALSE,
+          no_outline = TRUE
+        )
+        # downloadBttn(
+        #   outputId = "clickBrushDownload",
+        #   label = "CSV",
+        #   style = "unite",
+        #   color = "primary",
+        #   size = "xs",
+        #   block = FALSE,
+        #   no_outline = TRUE
+        # )
+        
+      })
+      
+      output$UiBrushClick_display <- renderUI({
+        reactableOutput("click_table")
+        # verbatimTextOutput("brush_click_table")
+      })
+      output$click_table <- renderReactable({
+        reactable(as.data.frame(df), sortable = TRUE, pagination = FALSE, outlined = TRUE, defaultPageSize = 5,
+                  theme = reactableTheme(backgroundColor = "rgba(190, 237, 253, 0.5)", borderColor = "rgba(60, 186, 249, 0.9)"))
+      })
+      
+    }else{
+      #close the table by clicking on empty cell
+      output$UiBrushClick_display <- renderUI( NULL )
+      
+      output$UiClickBrushDownload <- renderUI( NULL)
+    }
+    
+  })
+  
+  #display table for the click and brush
+  observe({
+    req(ptable(), pltType(), input$xAxis, input$yAxis, input$brush_info)# input$UiHover_display)
+    #get brush data
+    validate(
+      need(input$xAxis %in% colnames(ptable()) && input$yAxis %in% colnames(ptable()), "")
+    )
+    df <- brushedPoints(df = ptable(), brush = input$brush_info, xvar = input$xAxis, yvar = input$yAxis)
+    clickBrush_df(df)#save it for download
+    #table to display
+    if(nrow(df) != 0){
+      output$UiClickBrushDownload <- renderUI({
+        downloadBttn(
+          outputId = "clickBrushDownload",
+          label = tags$b("CSV"),
+          style = "minimal",
+          size = "xs",
+          block = FALSE,
+          no_outline = TRUE
+        )
+        
+      })
+      output$UiBrushClick_display <- renderUI({
+        reactableOutput("brush_table")
+      })
+      # addTooltip(session, id = "brush_table", title = "Click on the image area to close this snippet", placement = "bottom", trigger = "hover",
+      #            options = NULL)
+      output$brush_table <- renderReactable({
+        reactable(as.data.frame(df), sortable = TRUE, pagination = TRUE, outlined = TRUE, defaultPageSize = 5,
+                  theme = reactableTheme(backgroundColor = "rgba(190, 237, 253, 0.8)", borderColor = "rgba(60, 186, 249, 0.9)"))
+      })
+      
+    }else if( nrow(df) == 0 ){
+      output$UiBrushClick_display <- renderUI(NULL)
+      output$UiClickBrushDownload <- renderUI(NULL)
+    }
+    
+  })
+  
   #download option------------------------
+  #click-brush download
+  observe({
+    req(clickBrush_df())
+    output$clickBrushDownload <- downloadHandler(
+      filename = function() {
+        "plotS_snipet.csv"
+      },
+      content = function(file) {
+        write.csv(clickBrush_df(), file)
+      }
+    )
+  })
   #organized table
   observe({
     req(is.data.frame(ptable()))
