@@ -135,10 +135,8 @@ filterData <- function(df, col, filterType, val){
     
     if(filterType == "contain"){
       filtr_df <- df[ str_detect(df[,col], inputVal, negate = FALSE), , drop = FALSE]
-      # f <- c("O","V")
-      # ToothGrowth[str_detect(ToothGrowth[,x], "J", negate = FALSE), ]
     }else if(filterType == "not contain"){
-      filtr_df <- df[ str_detect(df[,col], inputVal, negate = TUE), , drop=FALSE]
+      filtr_df <- df[ str_detect(df[,col], inputVal, negate = TRUE), , drop=FALSE]
       #Stop if no data is left
       validate(
         need(nrow(filtr_df) >= 1, "Zero rows. Require at least 1 row")
@@ -192,10 +190,19 @@ filterData <- function(df, col, filterType, val){
   }
   
   if(is.null(filtr_df)){
-    #for no data found for the filter: provide null data
+    #for no data found for the filter: provide null data and proper column
     filtr_df <- as.data.frame(matrix(nrow = 1, ncol = ncol(df)))
     names(filtr_df) <- colnames(df)
   }
+  #for factor variable, filter data has issue while performing t_test
+  # so, convert to character
+  #check class
+  cl <- lapply(filtr_df, class) %>% unlist()
+  if(any(cl == "factor")){
+    indx <- which(cl == "factor")
+    filtr_df[,indx] <- as.character(filtr_df[,indx]) 
+  }
+  
   return(filtr_df)
 }
 #function for downloading figure-------------------
@@ -837,6 +844,12 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
   if(method == "t.test"){
     message("forml=-=--")
     message("ttestMethod complete33")
+    # browser()
+    # message(str(data))
+    # print(data)
+    # message(forml)
+    # message(ttestMethod)
+    
     test <- rstatix::t_test(data, formula = forml,
            ref.group = unlist(ref), 
            comparisons = cmp, p.adjust.method = pAdjustMethod,

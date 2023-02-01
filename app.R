@@ -1446,7 +1446,8 @@ server <- function(input, output){
     }else{
       filterMsg(0)
     }
-
+    #null row name
+    rownames(data) <- NULL
     ptable(data)
   })
   
