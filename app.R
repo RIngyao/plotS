@@ -1017,7 +1017,7 @@ server <- function(input, output){
       
       
     }else if(input$pInput == "example"){
-      req(input$pFile %in% c("long format", "wid format", "replicate"))
+      req(input$pFile %in% c("long format", "wide format", "replicate"))
       if(req(input$pFile) == "long format"){
         pData <- PlantGrowth
       }else if(req(input$pFile) == "wide format"){
