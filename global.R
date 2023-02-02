@@ -1,6 +1,5 @@
 
-# options(shiny.maxRequestSize = 50*1024^2)
-options(shiny.maxRequestSize = 100*1024^2)
+options(shiny.maxRequestSize = 50*1024^2) #too large
 #library--------------------------------
 #can't use this method for loading library: shinyapps.io
 # libraries <- c("flextable", "openxlsx", "svglite",
@@ -9,12 +8,7 @@ options(shiny.maxRequestSize = 100*1024^2)
 #                "rstatix", "shiny", "tidyverse", "reactable")
 # lapply(libraries, library, character.only = TRUE)
 # 
-lib <- c("memoise", "effectsize", "vroom", "car","glue",
-         "flextable", "openxlsx", "svglite","MASS", "rlang",
-         "skimr","coin","DT","data.table","readxl","markdown",
-         "shinydashboard","ggpubr","multcompView","rstatix",
-         "shiny", "tidyverse","reactable","shinyWidgets")
-sort(lib)
+library(shinyBS)
 library(memoise)
 library(effectsize)
 library(vroom)
@@ -71,7 +65,7 @@ Function to determine the names of either numeric or character variables present
 checks = character. use 'integer' for numeric variable or 'character' for character variable
 data = dataframe.
 "
-#i have use data.table (fread), so it will be integer, instead of numeric
+#if data.table (fread), it will be integer, instead of numeric
 allNumCharVar <- function(checks = "integer", data = "ptable()"){
   
   #get the data types of the column in the data frame
@@ -110,6 +104,107 @@ selectedVar2 <- function(data = "ptable()", check = "character", index = 1){ #in
   }
 }
 
+#function for filtering data----------------
+"function for filtering the data
+date: 30/01/23
+arguments:
+  df = data frame.
+  col = character. Column name to apply the filter
+  filterType = character. Type of filter to apply - 'contain', 'equal', 'greater than', etc
+  val = character. apply filterType on this given value
+"
+
+filterData <- function(df, col, filterType, val){
+  # User's input for filterType is -
+  #   case 1. case sensitive
+  #         i. Character variable -  contain or not contain : each value must be comma separated and bound by double quotes if comma needs to be included
+  #         ii. Character variable - equal or not equal : option will be in vector, so apply filter directly.
+  #   case 2. Numeric variable - 
+  #         i. not between - must be of length 1 and must be able to convert to numeric
+  #         ii. between - must be able to convert to numeric and must be colon separated. E.g., 1:10 or 20:40
+  
+  #dummy data frame 
+  filtr_df <- NULL
+  #detect error: not in use
+  erorDetected <- 0
+  
+  if(filterType %in% c("contain", "not contain")){
+    
+    #case 1. i.
+    inputVal <- str_split(val, ',(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)') %>% unlist()
+    
+    if(filterType == "contain"){
+      filtr_df <- df[ str_detect(df[,col], inputVal, negate = FALSE), , drop = FALSE]
+    }else if(filterType == "not contain"){
+      filtr_df <- df[ str_detect(df[,col], inputVal, negate = TRUE), , drop=FALSE]
+      #Stop if no data is left
+      validate(
+        need(nrow(filtr_df) >= 1, "Zero rows. Require at least 1 row")
+      )
+    }
+    
+    #end of contain
+  }else if(filterType %in% c("equal to", "not equal to")){
+    #case 1. ii.
+    inputVal <- str_split(val, ',(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)') %>% unlist()
+    if(filterType == "equal to"){
+      filtr_df <- df %>% filter( .data[[col]] %in% inputVal )
+    }else{
+      filtr_df <- df %>% filter( !.data[[col]] %in% inputVal )
+    }
+    #end of equal to ...
+    
+    #End of case 1: character variable
+  }else{
+    #start case 2: numeric variable
+    if(filterType != "between"){
+      #case 2. i.
+      
+      #input must be able to convert to numeric
+      validate({
+        erorDetected <- 1
+        #convert to numeric
+        need(numValue <- as.numeric(val), "Error: cannot convert to numeric! provide one numeric value")
+      })
+      if(filterType == "not equal"){
+        filtr_df <- df %>% filter( .data[[col]] != numValue)
+      }else if(filterType == "equal"){
+        filtr_df <- df %>% filter( .data[[col]] == numValue)
+      }else if(filterType == "equal to or greater"){
+        filtr_df <- df %>% filter( .data[[col]] >= numValue)
+      }else if(filterType == "equal to or less"){
+        filtr_df <- df %>% filter( .data[[col]] <= numValue)
+      }else if(filterType == "greater than"){
+        filtr_df <- df %>% filter( .data[[col]] > numValue)
+      }else if(filterType == "less than"){
+        filtr_df <- df %>% filter( .data[[col]] < numValue)
+      }
+      
+    }else if(filterType == "between"){
+      validate({
+        erorDetected <- 1
+        need(numRange <- eval(str2expression(val)), "Error: cannot convert to numeric!")
+      })
+      filtr_df <- df %>% filter( .data[[col]] >= min(numRange), .data[[col]] <= max(numRange))
+    }
+  }
+  
+  if(is.null(filtr_df)){
+    #for no data found for the filter: provide null data and proper column
+    filtr_df <- as.data.frame(matrix(nrow = 1, ncol = ncol(df)))
+    names(filtr_df) <- colnames(df)
+  }
+  #for factor variable, filter data has issue while performing t_test
+  # so, convert to character
+  #check class
+  cl <- lapply(filtr_df, class) %>% unlist()
+  if(any(cl == "factor")){
+    indx <- which(cl == "factor")
+    filtr_df[,indx] <- as.character(filtr_df[,indx]) 
+  }
+  
+  return(filtr_df)
+}
 #function for downloading figure-------------------
 "arguments:
 fig = output plot object.
@@ -749,6 +844,12 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
   if(method == "t.test"){
     message("forml=-=--")
     message("ttestMethod complete33")
+    # browser()
+    # message(str(data))
+    # print(data)
+    # message(forml)
+    # message(ttestMethod)
+    
     test <- rstatix::t_test(data, formula = forml,
            ref.group = unlist(ref), 
            comparisons = cmp, p.adjust.method = pAdjustMethod,
@@ -1230,35 +1331,68 @@ generateStatData <- function(data = "ptable()", groupStat = "groupStat()", group
 
 
 #Plot figure function--------------------------
-#For appropriate parameters, theme, coloring, application of statistic of the figures: basic and advance
-#Its a function factory
-plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "geom_",
-                    histLine = "meanLine",  useValueAsIs = FALSE, 
-                    lineParam = lineParam,
+"Function to plot graph. All basic graph + aesthetic will be included in this function.
+Date: 17/01/23
+arguments:
+data = data frame. 
+types = character. sepcify the type of plots to draw - 'box plot'. It can be 'none'.
+geom_type = object. object from ggplot2 to plot the graph specified in the types.
+histLine = object. require for histogram.
+lineParam = list of objects. require for certain plots - scatter, line, violin, bar.
+facet = logical. TRUE to facet and FALSE not to facet.
+facetType = character. 'grid' or 'wrap'
+nRow, nColumn = numeric. Require for facet.
+varRow, varColumn = character. require for facet.
+scales = character. 'fixed' or 'free' for facet.
+layer = character. type of layer - 'point', 'line'...
+layerSize = numeric. size for the layer.
+barSize = numeric. size for graph.
+xTextLabels = character. Label name for the variable of x-axis. 
+xl, yl, fills, colr, shape, linetype, size = aesthetic options.
+autoCust = character. either the color should be auto filled or customize.
+colorTxt = character. color name specified for the variables.
+varSet = character. same as fills or colr.
+"
+
+plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_",
+                    xl = NULL, yl = NULL, fills = NULL,
+                    colr = NULL, shapes = NULL, linetypes = NULL, sizes = NULL,
+                    histLine = "meanLine", lineParam = "lineParam",
                     facet = FALSE, facetType = 'grid_wrap', varRow = NULL, varColumn = NULL, nRow = NULL, nColumn = NULL, scales = "fixed",  
-                    layer = "none", layerSize = layerSize, barSize = 0.2, ...){ #if y axis is required specifically mention in function parameter
-  #inner: for further setting, apart from geom
-  #outer
-  # browser()
+                    layer = "none", layerSize = "layerSize", layerAlpha = NULL, barSize = 0.2, 
+                    xTextLabels = "label",
+                    #color aesthetic
+                    autoCust, colorTxt, varSet = "none"
+                    #, ...
+){ #if y axis is required specifically mention in function parameter
   if(types == "none"){
-    # gp <- ggplot(data = NULL)
     break
-  }else {
-    gp <- ggplot(data = data, aes(...))
-    
+  }else if(!types %in% c("frequency polygon", "histogram")){
+    #aesthetics will be filled based on requirement
+    gp <- ggplot(data = data, 
+                 
+                 aes_string(
+                   x = xl, y = if(!is.null(yl)){ yl }else{ NULL },
+                   fill = if(!is.null(fills) && fills != "none"){ fills }else{ NULL },
+                   shape = if(!is.null(shapes)){ shapes }else{ NULL},
+                   linetype = if(!is.null(linetypes)){ linetypes }else{ NULL },
+                   size = if(!is.null(sizes)){ sizes }else{ NULL },
+                   color = if(!is.null(colr) && colr != "none"){ colr }else{ NULL }
+                 )
+    )
+  }else{
+    gp <- ggplot(data = data, 
+                 aes_string(
+                   x = xl,
+                   fill = if(!is.null(fills) && fills != "none"){ fills }else{ NULL },
+                   shape = if(!is.null(shapes)){ shapes }else{ NULL},
+                   linetype = if(!is.null(linetypes)){ linetypes }else{ NULL },
+                   size = if(!is.null(sizes)){ sizes }else{ NULL },
+                   color = if(!is.null(colr) && colr != "none"){ colr }else{ NULL }
+                 )
+    )
   }
   
-  # if(types == "none"){
-  #   gp <- ggplot(data = NULL)
-  # }else if(isFALSE(lineParam[[1]])){
-  #   gp <- ggplot(data = data, aes(...))
-  # }else{
-  #   #if TRUE, than it is for line and bar graph, which require sd computed data
-  #   gp <- ggplot(data = data, aes(...)) + 
-  #     #adding geom_errorbar
-  #     lineParam[[3]]
-  # }
-  # typeFig <- reactive(req(input$plotType, cancelOutput = TRUE))
   
   if(types == "box plot"){
     #only for plot that require errorbar
@@ -1267,41 +1401,37 @@ plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "g
       geom_type
     
   }else if(types == "histogram"){
+    # plt <- gp + geom_type + histLine
     plt <- gp + geom_type + histLine
   }else{
     #other plot
     if(isFALSE(lineParam[[1]])){
       plt <- gp +geom_type 
-      #checking 
-      checkPlt1 <<- plt
+      
     }else{
-      #if TRUE, than it is for line and bar graph, which require sd computed data
+      #if TRUE, than it is for line, bar graph, etc, which require sd computed data
       plt <- gp + geom_type +
         #adding geom_errorbar
         lineParam[[3]]
-      #checking 
-      checkPlt3 <<- gp + geom_type
-      checkPlt2 <<- plt
     }
   }
   
   
   #add layer
   if(layer != "none"){
-    cal <- ifelse(types %in% c(  "box plot", "violin plot"), "median", "mean")
+    cal <- ifelse(types %in% c("box plot", "violin plot"), "median", "mean")
     plt <- switch(layer,
                   "line" = plt + stat_summary(fun = cal, geom = 'line', aes(group = 1), size = layerSize),
                   "smooth" = plt + geom_smooth(size = layerSize),
-                  "point" = plt + geom_point(size = layerSize),
-                  "jitter" = plt + geom_jitter(size = layerSize)
+                  "point" = plt + geom_point(size = layerSize, alpha = layerAlpha),
+                  "jitter" = plt + geom_jitter(size = layerSize, alpha = layerAlpha)
     )
   }
   #facet
   if(isTRUE(facet)){
     if(facetType == "grid"){
-      #I've used .data[[]] here, because I couldn't used in setFig(). This is not recommended!!
+      #I've used .data[[]] here, may not require.
       if(is.null(varRow)){
-        #plt <- plt+facet_grid(rows = vars(NULL), cols = vars(unlist(map(1:length(varColumn), .data[[varColumn]]))), scale = tolower(scales))
         plt <- plt+facet_grid(rows = vars(NULL), cols = vars(.data[[varColumn]]), scale = tolower(scales))
       }else if(is.null(varColumn)){
         plt <- plt+facet_grid(rows = vars(.data[[varRow]]), cols = vars(NULL), scale = tolower(scales))
@@ -1317,156 +1447,64 @@ plotFig <- function(data = x, types = "reactive(input$plotType)", geom_type = "g
     }else{plt}
   }
   
-  #inner function to add more setting if user need
-  #arguments for the inner function will be provided by setFig() later. Not a recommended way of writing function.
-  "
-  Inner function to add more advance settings:
-  arguments:
-    advance = logical, TRUE whenever aesthetic or statistical method are applied
-    varSet = variable for filling color
-    autoCust = either the color should be auto filled or customize
-    methodSt = statistical method
-    removeBracket = remove bracket for annotating statistical significance
-    statData = Data to be used for annotating statistical significane
-    anovaType = type of anova: one-way or two-way anova
-    aovX = variable used in x-axis. This is required to display figure for two-way anova.
-  "
-  function(advance = FALSE,
-           #color parameters
-           varSet="none", #= "reactive(req(input$colorSet, cancelOutput = TRUE))",
-           autoCust, #= "reactive(req(input$autoCustome, cancelOutput = TRUE))",
-           colorTxt, #= "reactive(input$colorAdd)", 
-           #argument for stat data
-           methodSt = "none", #= "methodSt",
-           removeBracket=FALSE,
-           statData,#= "statData",
-           anovaType,
-           aovX=aovX,#This is require for two-way anova
-           xTextLabel, #label of x-axis
-           ylim=FALSE
-  ){ #="anovaType" 
-    #no need to provide function parameters for basic plot: the default will be used
-    message("inner function")
-    #set lower limit of y axis
-    if(isTRUE(ylim)){
-      plt <- plt + ylim(0, NA)
-    }
-    
-    if(isFALSE(advance)){
-      #basic plot: default
-      message("display basic")
-      plt 
-    }else if (isTRUE(advance)){
-      # advance settings
-      message("display advance")
-      if(varSet != "none"){
-        message("color")
-        
-        #User choice to auto fill or customize the color
-        if(autoCust == "auto filled"){
-          newPlt <<- plt #Make it global, to be used just before customization
-          #coloring will be implemented while using the function
-          plt
-        }else if(autoCust == "customize"){
-          #this will execute only if the customize option is selected
-          #get number of variables
-          countVar <- length(unique(data[[varSet]]))
-          
-          editC <- if(colorTxt == "noneProvided"){
-            "not provided" #if no color is provided
-          }else{
-            #process the given color input by removing space and comma
-            message("Processing color--------pc----")
-            inputC <- strsplit(str_trim(gsub(" |,", " ", colorTxt))," +")[[1]]
-            #Select only the required number of colors if user provide more than 
-            #the required number.
-            
-            if(length(inputC) > countVar){
-              inputC[1:countVar]
-            }else{ inputC }
-          }
-          
-          if(length(editC) < countVar){
-            #display the color of the global plot
-            newPlt
-          }else if(length(editC) == countVar){
-            #add color to the plot
-            if(types %in% c("line", "frequency polygon", "scatter plot")){
-              plt <- plt + scale_color_manual(values = tolower(editC))
-            }else{
-              plt <- plt + scale_fill_manual(values = tolower(editC))
-            }
-            newPlt <<- plt #save global
-          }else{validate(glue::glue("Provide only {countVar} colors"))}
-        }#end of customizing color
-      }#end for color setting
+  #add color here: so that anova (interaction) can be added
+  if( varSet != "none" ){
+    message("color provided")
+    #User choice to auto fill or customize the color
+    if(autoCust == "auto filled"){
+      newPlt <<- plt #Make it global, to be used just before customization
+      #coloring will be implemented while using the function
+      plt
+    }else if(autoCust == "customize"){
+      #this will execute only if the customize option is selected
+      message(glue::glue("colorTxt : {colorTxt}"))
+      #get number of variables
+      countVar <- length(unique(data[[varSet]]))
       
-      #statistics annotation: computed data will be provided as arguments
-      if(methodSt != "none"){
+      editC <- if(colorTxt == "noneProvided"){
+        "not provided" #if no color is provided
+      }else{
+        #process the given color input by removing space and comma
+        message("Processing color")
+        inputC <- strsplit(str_trim(gsub(" |,", " ", colorTxt))," +")[[1]]
+        #Select only the required number of colors if user provide more than 
+        #the required number.
+        message(glue::glue("end of processing color: {inputC}"))
+        message(glue::glue("length of inputC: {length(inputC)}"))
+        message(glue::glue("countVar: {countVar}"))
         
-        message("label inside function22--------")
-        if(!methodSt %in% c("anova", "kruskal-wallis")){
-          message("not anova------")
-          
-          plt <- plt + stat_pvalue_manual(statData[[1]], label = statData[[2]], tip.length = 0.01, remove.bracket = removeBracket, bracket.size = 0.4, step.increase = 0.1, bracket.nudge.y = 0.01, inherit.aes=FALSE, fontface = "bold") 
-        }else if(methodSt == "anova"){
-          message("Anova stat method 2====")
-          #get the details for labeling the plot
-          
-          textData <- statData[[1]] %>% as.data.frame()
-          message("textData===")
-          
-          col <- colnames(textData)
-          
-          x_name <- col[1]
-          
-          if(anovaType == "one"){
-            y_name <- col[3]
-            letr <- col[4]
-            plt <- plt + coord_cartesian(clip="off") + geom_text(data=textData, aes(x=eval(str2expression(x_name)), y = eval(str2expression(y_name)),
-                                                      label = eval(str2expression(letr))), size = 7, vjust=-0.5, na.rm = TRUE)
-          }else{
-            message(glue::glue("aovX:{str(aovX)}, {is.null(aovX)}"))
-            
-            #get the position from the table
-            if(aovX == "Interaction"){
-              y_name <- col[4]
-              letr <- col[5]
-            }else if(aovX == "group1"){
-              y_name <- col[3]
-              letr <- col[4]
-            }else{
-              x_name <- aovX
-              y_name <- col[3]
-              letr <- col[4]
-            }
-            
-            plt <- plt + coord_cartesian(clip="off") + geom_text(data=textData, aes(x=eval(str2expression(x_name)), y = eval(str2expression(y_name)),
-                                                      label = eval(str2expression(letr))), position= position_dodge2(0.9), size = 7, vjust=-0.25, na.rm = TRUE)
-          }#end of two-way anova
-          #end of anova
-        }else if(methodSt == "kruskal-wallis"){
-          message("entering Kruskal test=00000000")
-          textData <- statData[[1]] %>% as.data.frame()
-          col <- colnames(textData)
-          
-          x_name <- col[1]
-          y_name <- col[3]
-          letr <- col[4]
-          #plot krukal test
-          plt <- plt + coord_cartesian(clip="off") + geom_text(data=textData, aes(x=eval(str2expression(x_name)), y = eval(str2expression(y_name)),
-                                                    label = eval(str2expression(letr))), position= position_dodge2(0.9), size = 7, vjust=-0.25, na.rm = TRUE)
-        }#end of Kruskal test
-        
-      }#end of statistics
-    }#end of advance setting
-    message("geom_text added33====")
-    message("after condition:inner")
-    
-    plt + scale_x_discrete(labels =xTextLabel) 
-  }#end of inner function
-}#end of outer function
-
+        if(length(inputC) > countVar){
+          inputC[1:countVar]
+        }else{ inputC }
+      }
+      
+      message(glue::glue("edit length: {length(editC)}"))
+      if(editC != "not provided" && length(editC) < countVar){
+        #display the color of the global plot
+        message(glue::glue("editC less number : {editC}"))
+        message(glue::glue("edit length: {length(editC)}"))
+        newPlt
+      }else if(length(editC) == countVar){
+        message(glue::glue("editC final color: {editC}"))
+        #add color to the plot
+        if(types %in% c("line", "frequency polygon", "scatter plot")){
+          plt <- plt + scale_color_manual(values = tolower(editC))
+        }else{
+          plt <- plt + scale_fill_manual(values = tolower(editC))
+        }
+        newPlt <<- plt #save global
+      }
+    }#end of customizing color
+  }#end for color setting
+  
+  message(xTextLabels)
+  #change variable name of x-axis
+  message(plt)
+  
+  plt <<- plt
+  plt + scale_x_discrete(labels = xTextLabels ) 
+  
+}#end
 #theme function---------------------
 themeF <- function(thme = "user preferred theme"){
   switch(thme,
@@ -1491,207 +1529,97 @@ axisLabs <- function(x =xyLable[[1]], y = xyLable[[2]]){
   }
 }
 
-#Guide and input provider function to plotFig()----------------------
-"All the arguments required for plotting the figure using 
-plotFig() will be provided by the below function : setFig()"
-setFig <- function(data,# = "ptable()",
-                   figType,# = "reactive(req(input$plotType, cancelOutput = TRUE))",
-                   geomType,# = "geom_boxplot()",
-                   barSize = 0.5, 
-                   histLine = NULL,
-                   dis = FALSE,
-                   xy,# = "reactive(input$xAxis) and reactive(input$yAxis)", 
-                   lineParam = lineParam,
-                   textSize,# = "reactive(input$textSize)",
-                   titleSize,# = "reactive(input$titleSize)",
-                   xyLable,# = "xyLable()",
-                   themes,# = "reactive(input$theme)",
-                   #parameters to add color
-                   varSet="none",# = "reactive(req(input$colorSet, cancelOutput = TRUE))",
-                   autoCust,# = "reactive(req(input$autoCustome, cancelOutput = TRUE))",
-                   colorTxt,# = "reactive(input$colorAdd)", #color
-                   #more aesthetic
-                   shapeLine,# = "reactive(input$shapeLine)",
-                   shapeSet,# = "reactive(isTruthy(input$shapeSet)",
-                   lineSet, #= "reactive(isTruthy(input$lineSet)",
-                   #parameters for statistic
-                   methodSt= "none",# = "reactive(req(input$stat))",
-                   removeBracket=FALSE, #it is either true or false
-                   statData,# = "statData",
-                   aovX="Interaction", #default is Interaction
-                   anovaType,# = "anovaType()",
-                   #legend parameter
-                   legendPosition,# = "legendPosition",
-                   legendDirection,# = "legendDirection",
-                   legendTitle,# = "legendTitle",
-                   legendSize,# = "legendSize",
-                   #other theme
-                   stripBackground = FALSE, #for facet
-                   #facet parameter
-                   facet = FALSE,
-                   faceType = NULL,#grid or wrap
-                   varRow = NULL,
-                   varColumn = NULL,
-                   nRow = NULL, 
-                   nColumn = NULL, 
-                   scales = NULL, #fixed or free
-                   #additional layer
-                   layer = "none",
-                   layerSize = layerSize,
-                   xTextLabel = NULL, 
-                   ylim=FALSE,
-                   ...){ #dis is for applying the advance option: TRUE for apply and FALSE for don't apply
-  #data need to be changed based on the type of plots
-  if(isFALSE(lineParam[[1]])){
-    #no change in data from ptable()
-    data <- data
-  }else{
-    #for line graph
-    if(figType %in% c("scatter plot", "violin plot")){
-      data <- data
-    }else{
-      data <- lineParam[[2]]
-    }
-    
-  }
-  #convert the x-axis into factor: this is necessary especially if user provide numerical variables for x-axis
-  #this conversion will take place only for certain figType(), not for all
-  if(figType %in% c(  "box plot","violin plot", "line")){
-    message("-------------1. Reminder: check the factor of x and y axis---------------------")
-    data[[xy[[1]]]] <- as.factor(data[[xy[[1]]]])
-  }else{
-    message("-------------2. Reminder: check the factor of x and y axis---------------------")
-    data
-  }
- 
-  #first plot the type of figure: geom_
-  #Here, i've added the aethetic of shape and line type: For color it will be implemented later
-  #hard coded: rewrite (lazy evaluation)
-  if(shapeLine == "Shape"){
-    if(!is.null(xy[[1]]) && !is.null(xy[[2]])){
-      #plots with x- and y-axis
-      # pltSet <- plotFig(data = data, types = figType, geom_type = geomType, histLine = histLine, x = .data[[xy[[1]]]], y = .data[[xy[[2]]]], shape = .data[[shapeSet]],
-      pltSet <- plotFig(data = data, types = figType, geom_type = geomType, histLine = histLine, x = .data[[xy[[1]]]], y = .data[[xy[[2]]]], shape = .data[[shapeSet]],
-                        lineParam = lineParam, facet = facet, facetType = faceType, varRow = varRow, varColumn = varColumn, nRow = nRow, nColumn = nColumn, scales = scales, 
-                        layer, layerSize = layerSize,  barSize = barSize, ...)#.data[[x]], y = .data[[y]], ...)
-    }else{
-      #plots with only x-axis
-      pltSet <- plotFig(data = data, types = figType, geom_type = geomType, histLine = histLine, x = .data[[xy[[1]]]], shape = .data[[shapeSet]],
-                        lineParam = lineParam, facet = facet, facetType = faceType, varRow = varRow, varColumn = varColumn, nRow = nRow, nColumn = nColumn, scales = scales, 
-                        layer, layerSize = layerSize, barSize = barSize, ...)#.data[[x]], ...)
-    }
-  }else if(shapeLine == "Line type"){
-    if(!is.null(xy[[1]]) && !is.null(xy[[2]])){
-      #plots with x- and y-axis
-      pltSet <- plotFig(data = data, types = figType, geom_type = geomType, histLine = histLine, x = .data[[xy[[1]]]], y = .data[[xy[[2]]]], linetype = .data[[lineSet]],
-                        lineParam = lineParam, facet = facet, facetType = faceType, varRow = varRow, varColumn = varColumn, nRow = nRow, nColumn = nColumn,  scales = scales, 
-                        layer= layer,  layerSize = layerSize, barSize = barSize, ...)#.data[[x]], y = .data[[y]], ...)
-    }else{
-      ##plots with x-axis only
-      pltSet <- plotFig(data = data, types = figType, geom_type = geomType, histLine = histLine, x = .data[[xy[[1]]]], linetype = .data[[lineSet]],
-                        lineParam = lineParam, facet = facet, facetType = faceType, varRow = varRow, varColumn = varColumn, nRow = nRow, nColumn = nColumn,  scales = scales, 
-                        layer = layer, layerSize = layerSize, barSize = barSize, ...)#.data[[x]], ...)
-    }
-  }else if (all(shapeLine %in% c("Shape","Line type"))){
-    if(!is.null(xy[[1]]) && !is.null(xy[[2]])){
-      #plots with x- and y-axis
-      pltSet <- plotFig(data = data, types = figType, geom_type = geomType,histLine = histLine, x = .data[[xy[[1]]]], y = .data[[xy[[2]]]], shape = .data[[shapeSet]], linetype = .data[[lineSet]],
-                        lineParam = lineParam, facet = facet, facetType = faceType, varRow = varRow, varColumn = varColumn, nRow = nRow, nColumn = nColumn, scales = scales, 
-                        layer = layer, layerSize = layerSize, barSize = barSize, ...)#.data[[x]], y = .data[[y]], ...)
-    }else{
-      #plots with x-axis only
-      pltSet <- plotFig(data = data, types = figType, geom_type = geomType, histLine = histLine, x = .data[[xy[[1]]]], shape = .data[[shapeSet]], linetype = .data[[lineSet]],
-                        lineParam = lineParam, facet = facet, facetType = faceType, varRow = varRow, varColumn = varColumn, nRow = nRow, nColumn = nColumn, scales = scales, 
-                        layer = layer, layerSize = layerSize, barSize = barSize, ...)#.data[[x]], ...)
-    }
-  }else{
-    #plots without shape and/or line
-    if(!is.null(xy[[1]]) && !is.null(xy[[2]])){
-      #plots with x- and y-axis
-      pltSet <- plotFig(data = data, types = figType, geom_type = geomType, histLine = histLine, x = .data[[xy[[1]]]], y = .data[[xy[[2]]]],
-                        lineParam = lineParam, facet = facet, facetType = faceType, varRow = varRow, varColumn = varColumn, nRow = nRow, nColumn = nColumn, scales = scales, 
-                        layer = layer, layerSize = layerSize, barSize = barSize, ...)#.data[[x]], y = .data[[y]], ...)
-    }else{
-      #plots with x-axis only
-      pltSet <- plotFig(data = data, types = figType, geom_type = geomType, histLine = histLine, x = .data[[xy[[1]]]],
-                        lineParam = lineParam, facet = facet, facetType = faceType, varRow = varRow, varColumn = varColumn, nRow = nRow, nColumn = nColumn, scales = scales, 
-                        layer = layer, layerSize = layerSize, barSize = barSize,...)#.data[[x]], ...)
-    }
-  }
+#advance graph function: adding statistic info to the graph-----------
+"
+date: 17/01/23
+  Function to add more advance settings:
+  arguments:
+    plt = object of ggplot2. It will be derived from plotFig. 
+    methodSt = character. statistical method.
+    removeBracket = logical. remove bracket for annotating statistical significance
+    statData = Data frame. To be used for annotating statistical significane
+    anovaType = character. The type of anova: one-way or two-way anova
+    aovX = variable used in x-axis. This is required to display figure for two-way anova.
+  "
+advancePlot <- function(data, plt,
+                        #argument for stat data
+                        methodSt = "none",
+                        removeBracket=FALSE,
+                        statData,
+                        anovaType,
+                        aovX=aovX
+){
+  # browser() 
+  message(str(statData))
+  # advance settings
+  message("display advance")
   
-  #handle user choice to remove legend title
-  otherTheme <- if(isTRUE(legendTitle)){
-    if(isTRUE(stripBackground)){
-      theme(
-        axis.text = element_text(size = textSize, face = "bold"),
-        axis.title = element_text(size = titleSize, face = "bold"),
-        legend.position = legendPosition,
-        legend.direction = legendDirection,
-        legend.title = element_blank(),
-        legend.text = element_text(size = legendSize, face = "bold"),
-        strip.text = element_text(size = textSize, face = "bold"),
-        strip.background = element_blank())
-    }else{
-      theme(
-        axis.text = element_text(size = textSize, face = "bold"),
-        axis.title = element_text(size = titleSize, face = "bold"),
-        legend.position = legendPosition,
-        legend.direction = legendDirection,
-        legend.title = element_blank(),
-        legend.text = element_text(size = legendSize, face = "bold"),
-        strip.text = element_text(size = textSize, face = "bold"))
-    }
-  }else{
-    if(isTRUE(stripBackground)){
-      theme(
-        axis.text = element_text(size = textSize, face = "bold"),
-        axis.title = element_text(size = titleSize, face = "bold"),
-        legend.position = legendPosition,
-        legend.direction = legendDirection,
-        legend.title = element_text(size = legendSize, face = "bold"),
-        legend.text = element_text(size = legendSize, face = "bold"),
-        strip.text = element_text(size = textSize, face = "bold"),
-        strip.background = element_blank())
-    }else{
-      theme(
-        axis.text = element_text(size = textSize, face = "bold"),
-        axis.title = element_text(size = titleSize, face = "bold"),
-        legend.position = legendPosition,
-        legend.direction = legendDirection,
-        legend.title = element_text(size = legendSize, face = "bold"),
-        legend.text = element_text(size = legendSize, face = "bold"),
-        strip.text = element_text(size = textSize, face = "bold"))
-    }
+  #statistics annotation: computed data will be provided as arguments
+  if(methodSt != "none"){
     
-  }
+    if(!methodSt %in% c("anova", "kruskal-wallis")){
+      
+      message("not anova------")
+      plt <- plt + stat_pvalue_manual(statData[[1]], label = statData[[2]], tip.length = 0.01, remove.bracket = removeBracket, bracket.size = 0.4, step.increase = 0.1, bracket.nudge.y = 0.01, inherit.aes=FALSE, fontface = "bold", fontsize = 22)  
+    }else if(methodSt == "anova"){
+      message("Anova stat method 2====")
+      #get the details for labeling the plot
+      textData <- statData[[1]] %>% as.data.frame()
+      message("textData===")
+      message(colnames(textData))
+      col <- colnames(textData)
+      message(glue::glue("inner function col: {col}"))
+      
+      x_name <- col[1]
+      if(anovaType == "one"){
+        y_name <- col[3]
+        letr <- col[4]
+        plt <- plt + coord_cartesian(clip="off") + geom_text(data=textData, aes(x=eval(str2expression(x_name)), y = eval(str2expression(y_name)),
+                                                                                label = eval(str2expression(letr))), size = 7, vjust=-0.5, na.rm = TRUE)
+      }else{
+        
+        message(glue::glue("aovX:{str(aovX)}, {is.null(aovX)}"))
+        #get the position from the table
+        if(aovX == "Interaction"){
+          y_name <- col[4]
+          letr <- col[5]
+        }else if(aovX == "group1"){
+          y_name <- col[3]
+          message(y_name)
+          letr <- col[4]
+        }else{
+          x_name <- aovX
+          y_name <- col[3]
+          message(aovX)
+          message(y_name)
+          letr <- col[4]
+        }
+        # browser(). 
+        plt <- plt + coord_cartesian(clip="off") + geom_text(data=textData, aes(x=eval(str2expression(x_name)), y = eval(str2expression(y_name)),
+                                                                                label = eval(str2expression(letr))), position= position_dodge2(0.9), size = 7, vjust=-0.25, na.rm = TRUE)
+      }#end of two-way anova
+      #end of anova
+    }else if(methodSt == "kruskal-wallis"){
+      
+      message("entering Kruskal test=00000000")
+      textData <- statData[[1]] %>% as.data.frame()
+      col <- colnames(textData)
+      
+      x_name <- col[1]
+      y_name <- col[3]
+      letr <- col[4]
+      message(glue::glue("inner function x_name: {x_name}"))
+      #plot krukal test
+      plt <- plt + coord_cartesian(clip="off") + geom_text(data=textData, aes(x=eval(str2expression(x_name)), y = eval(str2expression(y_name)),
+                                                                              label = eval(str2expression(letr))), position= position_dodge2(0.9), size = 7, vjust=-0.25, na.rm = TRUE)
+    }#end of Kruskal test
+    
+  }#end of statistics
   
-  #use inner function for more details
-  if(isFALSE(dis)){
-    #basic plot
-    pltSet(advance = dis, 
-           xTextLabel= xTextLabel, ylim = ylim)+ #addThemes
-      axisLabs(x =xyLable[[1]], y = xyLable[[2]])+
-      themeF(thme = themes)+
-      otherTheme
-  }else if(isTRUE(dis)){
-    #advance plot
-    
-    pltSet(advance = dis,
-           varSet = varSet,
-           autoCust = autoCust,
-           colorTxt = colorTxt,
-           methodSt = methodSt,
-           removeBracket=removeBracket,
-           statData = statData,
-           anovaType = anovaType, 
-           aovX=aovX,
-           xTextLabel=xTextLabel,
-           ylim=ylim)+ 
-      #addThemes
-      axisLabs(x =xyLable[[1]], y = xyLable[[2]])+
-      themeF(thme = themes)+
-      otherTheme
-  }
-} # end of display plot function
+  message("after condition:inner")
+  
+  plt 
+  
+}#end of inner function
 
 

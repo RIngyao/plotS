@@ -132,9 +132,6 @@ body{
       max-width:400px;
       }
       
-      .NAdiv{
-      
-      }
       .rawTable, .organizedTable{
       text-align:center;
       text-color:black;
@@ -328,9 +325,21 @@ body{
       margin-left:0px;
       }
       
-      .miscDiv, .dbBootStrapDiv{
-      background:rgba(206,247,250, 0.2);
+      .miscDiv, .dbBootStrapDiv, .filterDataDiv{
+      background:rgba(206,247,250, 0.5);
       font-size:14px;
+      border:solid 1px;
+      padding:5px;
+      }
+      .filterDataDiv > * {
+      text-align:center;
+      margin:10px;
+      }
+      #UiFilterAndOr{
+      margin-left:5px;
+      }
+      #UiAppliedFilterInfo{
+      margin:0;
       }
       #Ylimit, #UiRemoveBracket, #UiStripBackground{
       text-align: center;
@@ -347,4 +356,35 @@ body{
       background-color:transparent;
       }
       
+      .preViewDiv{
+      /*float:left;*/
+      align-items:center;
+      margin-top: 10px;
+      margin-bottom:0;
+      }
+      #UiClickBrushDownload{
+      float:right; 
+      background-image:linear-gradient(white, white, rgba(190, 237, 253));
+      border-radius: 10%;
+      margin-bottom:0;
+      }
       
+      /*hover tooltip for graph*/
+      #UiHover_display, #hover_display{  
+      position: absolute;
+      border-color: rgba(60, 186, 249, 0.9);
+      background-color:rgba(190, 237, 253, 0.7);  
+      z-index: 100;
+      
+      }
+      .hoverClickBrushDiv{
+      border-color:brown;
+      }
+      #UiClickBrushDownload{
+      margin-bottom:5px;
+      margin-right: 2%;
+      float:right
+      }
+      #UiHover_display{
+      background-color: rgba(203, 235, 253)
+      }
