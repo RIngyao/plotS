@@ -207,9 +207,9 @@ filterData <- function(df, col, filterType, val){
 }
 #function for downloading figure-------------------
 "arguments:
-fig = output plot object.
-filename = output file path.
-format = output format.
+fig = object. output plot object.
+filename = character. output file path.
+format = character. output format.
 "
 figureDowFunc <- function(fig, filename, format){
   # browser()
@@ -237,8 +237,8 @@ stopAll <- reactiveVal(0)
 "
 arguments:
 df = data frame.
-xA = character. Variables selected for group by. It can be single or vector or character.
-yA = character. variables selected for y-axis. It is numeric variables.
+xA = character. Variables selected for group by. It can be single or vector of character.
+yA = character. variables selected for y-axis. It is numeric variables in the data.
 Output will be dataframe.
 "
 descriptiveStatFunc <- function(df, xA, yA){
@@ -289,8 +289,6 @@ x = character. variable of x-axis. Require only for box-cox.
 y = chharacter. variable of y-axis.
 "
 ns_func <- function(data, ns_method, x=NULL, y){
-  # browser()
-  
   #remove na: this was supposed to have been taken care in the beginning, if not ,removed it 
   data <- na.omit(data)
   #if data has 0 than add +1
@@ -341,7 +339,7 @@ ns_func <- function(data, ns_method, x=NULL, y){
                     else vector of variable names of x-axis and variable of aesthetic
             yName = character. variable names of y-axis to be used in summarise.
             lineGrp = character. variable use to connect line path.
-            null for scatter plot. It will be use in gorup_by if value is other than 'none' or null
+                    null for scatter plot. It will be use in gorup_by if value is other than 'none' or null
             "
 sdFunc <- function(x, oName, yName, lineGrp = NULL){
   
@@ -407,7 +405,7 @@ colNo = numeric. column index for the replicates of each group. It can be vector
 stp = numeric. range from 0 to 1. 0 to process and 1 to stop processing 
       non-replicate columns
 "
-#colNo = numeric. column index for the replicates of each group. It can be range or vector
+
 tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = c(2,3), stp=0){
   #First process the data for non replicate column and then for replicate column
   #non-replicate column: May not always be in character column when in proper format
@@ -643,7 +641,7 @@ getMeanMedian <- function(x, df, stat='none', grp = NULL, varNum = NULL, repNum 
 }
 
 
-"
+"Function to add or delete variable for comparison in t_test and wilcoxon.test
   arguments for the function
   lst = list of characters provided by the user to compare or reference.
   grp = character. it is the group(s) choosen by the user. Length must be of 1 for reference group or 2 for comparisons
@@ -782,10 +780,10 @@ computeFuncErrorMsg <- reactiveVal(NULL)
   method = character. chosen statistic method
   numericVar = character. dependant variable for the statistic
   catVar = character. It can be single or vector. independant variable
-  compRef = variable for comparing or a reference group
-  pairedD = whether data is paired or unpaired
-  anovaType = type of anova: one-way (one) or two-way (two)
-  ttestMethod = welch or student's test
+  compRef = character. variable for comparing or a reference group
+  pairedD = logical. whether data is paired or unpaired
+  anovaType = character. type of anova: one-way (one) or two-way (two)
+  ttestMethod = character. welch or student's test
 
 "
 

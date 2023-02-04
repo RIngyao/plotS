@@ -257,7 +257,8 @@ ui <- fluidPage(
                         #show text
                         # textOutput("textInputTable"),
                         #show table here when input data is choosen
-                        dataTableOutput("pShowTable")
+                        dataTableOutput("pShowTable"),
+                        uiOutput("UiDataStructure")
                       ) %>% tagAppendAttributes(class = "rawTable"),
                       
                       # #Ui to display table without header
@@ -276,7 +277,8 @@ ui <- fluidPage(
                                          #download button
                                          downloadButton("organizedDownload"),
                                          #show transform table here
-                                         dataTableOutput("pShowTransform")
+                                         dataTableOutput("pShowTransform"),
+                                         uiOutput("UiDataStructureOrganize")
                                        ) %>% #end of box
                                          tagAppendAttributes(class = "organizedTable"),                
                                        
@@ -986,9 +988,10 @@ server <- function(input, output){
         naList <- c("", " ", "NA", "na")
       }else if(isTruthy(input$selectNA)){
         #process the given list
-        naList <- strsplit(gsub(",", "_", input$selectNA),"_") %>% unlist()#strsplit(str_trim(gsub(",", " ", input$selectNA))," +") %>% unlist()
+        naList <- strsplit(gsub(",", "=", input$selectNA),"=") %>% unlist()#strsplit(str_trim(gsub(",", " ", input$selectNA))," +") %>% unlist()
       }
       tryCatch({
+        # browser()
         #read the data
         up_df <- switch(ext,
                         "csv" = vroom::vroom(upPath()$datapath, na = naList) %>% as.data.frame(), #, na = naList
@@ -1001,11 +1004,15 @@ server <- function(input, output){
         
         #remove or replace na 
         if(input$remRepNa == "remove"){
-          pData <- na.omit(up_df)
+          pData1 <- na.omit(up_df) %>% as.data.frame()
         }else if(input$remRepNa == "replace"){
-          pData <- up_df %>% mutate_if(is.numeric, ~ replace(., is.na(.), 0)) %>% as.data.frame()
+          pData1 <- up_df %>% mutate_all(., ~replace(., is.na(.), 0)) %>% as.data.frame()#mutate_if(is.numeric, ~ replace(., is.na(.), 0)) %>% as.data.frame()
         }
-        pData
+        
+        #search and convert to numeric
+        numericCol <- lapply(colnames(pData1), function(x) if(any(str_detect(pData1[,x], "[:alpha:]", negate = TRUE))) return(x) ) %>% unlist()
+        pData <- pData1 %>% mutate(across(numericCol, ~ as.numeric(.)))
+        
       }, error = function(e){
         uploadError <<- 1
         # uploadErrorMessage <<- e
@@ -2217,6 +2224,51 @@ server <- function(input, output){
         ) 
       })
       
+    }
+  })
+  
+  #display data schema
+  output$UiDataStructure <- renderPrint({
+    req(pInputTable$data)
+    
+    df_schema <- lapply(pInputTable$data, class) %>% unlist()
+    
+    if(req(input$replicatePresent) == "yes"){
+      names(df_schema) <- paste0("Column ",1:length(df_schema))
+    }
+    # df_schema <- lapply(ToothGrowth, class) %>% unlist()
+    n <- 0
+    schemas <- NULL
+    for(i in seq_along(df_schema)){
+      if(is.null(schemas)){
+        schemas <- glue::glue("{names(df_schema[i])} - {df_schema[i]}")
+      }else if(!is.null(schemas)){
+       schemas <- glue::glue("{schemas}; {names(df_schema[i])} - {df_schema[i]}")
+      }
+      n <- n + 1
+    }
+    
+    helpText(glue::glue("Variable type: {schemas}. More info in the Summary section."), style = "font-style:italic; background-color:#E8F9FA;")
+  })
+  
+  output$UiDataStructureOrganize <- renderPrint({
+    req(ptable())
+    
+    if( (req(input$replicatePresent) == "yes" && isTruthy(input$replicateActionButton)) || ( req(input$transform) == "Yes" && isTruthy(input$goAction)) || ( req(input$normalizeStandardize) != 'none' && isTruthy(input$nsActionButton))){
+      df_schema <- lapply(ptable(), class) %>% unlist()
+      # df_schema <- lapply(ToothGrowth, class) %>% unlist()
+      n <- 0
+      schemas <- NULL
+      for(i in seq_along(df_schema)){
+        if(is.null(schemas)){
+          schemas <- glue::glue("{names(df_schema[i])} - {df_schema[i]}")
+        }else if(!is.null(schemas)){
+          schemas <- glue::glue("{schemas}; {names(df_schema[i])} - {df_schema[i]}")
+        }
+        n <- n + 1
+      }
+      
+      helpText(glue::glue("Variable type: {schemas}. More info in the Summary section."), style = "font-style:italic; background-color:#E8F9FA;") 
     }
   })
   
