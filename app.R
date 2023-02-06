@@ -317,9 +317,7 @@ ui <- fluidPage(
                                  column(6, uiOutput("yAxisUi"))
                                ),
                                #message for choosing x and y axis
-                               conditionalPanel(condition = "input.plotType != 'none'",
-                                                helpText("Variable for Y-axis must be numeric", style = "text-align:center")
-                                                ),
+                               uiOutput("UiYAxisMsg"),
                                #add filter as drop down menu
                                # #Ui for normalization and standardization
                                # conditionalPanel(condition = "input.plotType != 'none'",
@@ -1301,20 +1299,20 @@ server <- function(input, output){
 
   #filter type and value
   observe({
-    req(cleanData(), pltType(), input$xAxis, input$varFilterOpts)
+    req(cleanData(), pltType(),  input$varFilterOpts)#input$xAxis,
     #validate
-    validate(
-      if(pltType() %in% xyRequire){
-        need( c(input$xAxis,input$yAxis) %in% colnames(cleanData()), "" )
-      }else{
-        need(input$xAxis %in% colnames(cleanData()), "")
-      }
-    )
+    # validate(
+    #   if(pltType() %in% xyRequire){
+    #     need( c(input$xAxis,input$yAxis) %in% colnames(cleanData()), "" )
+    #   }else{
+    #     need(input$xAxis %in% colnames(cleanData()), "")
+    #   }
+    # )
 
     #get the column name
     coln <- colnames(cleanData())
     #keep only necessary columns
-    df <- cleanData() %>% select(!!!rlang::syms(coln))
+    df <- cleanData() %>% select(!!!rlang::syms(coln)) %>% as.data.frame()
     #determine the class
     df_class <- lapply(df, class)
 
@@ -1324,7 +1322,7 @@ server <- function(input, output){
         selectInput( inputId = .x, label = .x, choices = if(is.character(df[,.x]) || is.factor(df[,.x])){c("contain", "equal to", "not contain", "not equal to")}else if(is.numeric(df[,.x]) || is.double(df[,.x])){ c("not equal", "equal", "equal to or greater", "equal to or less", "geater than", "less than", "between")} )
       ))
     })
-
+    
     #option to provide values for filter
     output$UiFilterValue <- renderUI({
       map(req(input$varFilterOpts), ~ fluidRow({
@@ -1368,11 +1366,12 @@ server <- function(input, output){
   #apply and reset button for filter
   observe({
     req(input$varFilterOpts)
-
+    
+    # browser()
     validate(
-      need(is.null(filterMsg()) || filterMsg() == 0, "")
+      need( (is.null(filterMsg()) || filterMsg() == 0) && input$varFilterOpts %in% colnames(cleanData()) && is.data.frame(cleanData()), "")
     )
-
+    
     #don't provide apply and clear all option until all parameters are provided
     output$UiApplyFilter <- renderUI(NULL)
     output$UiClearAllFilter <- renderUI(NULL)
@@ -1389,17 +1388,10 @@ server <- function(input, output){
     })
   })
 
-  #update the list of variables to none if user click 'clear all'
-  observeEvent(req(isTruthy(input$clearAllFilter)),{
-    #get the column name
-    coln <- colnames(cleanData())
-    #option for the user to choose the variable for filter
-    updateSelectInput(inputId = "varFilterOpts", label = "Choose variable(s)", choices = coln)
-    filterMsg(NULL)
-  })
-
+  
   #filter the data base on input
   filterMsg <- reactiveVal(NULL) #msg for filter
+  
   observeEvent(req(isTruthy(input$applyFilter)),{
     #user's choice of variable for filter: this is necessary to get the correct input ID
     df_coln <- cleanData() %>% select(!!!rlang::syms(input$varFilterOpts)) %>% colnames()
@@ -1460,9 +1452,9 @@ server <- function(input, output){
   
   #Info for filter beeing applied
   observe({
-    req(isTruthy(input$applyFilter), filterMsg())
+    req(filterMsg())
     output$UiAppliedFilterInfo <- renderUI({
-      if(!is.null(filterMsg()) && filterMsg() == 0){
+      if(isTruthy(input$applyFilter) && !is.null(filterMsg()) && filterMsg() == 0){
         helpText("Filter applied!", style = "color:red; font-weight:bold")
       }
     })
@@ -1483,11 +1475,23 @@ server <- function(input, output){
       }
     }
   })
-
-  #update the data if user clear all the filter
+  
+  #update if user click 'clear all'
   observeEvent(req(isTruthy(input$clearAllFilter)),{
+    #get the column name
+    coln <- colnames(cleanData())
+    #update the list of variables to none if user click 'clear all'
+    #option for the user to choose the variable for filter
+    updateSelectInput(inputId = "varFilterOpts", label = "Choose variable(s)", choices = coln)
+    filterMsg(NULL)
+    #update the data if user clear all the filter
     ptable(cleanData())
   })
+  
+  # #update the data if user clear all the filter
+  # observeEvent(req(isTruthy(input$clearAllFilter)),{
+  #   ptable(cleanData())
+  # })
   #end of filter data-------------------------
   #error setting-------------------------------------------
   #Message to display for various type of errors
@@ -2396,7 +2400,45 @@ server <- function(input, output){
     })
   })
   
+  #store x- and y-axis variable
+  xVarFilter <- reactiveVal(NULL)
+  yVarFilter <- reactiveVal(NULL)
+  observe({
+    req(cleanData(), pltType(), input$xAxis)
+    if(!isTruthy(input$applyFilter) || !isTruthy(input$clearAllFilter)){
+      if(pltType() %in% xyRequire){
+        xVarFilter(input$xAxis)
+        yVarFilter(input$yAxis)
+      }else{
+        xVarFilter(input$xAxis)
+      }
+    }
+  })
   
+  #update x- and y-axis: if filter is applied, variable must not change
+  observe({
+    req(isTruthy(input$applyFilter) || isTruthy(input$clearAllFilter))
+    
+    if(pltType() %in% xyRequire){
+      validate(
+        need( colnames(cleanData()) %in% c(xVarFilter(), yVarFilter()),"")
+      )
+      updateSelectInput(inputId = "xAxis", label = "X-axis", choices = colnames(ptable()), selected = xVarFilter())
+      updateSelectInput(inputId = "yAxis", label = "Y-axis", choices = colnames(ptable()), selected = yVarFilter())
+      
+    }else{
+      validate(
+        need(colnames(cleanData()) %in% c(xVarFilter()), "")
+      )
+      updateSelectInput(inputId = "xAxis", label = "X-axis", choices = colnames(ptable()), selected = xVarFilter())
+    }
+  })
+  #msg to provide numeric variable for y-axis
+  output$UiYAxisMsg <- renderUI({
+    if(req(pltType() %in% xyRequire || isTRUE(needYAxis()))){
+      helpText("Provide numeric variable to y-axis", style = "text-align:center; margin-top:0")
+    }
+  })
 
   #get the selected variables of axes from the data
   xVar <- reactive({
