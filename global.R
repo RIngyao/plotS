@@ -1,5 +1,5 @@
 
-options(shiny.maxRequestSize = 50*1024^2) #too large
+options(shiny.maxRequestSize = 80*1024^2) # too large: use 50
 #library--------------------------------
 #can't use this method for loading library: shinyapps.io
 # libraries <- c("flextable", "openxlsx", "svglite",
@@ -57,7 +57,10 @@ newPlt <- NULL #plot collector used inside function
 reshapedDone <- NULL #used in table caption for reshaped
 barData <- NULL # bar data for stat summary: may not have implemented
 sdError <- NULL
-
+#function for notification-------------
+waitNotify <- function(msg = "Computing... Please wait..", id = NULL, type = "message"){
+  showNotification(msg, id = id, duration = NULL, closeButton = FALSE, type = type)
+}
 #function to get all variables: numeric and characters----------------------------------
 #get all numeric or character variables
 "
@@ -1538,6 +1541,7 @@ date: 17/01/23
     statData = Data frame. To be used for annotating statistical significane
     anovaType = character. The type of anova: one-way or two-way anova
     aovX = variable used in x-axis. This is required to display figure for two-way anova.
+    plabelSize = numeric. adjust size for labeling p value or symbol.
   "
 advancePlot <- function(data, plt,
                         #argument for stat data
@@ -1545,7 +1549,8 @@ advancePlot <- function(data, plt,
                         removeBracket=FALSE,
                         statData,
                         anovaType,
-                        aovX=aovX
+                        aovX=aovX,
+                        plabelSize = 7
 ){
   # browser() 
   message(str(statData))
@@ -1558,7 +1563,8 @@ advancePlot <- function(data, plt,
     if(!methodSt %in% c("anova", "kruskal-wallis")){
       
       message("not anova------")
-      plt <- plt + stat_pvalue_manual(statData[[1]], label = statData[[2]], tip.length = 0.01, remove.bracket = removeBracket, bracket.size = 0.4, step.increase = 0.1, bracket.nudge.y = 0.01, inherit.aes=FALSE, fontface = "bold", fontsize = 22)  
+      plt <- plt + stat_pvalue_manual(statData[[1]], label = statData[[2]], tip.length = 0.01, remove.bracket = removeBracket, bracket.size = 0.4, step.increase = 0.1, bracket.nudge.y = 0.01, inherit.aes=FALSE, fontface = "bold", size = plabelSize)
+      
     }else if(methodSt == "anova"){
       message("Anova stat method 2====")
       #get the details for labeling the plot
@@ -1573,7 +1579,7 @@ advancePlot <- function(data, plt,
         y_name <- col[3]
         letr <- col[4]
         plt <- plt + coord_cartesian(clip="off") + geom_text(data=textData, aes(x=eval(str2expression(x_name)), y = eval(str2expression(y_name)),
-                                                                                label = eval(str2expression(letr))), size = 7, vjust=-0.5, na.rm = TRUE)
+                                                                                label = eval(str2expression(letr))), size = plabelSize, vjust=-0.5, na.rm = TRUE)
       }else{
         
         message(glue::glue("aovX:{str(aovX)}, {is.null(aovX)}"))
@@ -1594,7 +1600,7 @@ advancePlot <- function(data, plt,
         }
         # browser(). 
         plt <- plt + coord_cartesian(clip="off") + geom_text(data=textData, aes(x=eval(str2expression(x_name)), y = eval(str2expression(y_name)),
-                                                                                label = eval(str2expression(letr))), position= position_dodge2(0.9), size = 7, vjust=-0.25, na.rm = TRUE)
+                                                                                label = eval(str2expression(letr))), position= position_dodge2(0.9), size = plabelSize, vjust=-0.25, na.rm = TRUE)
       }#end of two-way anova
       #end of anova
     }else if(methodSt == "kruskal-wallis"){
@@ -1609,7 +1615,7 @@ advancePlot <- function(data, plt,
       message(glue::glue("inner function x_name: {x_name}"))
       #plot krukal test
       plt <- plt + coord_cartesian(clip="off") + geom_text(data=textData, aes(x=eval(str2expression(x_name)), y = eval(str2expression(y_name)),
-                                                                              label = eval(str2expression(letr))), position= position_dodge2(0.9), size = 7, vjust=-0.25, na.rm = TRUE)
+                                                                              label = eval(str2expression(letr))), position= position_dodge2(0.9), size = plabelSize, vjust=-0.25, na.rm = TRUE)
     }#end of Kruskal test
     
   }#end of statistics

@@ -19,14 +19,27 @@ body{
         background-color:white;
         margin:10%;
       }
-      .shiny-notification {
-             position:fixed;
-             top: calc(25%);
-             left: calc(50%);
-             color: black;
-             font-weight:bold;
-             font-size:25px;
+      
+      /*#shiny-notification-panel {
+      position:fixed;
+      top: calc(25%);
+      left: calc(50%);
+      color: black;
+      font-weight:bold;
+      font-size:25px;
+      }*/
+      
+      #shiny-notification-panel {
+      position:fixed;      
+      font-weight:bold;
+      font-size:25px;
+      top:30%;
+      left: 40%;
       }
+      
+      /*notification for summary: .shiny-notification*/
+      
+      
       .box{
       -moz-box-shadow:none !important;
       -webkit-box-shadow:none !important;

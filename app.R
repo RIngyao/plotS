@@ -168,7 +168,7 @@ ui <- fluidPage(
                                          style = "border-top:dotted 1px; border-bottom:dotted 1px; margin-bottom:10px; padding:5px 0 5px 0; text-align:center",
                                          #Ui for number of header in the table
                                          # helpText("Provide correct number of header!", style = "margin-top:10px; margin-bottom:0;color:#F49F3A"), 
-                                         helpText("Provide number of header row and group/variables of replicates.", style = "margin-top:20px; margin-bottom:7px;font-weight:bold; color:#F4763A"), 
+                                         helpText("Provide number of header row and group/variable of replicates.", style = "margin-top:20px; margin-bottom:7px;font-weight:bold; color:#F4763A"), 
                                          fluidRow(
                                            column(6,uiOutput("UiHeaderNumber")),
                                            #let user specify number of variables:
@@ -681,43 +681,47 @@ ui <- fluidPage(
                           column(6, uiOutput("uiXlable")),
                         ),
                         #ui for legend
+                        # fluidRow(
                         fluidRow(
-                          fluidRow(
-                            #Legend: on & off
-                            column(3, uiOutput("UiLegendTitle")),
-                            #position
-                            column(3, uiOutput("UiLegendPosition")),
-                            #direction
-                            column(3, uiOutput("UiLegendDirection")),
-                            #font size
-                            column(3,uiOutput("UiLegendSize"))
-                          ),
-                          #Miscellaneous setting for graph
-                          conditionalPanel(condition = "input.plotType != 'none'",
-                                           dropdownButton(
-                                             inputId = "miscGraphSet",
-                                             label = "Misc setting",
-                                             icon = icon("sliders"),
-                                             size="sm",
-                                             up=TRUE,
-                                             margin = '5px',
-                                             status = "primary",
-                                             circle = FALSE,
-                                             tooltip = tooltipOptions(title = "Click"),
-                                             div(
-                                               class = "miscDiv",
-                                               {lch <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
-                                                            tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
-                                               
-                                               radioButtons(inputId = "Ylimit", label = "Set lower limit of y-axis to 0?",
-                                                            choiceNames = lch, choiceValues = c("no", "yes"), inline = TRUE)},
-                                               
-                                               uiOutput("UiRemoveBracket"),
-                                               uiOutput("UiStripBackground")
-                                             )
+                          
+                          #position
+                          column(3, uiOutput("UiLegendPosition")),
+                          #direction
+                          column(3, uiOutput("UiLegendDirection")),
+                          #font size
+                          column(3,uiOutput("UiLegendSize")),
+                          #Legend title on & off
+                          column(3, uiOutput("UiLegendTitle"))
+                        ),
+                        fluidRow(
+                          uiOutput("UiPlabelSize"),
+                        #Miscellaneous setting for graph
+                        conditionalPanel(condition = "input.plotType != 'none'",
+                                         dropdownButton(
+                                           inputId = "miscGraphSet",
+                                           label = "Misc setting",
+                                           icon = icon("sliders"),
+                                           size="sm",
+                                           up=TRUE,
+                                           margin = '5px',
+                                           status = "primary",
+                                           circle = FALSE,
+                                           tooltip = tooltipOptions(title = "Click"),
+                                           div(
+                                             class = "miscDiv",
+                                             {lch <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
+                                                          tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
+                                             
+                                             radioButtons(inputId = "Ylimit", label = "Set lower limit of y-axis to 0?",
+                                                          choiceNames = lch, choiceValues = c("no", "yes"), inline = TRUE)},
+                                             
+                                             uiOutput("UiRemoveBracket"),
+                                             uiOutput("UiStripBackground")
+                                             
                                            )
-                          )
-                        )#end for legend
+                                         )
+                        ))
+                        # )#end for legend
                       ) %>% tagAppendAttributes(class="figureTheme")#end figure box
                     ) %>% tagAppendAttributes(class="figureMainPanel")#end mainpanel
                     
@@ -962,7 +966,8 @@ server <- function(input, output){
   
   observe({
     req(input$pInput, input$pFile)
-    
+    #reset the filter msg
+    filterMsg(NULL)
     #get data based on users input
     if(req(input$pInput) == "upload data"){
       
@@ -1105,6 +1110,7 @@ server <- function(input, output){
   
   #managing replicates----------------
   output$UiReplicatePresent <- renderUI({
+    req(input$pInput)
     opts <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
                  tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
     radioButtons(inputId = "replicatePresent", label = "Data with replicates/multiple headers", 
@@ -1308,11 +1314,13 @@ server <- function(input, output){
     #     need(input$xAxis %in% colnames(cleanData()), "")
     #   }
     # )
-
+    
     #get the column name
     coln <- colnames(cleanData())
     #keep only necessary columns
     df <- cleanData() %>% select(!!!rlang::syms(coln)) %>% as.data.frame()
+    #checks
+    req(input$varFilterOpts %in% colnames(df))
     #determine the class
     df_class <- lapply(df, class)
 
@@ -1325,6 +1333,7 @@ server <- function(input, output){
     
     #option to provide values for filter
     output$UiFilterValue <- renderUI({
+      
       map(req(input$varFilterOpts), ~ fluidRow({
 
         if(is.numeric(df[,.x]) || is.double(df[,.x])){
@@ -1450,11 +1459,12 @@ server <- function(input, output){
     ptable(data)
   })
   
-  #Info for filter beeing applied
+  #Info for filter being applied
   observe({
     req(filterMsg())
+    # isTruthy(input$applyFilter) && 
     output$UiAppliedFilterInfo <- renderUI({
-      if(isTruthy(input$applyFilter) && !is.null(filterMsg()) && filterMsg() == 0){
+      if(!is.null(filterMsg()) && filterMsg() == 0){
         helpText("Filter applied!", style = "color:red; font-weight:bold")
       }
     })
@@ -2468,7 +2478,7 @@ server <- function(input, output){
   #labelling and adjusting size of axis
   observe({
     req(is.data.frame(ptable()))
-    output$uiTextSize <- renderUI({if( req(input$plotType) != "none" ) sliderInput(inputId = "textSize", label = "Axis text font size", min = 10, max = 30, value = 15)})
+    output$uiTextSize <- renderUI({if( req(input$plotType) != "none" ) sliderInput(inputId = "textSize", label = "Axis text font size", min = 10, max = 50, value = 15)})
     output$uiTitleSize <- renderUI({if( req(input$plotType) != "none" ) sliderInput(inputId = "titleSize", label = "Axis title font size", min = 10, max = 50, value = 15)})
     output$uiYlable <- renderUI({if( req(input$plotType) != "none" )textAreaInput(inputId = "yLable", label = "Enter title for Y-axis", height = "35px")})
     output$uiXlable <- renderUI({if( req(input$plotType) != "none" )textAreaInput(inputId = "xLable", label = "Enter title for X-axis", height = "35px")})
@@ -3063,16 +3073,29 @@ server <- function(input, output){
     })
     output$UiLegendPosition <- renderUI({if(input$plotType != "none" && (input$colorSet != "none" | shl() %in% c("Shape", "Line type"))) selectInput(inputId = "legendPosition", label = "Legend position", choices = c("none","bottom","left","right","top"), selected = "right")})
     output$UiLegendDirection <- renderUI({if(input$plotType != "none" && (input$colorSet != "none" | shl() %in% c("Shape", "Line type")) && req(input$legendPosition) != "none") selectInput(inputId = "legendDirection", label = "Legend direction", choices = c("horizontal","vertical"), selected = "vertical")})
-    output$UiLegendSize <- renderUI({if(input$plotType != "none" && (input$colorSet != "none" | shl() %in% c("Shape", "Line type")) && req(input$legendPosition) != "none") sliderInput(inputId = "legendSize", label = "Legend size", min = 10, max = 30, value = 15)})
+    output$UiLegendSize <- renderUI({if(input$plotType != "none" && (input$colorSet != "none" | shl() %in% c("Shape", "Line type")) && req(input$legendPosition) != "none") sliderInput(inputId = "legendSize", label = "Legend size", min = 10, max = 50, value = 15)})
     output$UiLegendTitle <- renderUI({if(input$plotType != "none" && (input$colorSet != "none" | shl() %in% c("Shape", "Line type")) && req(input$legendPosition) != "none") checkboxInput(inputId = "legendTitle", label = span("Remove legend title", style = "font-weight:bold; color:cornflowerblue"))})
   })
-  #bracket-----------------
+  
+  #p label size
+  observe({
+    req(ptable(), pltType() != "none", input$stat)
+    output$UiPlabelSize <- renderUI({
+      # val <- if(input$stat %in% c("anova", "kruskal-wallis")){7}else{15}
+      if(input$stat != "none") sliderInput(inputId = "plabelSize", label = "Adjust p-value label size", min = 1, max = 15, value = 7)
+    })
+  })
+  
+  #Miscellaneous settings--------------------
+  #bracket
   observe({
     req(is.data.frame(ptable()), pltType() != "none", xVar(), !input$stat %in% c("none", "anova"))
     output$UiRemoveBracket <- renderUI({
       if(!input$stat %in% c("none", "anova", "kruskal-wallis")) checkboxInput(inputId = "removeBracket", label = span("Remove bracket (p label)", style = "font-weight:bold; color:cornflowerblue"))
     })
+    
   })
+  
   
   #Facet strip background
   observe({
@@ -3779,11 +3802,14 @@ server <- function(input, output){
     })
   })
   
-
+  
   observe({
     req(is.data.frame(ptable()))
     
     output$UiDataSummary <- renderPrint({
+      #notify
+      summaryId <- waitNotify(id = "summaryId")
+      on.exit(removeNotification(summaryId),  add = TRUE)
       
       if(is.data.frame(ptable())){
         #convert x-axis to factor and display the summary if x-axis is selected
@@ -3814,6 +3840,10 @@ server <- function(input, output){
   #ui for descriptive statistics
   observe({
     req(is.data.frame(ptable()), pltType() %in% xyRequire, input$xAxis, input$yAxis, input$colorSet)
+    
+    summaryId <- waitNotify(id = "summaryId")
+    on.exit(removeNotification(summaryId),  add = TRUE)
+    
     data <- ptable()
     #validate before proceeding
     validate(
@@ -3948,6 +3978,9 @@ server <- function(input, output){
   # #Display normality and homogeneity test for parametric statistic
   observe({
     req(is.data.frame(ptable()), pltType() != "none", input$xAxis, input$yAxis, input$stat %in% c("t.test", "anova"), computeFuncError(), twoAnovaError())
+    #notify user
+    summaryId <- waitNotify(id = "summaryId")
+    on.exit(removeNotification(summaryId),  add = TRUE)
     
     data <- ptable()
     
@@ -4224,6 +4257,10 @@ server <- function(input, output){
     
     req( is.data.frame(ptable()), pltType() != 'none', input$stat != 'none', !is.null(testTable$df), unpaired_stopTest() == 'no', computeFuncError(), twoAnovaError())
     
+    #notify user
+    summaryId <- waitNotify(id = "summaryId")
+    on.exit(removeNotification(summaryId),  add = TRUE)
+    
     #caption
     output$UiStatSumCaption <- renderUI({
       if(input$stat %in% c('t.test', "wilcoxon.test") && unpaired_stopTest() == 'yes'){
@@ -4333,6 +4370,7 @@ server <- function(input, output){
   #effect size------------------
   observe({
     req(ptable(), pltType(), input$xAxis, input$yAxis, input$stat != "none", computeFuncError(), twoAnovaError())
+    
     validate(
       need(computeFuncError() == 0 & twoAnovaError() == 0, "stop")
     )
@@ -4380,6 +4418,10 @@ server <- function(input, output){
   observe({
     req(ptable(), input$stat != "none", input$yAxis, input$xAxis, input$effectSizeMethod,
         computeFuncError(), twoAnovaError())
+    
+    #notify user
+    summaryId <- waitNotify(id = "summaryId")
+    on.exit(removeNotification(summaryId),  add = TRUE)
     
     validate(
       need(computeFuncError() == 0 & twoAnovaError() == 0, "stop")
@@ -4653,6 +4695,10 @@ server <- function(input, output){
   #post hoc---------------------
   observe({
     req(is.data.frame(ptable()), pltType() != "none", input$stat %in% c("anova", "kruskal-wallis"), !is.null(postHoc_table$df), computeFuncError(), twoAnovaError())
+    
+    #notify user
+    summaryId <- waitNotify(id = "summaryId")
+    on.exit(removeNotification(summaryId),  add = TRUE)
     
     #caption
     output$UiPostHocCaption <- renderUI({
@@ -5600,13 +5646,13 @@ server <- function(input, output){
         }else{ advance <- reactiveVal(FALSE) }
         
         if(isTRUE(advance())){
-          
+          # plabelSize <- reactive()
           # message(statistic_df())
           secondPlot <- advancePlot(data = data, plt = firstPlot, 
                                     methodSt = methodSt(), removeBracket = removeBracket(),
                                     # statData = statData, anovaType = anovaType(),
                                     statData = statistic_df(), anovaType = anovaType(),
-                                    aovX = aovX)
+                                    aovX = aovX, plabelSize = req(input$plabelSize))
           
           
           finalPlt_1 <- secondPlot
