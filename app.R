@@ -122,7 +122,7 @@ ui <- fluidPage(
                   sidebarLayout(
                     sidebarPanel(
                       width=3,
-                      # style = "position:fixed;width:inherit;margin-right:2%",
+                      
                       #panel for input parameters of table
                       #This parameter will have option for choosing the data
                       h3("", br(), align = "center", style = "color:green"), #just in case if i want to add text
@@ -152,11 +152,6 @@ ui <- fluidPage(
                      
                       #ui explanation for example
                       uiOutput("UiExampleDes"),
-                      # conditionalPanel(condition = "input.pFile == 'example'",
-                      #                  helpText("Data for 'long' and 'wide' formats are the same. Wide format data need to be reshaped to compare between variables - ctrl, tr1, tr2.",
-                      #                           style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
-                      # ),
-                      
                       #ui for alerting invalid file type
                       uiOutput(outputId = "UiUploadInvalid"),
                       #ui for present or absent of replicates
@@ -877,8 +872,7 @@ ui <- fluidPage(
 #server------------------------
 server <- function(input, output){
   
-  #plot figures:-----------------
-  #refresh/trigger button for different parameters to none-------------
+  #refresh/trigger button for different parameters to none: need rework-------------
   refresh_1 <- reactive({if(isTruthy(input$pInput) | isTruthy(input$transform) | isTruthy(input$pFile)) TRUE})
   refresh_2 <- reactive({
     #this will be used for parameters of more setting (color, stat, facet, etc)
@@ -889,7 +883,7 @@ server <- function(input, output){
                             isTruthy(input$plotType)) TRUE})
   refresh_afterColor <- reactive({if(isTruthy(input$colorSet)) TRUE})
   refresh_afterStat <- reactive({if(isTruthy(input$stat)) TRUE})
-  #various input parameters--------------------------------
+  
   #manage missing values and then upload
   observe({
     req(input$pInput)
@@ -944,24 +938,6 @@ server <- function(input, output){
   #First point to collect the data based on user's input--------------------------
   #I've use reactiveValues, just in case if required to convert the data to Null
   # This will be updated to manage replicates in the data
-  
-  # #ui for na 
-  # div(
-  #   style= "border-top:dotted 1px; border-bottom:dotted 1px; margin-bottom:20px; margin-right:0; text-align:center;
-  #                                                     background-image:linear-gradient(rgba(206,247,250, 0.3), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5))",
-  #   class = "NAdiv",
-  #   h4("Manage missing values", align = "center", style = "color:green; margin-bottom:20px"),
-  #   textInput(inputId = "selectNA", label = "Specify missing values", placeholder = "space or comma separated"),
-  #   helpText("'NA' and empty cell are considered as missing values. You can specify more than one missing values."),#, style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;"),
-  #   {
-  #     naOpt <- list(tags$span("Remove NA", style = "font-weight:bold; color:#0099e6"),
-  #                   tags$span("Replace with 0", style = "font-weight:bold; color:#0099e6"))
-  #     radioButtons(inputId = "remRepNa", label = NULL, choiceNames = naOpt, choiceValues = c("remove", "replace"), inline = TRUE)
-  #   }
-  # ),
-  # 
-  # uploadError <- 0 #for alerting error
-  # 
   pInputTable_orig <- reactiveVal(PlantGrowth)
   
   observe({
@@ -985,7 +961,7 @@ server <- function(input, output){
       )
       
       
-      # req(input$remRepNA)
+      
       # #manage missing values
       if(!isTruthy(input$selectNA)){
         naList <- c("", " ", "NA", "na")
@@ -1012,9 +988,10 @@ server <- function(input, output){
           pData1 <- up_df %>% mutate_all(., ~replace(., is.na(.), 0)) %>% as.data.frame()#mutate_if(is.numeric, ~ replace(., is.na(.), 0)) %>% as.data.frame()
         }
         
-        #search and convert to numeric
-        numericCol <- lapply(colnames(pData1), function(x) if(any(str_detect(pData1[,x], "[:alpha:]", negate = TRUE))) return(x) ) %>% unlist()
-        pData <- pData1 %>% mutate(across(numericCol, ~ as.numeric(.)))
+        # #search and convert to numeric: there is no need to convert to numeric.
+        # numericCol <- lapply(colnames(pData1), function(x) if(any(str_detect(pData1[,x], "[:alpha:]", negate = TRUE))) return(x) ) %>% unlist()
+        pData <- pData1 #%>% mutate(across(numericCol, ~ as.numeric(.)))
+        pData
         
       }, error = function(e){
         uploadError <<- 1
@@ -1029,13 +1006,10 @@ server <- function(input, output){
     }else if(input$pInput == "example"){
       req(input$pFile %in% c("long format", "wide format", "replicate"))
       if(req(input$pFile) == "long format"){
+        #example for long format
         pData <- PlantGrowth
       }else if(req(input$pFile) == "wide format"){
-        # df <- PlantGrowth
-        # dput(df)
-        # df$new <- rep(1:10, 3) 
-        # df2 <- df %>% pivot_wider(names_from = group, values_from = weight) %>% select(-new)
-        # dput(df2)
+        #example for wide format
         pData <- structure(list(ctrl = c(4.17, 5.58, 5.18, 6.11, 4.5, 4.61, 5.17,4.53, 5.33, 5.14), 
                        trt1 = c(4.81, 4.17, 4.41, 3.59, 5.87, 3.83,6.03, 4.89, 4.32, 4.69), 
                        trt2 = c(6.31, 5.12, 5.54, 5.5, 5.37,5.29, 4.92, 6.15, 5.8, 5.26)), 
@@ -1043,8 +1017,7 @@ server <- function(input, output){
         
         
       }else if (req(input$pFile) == "replicate"){
-        # x <- read_excel("~/Desktop/temp/replicates_ex.xlsx")
-        # dput(x)
+        #example for replicate
         pData <- structure(list(...1 = c("variable", "ob1", "ob2", "ob3", "ob4", "ob5", "ob6", "ob7"), 
                        control = c("R1","23", "41", "24", "5", "23", "56", "23"), 
                        ...3 = c("R2","23", "54", "65", "32", "57", "73", "42"), 
@@ -1503,6 +1476,7 @@ server <- function(input, output){
   #   ptable(cleanData())
   # })
   #end of filter data-------------------------
+  
   #error setting-------------------------------------------
   #Message to display for various type of errors
   #message to display for calculating replicates mean and median
@@ -1605,15 +1579,23 @@ server <- function(input, output){
     # case 1: not need of mean or median, than proceed as usual i.e. deselect the replicate column 
     # case 2: with mean or median,
     #       case i: group by column is specified, than add length(input$replicateStatGroup) 
-    #               to repCol, since the group by variables is being placed in the start column
+    #               to repCol if it is not 1, since the group by variables is being placed in the start column
     #       case ii: group by not specified, than proceed as case 1.
     
     if(req(input$replicateStat) != "none"){
+      
       if(req(input$replicateStatGroup) != "none"){
-        noRep_df <- data[, -(repCol + length(input$replicateStatGroup)), drop=FALSE] 
+        
+        if(as.numeric(input$replicateStatGroup) == 1){
+          noRep_df <- data[, -(repCol), drop=FALSE] 
+        }else{
+          noRep_df <- data[, -(repCol + length(input$replicateStatGroup)), drop=FALSE] 
+        }
+        
       }else{
         noRep_df <- data[, -repCol, drop=FALSE] 
       }
+      
     }else{
       noRep_df <- data[, -repCol, drop=FALSE] 
     }
@@ -1624,6 +1606,7 @@ server <- function(input, output){
     stp <- 0 # 0 to 1: 1 is to stop
     
     tryCatch({
+      
       #for loop to tidy up the replicate for each group [[change code later]]
       for(i in seq_along(varId())){
         
@@ -1668,20 +1651,15 @@ server <- function(input, output){
           #no group_by
           gb_col <- NULL
         }
+        
         # browser()
-        #get the name of the columns for which to determine mean or median
-        other_col <- colnames( mergeData[, 1:which(colnames(mergeData) == "replicates")-1] )
-        #check that the col must be numeric
+        message(str(mergeData))
+        #get the name of the columns for which variables to determine mean or median
+        other_col <- colnames( mergeData[, 1:which(colnames(mergeData) == "replicates")-1, drop = FALSE] )
         
+        #check that the col must be numeric (other than other_col)
         numericCheck_df <- mergeData %>% select(-all_of(other_col), -replicates)
-        # message(lapply(numericCheck_df, str))
-        # message(colnames(numericCheck_df))
-        # message(head(numericCheck_df))
-        # validate(
-        #   need(all(isTRUE(lapply(numericCheck_df, is.numeric))) || all(isTRUE(lapply(numericCheck_df, is.double))), "Must be numeric variables")
-        # )
-        
-        
+        message(str(numericCheck_df))
         #get only the names of the necessary columns to process futher
         mm_col <- mergeData %>% select(-all_of(other_col), -replicates) %>% colnames()
         
@@ -1704,10 +1682,6 @@ server <- function(input, output){
           # keep only the unique
           nr_df_uniq <- nR_df %>% distinct(!!!rlang::syms(colnames(nR_df))) %>% as.data.frame()
           #append
-          message(nr_df_uniq)
-          message(mm_df)
-          message(str(nr_df_uniq))
-          message(str(mm_df))
           mergeData <- cbind(nr_df_uniq, mm_df)
         }else{
           
@@ -1755,33 +1729,6 @@ server <- function(input, output){
     })
   })
   
-  #Alert message for unequal replicates:may not be required
-  # observe({
-  #   req(unequalReplicateError())
-  #   # #reset the data to null if there is error
-  #   # replicateData$df <<- NULL
-  # 
-  #   #check error:
-  #   # case 1: must have equal replicates for all the group
-  #   # case 2: must not select the same replicate column more than once
-  #   output$UiReplicateError <- renderUI({
-  # 
-  #     if( unequalReplicateError() == 1 ){
-  #       #case 1
-  #       helpText("Error: variables have unequal replicates", style="color:red; ")
-  #       validate("Variables have unequal replicates")
-  #     }else if( unequalReplicateError() == 2 ){
-  #       #case 2
-  #       helpText("Error: replicate column is duplicated", style="color:red; ")
-  #       validate("Replicate column is duplicated")
-  #     }else if( unequalReplicateError() == 3 ){
-  #       #case 1 and 2
-  #       helpText("Error: variables have unequal replicates and replicate column is duplicated", style="color:red; ")
-  #       validate("Variables have unequal replicates and replicate column is duplicated")
-  #     }
-  #   })
-  # 
-  # })
   
   #plot input table----------------------------
   output$textInputTable <- renderText({
@@ -2610,9 +2557,9 @@ server <- function(input, output){
       choic <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
                     tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
       
-      if(input$errorBarStat == "Standard error"){
+      if(input$errorBarStat == "Standard error (SE)"){
         radioButtons(inputId = "lineComputeSd", label = "Auto compute SE?", choiceNames = choic, choiceValues = c("no","yes"), selected = "no", inline = TRUE)
-      }else if(input$errorBarStat == 'Standard deviation'){
+      }else if(input$errorBarStat == 'Standard deviation (SD)'){
         radioButtons(inputId = "lineComputeSd", label = "Auto compute SD?", choiceNames = choic, choiceValues = c("no","yes"), selected = "no", inline = TRUE)
       }else{
         radioButtons(inputId = "lineComputeSd", label = "Auto compute CI?", choiceNames = choic, choiceValues = c("no","yes"), selected = "no", inline = TRUE)
@@ -4764,6 +4711,9 @@ server <- function(input, output){
   #save the plot for download
   saveFigure <- reactiveVal(NULL)
   finalPlt <- NULL #this is require to be able to delete after session end
+  
+  #all parameters for plotting graph and statistic analysis is process and executed 
+  # in this observeEvent.
   observeEvent({
     req(is.data.frame(ptable()),
         input$xAxis,
@@ -4797,7 +4747,7 @@ server <- function(input, output){
     #for color setting
     # autoCust <- reactive(if(varSet() != "none") input$autoCustome)
     autoCust <- reactive(ifelse(varSet() != "none", input$autoCustome, "none"))
-    colorTxt <- reactive(ifelse(autoCust() == "customize", input$colorAdd, "noneProvided"))
+    colorTxt <- reactive(ifelse(autoCust() == "customize" && isTruthy(input$colorAdd), input$colorAdd, "noneProvided"))
     #for shape and line
     shapeLine <- reactive(ifelse(isTruthy(input$shapeLine), input$shapeLine, "none"))
     shapeSet <- reactive(if(shapeLine() == "Shape") {req(input$shapeSet)}else{NULL})
@@ -5522,7 +5472,7 @@ server <- function(input, output){
             
             anovaAutoCust <- reactive(ifelse(anovaFigure() != "Interaction", req(input$anovaAutoCust), "none"))
             anovaColor <- reactive(if(anovaFigure() != "Interaction" && anovaFigure() %in% colnames(ptable())) input$anovaFigure)
-            anovaAddColor <- reactive(ifelse(anovaFigure() != "Interaction" && anovaAutoCust() == "customize", input$anovaAddColor, "noneProvided"))
+            anovaAddColor <- reactive(ifelse(anovaFigure() != "Interaction" && anovaAutoCust() == "customize" && isTruthy(input$anovaAddColor), input$anovaAddColor, "noneProvided"))
             
             if(!figType() %in% c("frequency polygon", "line", "scatter plot")){
               
@@ -5789,15 +5739,6 @@ server <- function(input, output){
           block = FALSE,
           no_outline = TRUE
         )
-        # downloadBttn(
-        #   outputId = "clickBrushDownload",
-        #   label = "CSV",
-        #   style = "unite",
-        #   color = "primary",
-        #   size = "xs",
-        #   block = FALSE,
-        #   no_outline = TRUE
-        # )
         
       })
       
@@ -6072,11 +6013,13 @@ server <- function(input, output){
 
 # Run the application-----------------------
 shinyApp(ui, server, onStart = function(){
+  
   message("started session")
   rm(list=ls(), envir = .GlobalEnv)
+  
   #clear all after session end--------------------
   onStop(function(){ 
-    message("ended session and will clear all")
+    message("ended session and all data cleared")
     rm(list = ls(), envir = .GlobalEnv)
   })
 }

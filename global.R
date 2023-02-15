@@ -1,5 +1,5 @@
 
-options(shiny.maxRequestSize = 80*1024^2) # too large: use 50
+options(shiny.maxRequestSize = 50*1024^2) # too large: use 50
 #library--------------------------------
 #can't use this method for loading library: shinyapps.io
 # libraries <- c("flextable", "openxlsx", "svglite",
@@ -65,7 +65,7 @@ waitNotify <- function(msg = "Computing... Please wait..", id = NULL, type = "me
 #get all numeric or character variables
 "
 Function to determine the names of either numeric or character variables present in the data
-checks = character. use 'integer' for numeric variable or 'character' for character variable
+checks = character. 'integer' as default for numeric variable.
 data = dataframe.
 "
 #if data.table (fread), it will be integer, instead of numeric
@@ -414,6 +414,7 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
   #non-replicate column: May not always be in character column when in proper format
   # later some column may have to be converted to numeric
   # and tidied data will be appended to this data
+  # browser()
   
   #check for addition of header by R: V1, V2, .....Vn
   # removed the header if present. R will add header only if need (not always)
@@ -499,7 +500,7 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
               #   skip row that starts with ..number  
               #   than one column (this are default header added while uploading data)
               for(n in headerNo){
-                if(any( isTRUE(str_detect(headr[n,], regex("^\\.+[:digit:]"))) ) ){
+                if(any( isTRUE(str_detect(headr[n,i], regex("^\\.+[:digit:]"))) ) ){
                   next
                 }else{
                   #get the first name
@@ -569,9 +570,7 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
   }
   
   message("merge done3")
-  message(newDf)
   message(str(newDf))
-  
   
   #Reshape the data: keep replicate row-wise i.e. longer format (pivot_longer())
   newDf2 <- pivot_longer(newDf, cols = colnames(onlyNumeric), names_to = "replicates", values_to = colName)
@@ -1465,6 +1464,7 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
       editC <- if(colorTxt == "noneProvided"){
         "not provided" #if no color is provided
       }else{
+        
         #process the given color input by removing space and comma
         message("Processing color")
         inputC <- strsplit(str_trim(gsub(" |,", " ", colorTxt))," +")[[1]]
