@@ -206,14 +206,19 @@ ui <- fluidPage(
                       }),
                       # selectInput(inputId = "transform", label = "Reshape the data", choi, selected = "No"),
                       conditionalPanel(condition = "input.transform == 'Yes'",
-                                       helpText(list(tags$p("Reshape will transpose column to row (long formate)."), tags$p("It facilitate comparison between variables.")), style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")),
+                                       # helpText(list(tags$p("Reshape will transpose column to row (long formate)."), tags$p("It facilitate comparison between variables.")), style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")),
+                                       helpText(list(tags$p("Reshape will organized columns into independent and dependent variables."), tags$p("Refer Help section.", style = "font-style:italic")), style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")),
                       #ui output for choosing columns to transform the data
                       #for names 
                       uiOutput(outputId = "trName"),
+                      uiOutput(outputId = "trNameMsg"),
                       # conditionalPanel(condition = "input.transform == 'Yes'",
                       #                  helpText("Choose the multiple variables to transpose and compare", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")),
                       #for value
                       uiOutput(outputId = "trValue"),
+                      # conditionalPanel(condition = "input.enterName",
+                      #                  helpText("Above choosen variables will be placed under this given column name.", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")
+                      # ),
                       #error message for reshape
                       conditionalPanel(condition = "input.transform == 'Yes' & input.enterName == 'value'",
                                        helpText("Provide a different name, not 'value'.",
@@ -1279,15 +1284,6 @@ server <- function(input, output){
   #filter type and value
   observe({
     req(cleanData(), pltType(),  input$varFilterOpts)#input$xAxis,
-    #validate
-    # validate(
-    #   if(pltType() %in% xyRequire){
-    #     need( c(input$xAxis,input$yAxis) %in% colnames(cleanData()), "" )
-    #   }else{
-    #     need(input$xAxis %in% colnames(cleanData()), "")
-    #   }
-    # )
-    
     #get the column name
     coln <- colnames(cleanData())
     #keep only necessary columns
@@ -1375,6 +1371,7 @@ server <- function(input, output){
   filterMsg <- reactiveVal(NULL) #msg for filter
   
   observeEvent(req(isTruthy(input$applyFilter)),{
+    # browser()
     #user's choice of variable for filter: this is necessary to get the correct input ID
     df_coln <- cleanData() %>% select(!!!rlang::syms(input$varFilterOpts)) %>% colnames()
     #dummy data
@@ -1390,7 +1387,7 @@ server <- function(input, output){
         flTy <- eval(str2expression(paste0("input$",df_coln[i])))
         flVal <- eval(str2expression(paste0("input$filterVal_",df_coln[i])))
         if(nrow(data) == 1){
-          data <- filterData(df = cleanData(), col = df_coln[i], filterType = flTy, val = flVal)
+          data <- filterData(df = as.data.frame(cleanData()), col = df_coln[i], filterType = flTy, val = flVal)
         }else if(nrow(data) > 1){
           #check for logical and provide different data
 
@@ -1428,6 +1425,7 @@ server <- function(input, output){
       filterMsg(0)
     }
     #null row name
+    message(str(data))
     rownames(data) <- NULL
     ptable(data)
   })
@@ -1767,7 +1765,11 @@ server <- function(input, output){
     
   }
   )
-  
+  #variable message for reshape
+  output$trNameMsg <- renderUI({
+    req(input$variables)
+    helpText("Choosen variables will be the independent variable. The values associated with the variables will be the dependent variable and will be placed in a separate column named 'value'.", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")
+  })
   #Name to be used as column name for the reshaped
   output$trValue <- renderUI({
     req(pInputTable$data, input$transform == "Yes")
@@ -1781,11 +1783,20 @@ server <- function(input, output){
     #input$pInput,
     # req(pInputTable$data, input$transform, input$variables, isTruthy(input$enterName))
     req(pInputTable$data, input$transform, input$variables, input$enterName)
-    # browser()
-    #check the presence of the input in the choosen data and proceed
-    validate(
-      need(input$variables %in% colnames(pInputTable$data), "")
-    )
+    
+    message(str(pInputTable$data))
+    if(input$replicatePresent == "yes" && isTruthy(input$replicateActionButton)){
+      #if replicate is manage than check this
+      validate(
+        need(input$variables %in% colnames(replicateData$df), "")
+      )
+    }else{
+      #check the presence of the input in the choosen data and proceed
+      validate(
+        need(input$variables %in% colnames(pInputTable$data), "")
+      )
+    }
+    
     output$trAction <- renderUI({
       if(input$transform == "Yes" && !is_empty(input$variables) && isTruthy(input$enterName)) actionButton(inputId = "goAction", label = span("Reshape", style="color:white"), class = "btn-primary", width = "100%")
     })
@@ -2445,18 +2456,21 @@ server <- function(input, output){
     )
     #get number of variables in x-axis
     x <- req(input$xAxis)
-    cVar <- unique(ptable()[,x]) %>% as.character() #this will avoid issue with factor variable
-    
+    cVar <- ptable() %>% distinct(.data[[x]]) 
+    # cVar <- unique(ptable()[,x]) %>% as.character() %>% as.list()#this will avoid issue with factor variable
     output$uiXAxisTextLabelChoice <- renderUI({
       if( req(input$plotType) != "none" ){
-        selectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = c("All", cVar), selected = "ALL", multiple = TRUE)
+        selectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = c(All="All", cVar), selected = "ALL", multiple = TRUE)
       }
     })
     
     output$uiXAxisTextLabel <- renderUI({
       if( req(input$plotType) != "none" ){
+        # browser()
+        # message(str(input$xTextLabelChoice))
+        # message(str(cVar))
         if(req(input$xTextLabelChoice) == "All" || "All" %in% req(input$xTextLabelChoice)){
-          nVar <- length(cVar)
+          nVar <- nrow(cVar)
         }else{
           nVar <- length(input$xTextLabelChoice)
         }
@@ -2466,32 +2480,35 @@ server <- function(input, output){
   })
   #get the input name and passed it to the figure function 
   xTextLabel <- reactive({
+    
     if(isTruthy(input$xTextLabel) && isTruthy(input$xTextLabelChoice)){
-      
+      # unique(ToothGrowth[,"supp"]) %>% as.vector() %>% length()
+      # unique(as_tibble(PlantGrowth)[,"group"]) %>% as.vector() 
+      # unique(as.data.frame(PlantGrowth)[,"group"]) %>% as.vector() 
+      # length(x)
       #get name of variables in x-axis
-      varName <- unique(ptable()[,input$xAxis]) %>% as.vector()
+      varName <- unique(as.data.frame(ptable())[,input$xAxis]) %>% as.vector() %>% sort()
       #get name of variables user want to change
       userChoice <- if(req(input$xTextLabelChoice) == "All" || "All" %in% req(input$xTextLabelChoice)){
         varName
       }else{req(input$xTextLabelChoice)}
       #get number of variables choosen by user
-      nVar <- length(userChoice)
-      
+      varLen <- length(userChoice)
       #user given name
       givenName <- strsplit(str_trim(gsub(" |,", " ", input$xTextLabel))," +") %>% unlist()
       
       #Use the name based on the user's input
-      if(length(givenName) != nVar){
+      if(length(givenName) != varLen){
         #show the original name
         return(varName)
-      }else if(length(givenName) == nVar){
+      }else if(length(givenName) == varLen){
         varName[which(varName %in% userChoice)] <- as.vector(givenName)
         #new name
         return(varName)
       }
     }else{
       #display the original name
-      unique(req(ptable()[,input$xAxis])) %>% as.vector()
+      unique(req(as.data.frame(ptable())[,input$xAxis])) %>% as.vector() %>% sort()
     }
     
   })
@@ -5711,7 +5728,7 @@ server <- function(input, output){
       # browser()
       # df <- nearPoints(ptable(), input$hover_info, xvar = req(input$xAxis), yvar = req(input$yAxis) )
       if(nrow(df) != 0){
-        df
+        as.data.frame(df)
       }
       
     })
