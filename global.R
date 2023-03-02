@@ -61,6 +61,57 @@ sdError <- NULL
 waitNotify <- function(msg = "Computing... Please wait..", id = NULL, type = "message"){
   showNotification(msg, id = id, duration = NULL, closeButton = FALSE, type = type)
 }
+#function to create input and update options: mainly for color options
+"date: 2/3/23
+arguments
+update = logical. TRUE to update the selectinput and false to reset.
+pltType = character. type of graph
+data = data frame. 
+label = character.
+newId = character. ID for the selectinput
+firchoice = character. 'none' as default first choice
+choice = list of character. 
+selecteds = character. must be present in the choice list"
+colorParam <- function(update= TRUE, pltType = "none",
+                       data = ptable(), label = "Add color", newId = "colorSet", 
+                       firstChoice = "none", choice = "", selecteds = "none",...){
+  if(!isTRUE(update)){
+    if(!is.data.frame(data) || (is.data.frame(data) && pltType == "none")){
+      selectInput(inputId = newId, label = label, choices = list("none"))
+    }else{#} if(is.data.frame(data)){
+      selectInput(inputId = newId, label = label, choices = c(firstChoice, choice), selected = selecteds)
+    }
+  }else if(isTRUE(update)){
+    if(!is.data.frame(data) ||  (is.data.frame(data) && pltType == "none")){
+      updateSelectInput(inputId = newId, label = label, choices = list("none"))
+    }else{#} if(is.data.frame(data)){
+      message("-===========updating selectInput================")
+      updateSelectInput(inputId = newId, label = label, choices = c(firstChoice, choice), selected = selecteds)
+    }
+    
+  }
+}
+
+#remove the below later: when color option is being optimized
+displayAes <- function(update= "no", transform = TRUE, action = FALSE, pltType = "pltType()",#!isTruthy(input$goAction)
+                       data = ptable(), label = "Variable to fill color", newId = "colorSet", firstChoice = "none", choice = colnames(ptable()), selecteds = "none",...){
+  if(tolower(update) =="no"){
+    if(!is.data.frame(data) || (is.data.frame(data) & isFALSE(transform) & req(pltType) == "none") || (is.data.frame(data) & isTRUE(transform) & isFALSE(action))){
+      selectInput(inputId = newId, label = label, choices = list("none"))
+    }else{#} if(is.data.frame(data)){
+      selectInput(inputId = newId, label = label, choices = c(firstChoice, choice), selected = selecteds)
+    }
+  }else if(tolower(update) == "yes"){
+    if(!is.data.frame(data) || (is.data.frame(data) & isFALSE(transform) & req(pltType) == "none") || (is.data.frame(data) & isTRUE(transform) & isFALSE(action))){
+      updateSelectInput(inputId = newId, label = label, choices = list("none"))
+    }else{#} if(is.data.frame(data)){
+      message("-===========updating selectInput================")
+      updateSelectInput(inputId = newId, label = label, choices = c(firstChoice, choice), selected = selecteds)
+    }
+    
+  }
+}
+
 #function to get all variables: numeric and characters----------------------------------
 #get all numeric or character variables
 "

@@ -248,45 +248,23 @@ ui <- fluidPage(
                       #ui output for choosing columns to transform the data
                       #for names 
                       uiOutput(outputId = "trName"),
+                      # uiOutput(outputId = "trNameMsg"),
+                      #variable message for reshape
+                      conditionalPanel(condition = "input.transform == 'Yes'",
+                                       helpText("Choosen variables will be the independent variable. The values associated with the variables will be the dependent variable and will be placed in a separate column named 'value'.", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")
+                                       ),
                       
-                      #stop here--------------------------------------------------
-                      # conditionalPanel(condition = "input.transform == 'yes' && input.replicatePresent = 'no'",
-                      #                  
-                      #                  )
-                      # 
-                      # req(pInputTable$data, input$transform == "Yes")
-                      # 
-                      # if(req(input$replicatePresent) == "no"){
-                      #   if(input$transform == "Yes") varSelectInput(inputId = "variables", label = "Specify the columns to reshape", data = pInputTable$data, multiple = TRUE)
-                      # }else if(req(input$replicatePresent) == "yes" && isTruthy(input$replicateActionButton) && !is_empty(replicateData$df)){
-                      #   if(input$transform == "Yes") varSelectInput(inputId = "variables", label = "Specify the columns to reshape", data = replicateData$df, multiple = TRUE)
-                      # }
-                      #
-                      #stop here--------------------------------------------------
-                      
-                      
-                      
-                      
-                      
-                      
-                      
-                      
-                      
-                      
-                      
-                      
-                      
-                      
-                      
-                      
-                      
-                      
-                      
-                      uiOutput(outputId = "trNameMsg"),
                       # conditionalPanel(condition = "input.transform == 'Yes'",
                       #                  helpText("Choose the multiple variables to transpose and compare", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")),
                       #for value
-                      uiOutput(outputId = "trValue"),
+                      
+                      #Name to be used as column name for the reshaped
+                      # uiOutput(outputId = "trValue"),
+                      conditionalPanel(condition = "input.transform == 'Yes'",
+                                       #this should be compulsory, so that user understand the transformation
+                                       textInput(inputId = "enterName", label = "Enter a name for the reshaped column")
+                                       ),
+
                       # conditionalPanel(condition = "input.enterName",
                       #                  helpText("Above choosen variables will be placed under this given column name.", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")
                       # ),
@@ -375,35 +353,49 @@ ui <- fluidPage(
                         column(6, 
                                #input panel for figure and statistics
                                #choice of plot
-                               uiOutput(outputId = "UiPlotType"),
+                               uiOutput(outputId = "UiPlotType"),#require reactivity so keep in the server
+                               
                                #ui alert for bar plot
                                conditionalPanel(condition = "input.plotType == 'bar plot'",
                                                 helpText(list(tags$p("Use bar graph for categorical or count data!!"), tags$p("Users are encouraged to use other graph that show data distribution.")), style= "margin-bottom:10px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")
                                ),
                                #additional param for histogram
-                               uiOutput(outputId = "UiHistParam"),
+                               # uiOutput(outputId = "UiHistParam"),
                                #ui output to specify axis
                                fluidRow(
                                  column(6, uiOutput("xAxisUi")),
                                  column(6, uiOutput("yAxisUi"))
                                ),
                                #message for choosing x and y axis
-                               uiOutput("UiYAxisMsg"),
-                               #add filter as drop down menu
-                               # #Ui for normalization and standardization
-                               # conditionalPanel(condition = "input.plotType != 'none'",
-                               #                  uiOutput("UiNormStand")
-                               #                  ),
+                               # uiOutput("UiYAxisMsg"),
+                               conditionalPanel(condition = "input.plotType == 'box plot' || input.plotType == 'violin plot' || input.plotType == 'line' || input.plotType == 'scatter' || input.plotType == 'bar plot'",
+                                                helpText("Provide numeric variable to y-axis", style = "text-align:center; margin-top:0")
+                                                ),
                                
                                #Ui for bar graph positon: stack or dodge
                                uiOutput(outputId = "UiStackDodge"),
+                               conditionalPanel(condition = "input.plotType == 'bar plot' || input.plotType == 'histogram'",
+                                                {
+                                                  #Bar plot and histogram will have this option
+                                                  #this will be updated when user request for error bar in bar plot, but not for histogram
+                                                  choices <- list(tags$span("Stack", style = "font-weight:bold; color:#0099e6"), 
+                                                                  tags$span("Dodge", style = "font-weight:bold; color:#0099e6"))
+                                                  radioButtons(inputId = "stackDodge", label = "Bar position", choiceNames = choices, choiceValues = list("Stack", "Dodge"), inline = TRUE)
+                                                }),
+                               
                                #ui for bin width of histogram
                                fluidRow(column(8, uiOutput("uiBinWidth"))),
                                # #Ui color and fill for histogram
-                               fluidRow(
-                                 column(6, uiOutput("UiHistBarColor")),
-                                 column(6, uiOutput("UiHistBarFill"))
-                               ),
+                               # fluidRow(
+                               #   column(6, uiOutput("UiHistBarColor")),
+                               #   column(6, uiOutput("UiHistBarFill"))
+                               # ),
+                               conditionalPanel(condition = "input.plotType == 'histogram' && input.colorSet == 'none'",
+                                                fluidRow(
+                                                  column(6, textInput(inputId = "histBarColor", label = "Bar color", placeholder = "red or #ff0000")),
+                                                  column(6, textInput(inputId = "histBarFill", label = "Fill bar", placeholder = "blue or #b3d9ff"))
+                                                )
+                                                ),
                                #line size for frequency polygon and line
                                uiOutput("UiFreqPolySize"),
                                #control transparency of scatter plot
@@ -413,11 +405,23 @@ ui <- fluidPage(
                                #Ui to select variable to connect the path
                                uiOutput("UiLineConnectPath"),
                                #Ui for scatter plot, jitter the points
-                               uiOutput("UiJitter"),
+                               # uiOutput("UiJitter"),
+                               conditionalPanel(condition = "input.plotType === 'scatter plot'",
+                                                checkboxInput(inputId = "jitter", label = tags$span("Handle overplotting (jitter)", style = "font-weight:bold; color:#b30000; background:#f7f3f3"))
+                                                ),
                                #Ui to add error bar for line type
-                               uiOutput("UiLineErrorBar"),
+                               # uiOutput("UiLineErrorBar"),
+                               conditionalPanel(condition = "input.plotType === 'line' || input.plotType === 'bar plot' ||
+                                                input.plotType === 'scatter plot' || input.plotType === 'violin plot'",
+                                                checkboxInput(inputId = "lineErrorBar", label = tags$span("Add error bar", style = "color:#b30000; font-weight:bold; background:#f7f3f3"))
+                                                ),
+                               # output$UiLineErrorBar <- renderUI({
+                               #   req(refresh_3(), pltType() != "none")
+                               #   if(pltType() %in% c("line", "bar plot", "scatter plot", "violin plot") && (isTruthy(xVar())|| isTruthy(yVar())) ) checkboxInput(inputId = "lineErrorBar", label = tags$span("Add error bar", style = "color:#b30000; font-weight:bold; background:#f7f3f3"))
+                               # })
                                #parameters for error bar
-                               conditionalPanel(condition = "input.lineErrorBar",
+                               conditionalPanel(condition = "input.plotType === 'line' || input.plotType === 'bar plot' ||
+                                                input.plotType === 'scatter plot' || input.plotType === 'violin plot'", #input.lineErrorBar",
                                                 div(
                                                   style= "border-top:dotted 1px; border-bottom:dotted 1px; margin-bottom:20px; margin-right:0; 
                                                       background-image:linear-gradient(rgba(206,247,250, 0.3), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5))",
@@ -440,7 +444,7 @@ ui <- fluidPage(
                                ),
                                
                                #line size for error bar
-                               uiOutput("UiErrorBarLineSize"), 
+                               # uiOutput("UiErrorBarLineSize"), 
                                #mean for histogram
                                uiOutput("UiHistMean"),
                                #variables for group mean
@@ -452,17 +456,41 @@ ui <- fluidPage(
                                ),
                                uiOutput("UiHistMeanSize"),
                                #ui for density
-                               fluidRow(
-                                 column(6, uiOutput("UiDensityKernel")),
-                                 column(6, uiOutput("UiDensityStat"))
-                               ),
-                               fluidRow(
-                                 column(6, uiOutput("UiDensityBandwidth")),
-                                 column(6, uiOutput("UiDensityAdjust")),
-                               ),
+                               # fluidRow(
+                               #   column(6, uiOutput("UiDensityKernel")),
+                               #   column(6, uiOutput("UiDensityStat"))
+                               # ),
+                               conditionalPanel(condition = "input.plotType === 'density'",
+                                                fluidRow(
+                                                  column(6, {
+                                                    kde <- c("gaussian", "epanechnikov", "rectangular", "triangular", "biweight", "cosine", "optcosine")
+                                                    selectInput(inputId = "densityKernel", label = "Kernel\ndensity", choices = sort(kde), selected = "gaussian")
+                                                    }),
+                                                  column(6, {
+                                                    computes <- c("density", "count", "scaled", "ndensity")
+                                                    selectInput(inputId = "densityStat", label = "Computed\n stat", choices = sort(computes), selected = "density")
+                                                    })
+                                                ),
+                                                
+                                                fluidRow(
+                                                  column(6, {
+                                                    binwd <- c("nrd0","nrd", "ucv","bcv","SJ-ste","SJ-dpi")
+                                                    selectInput(inputId = "densityBandwidth", label = "Bandwidth (bw)", choices = sort(binwd), selected = "nrd0")
+                                                  }),
+                                                  column(6, sliderInput(inputId = "densityAdjust", label = "Adjust bw", min = 1, max = 20, value = 1)),
+                                                ),
+                                                ),
+                               
+                               # fluidRow(
+                               #   column(6, uiOutput("UiDensityBandwidth")),
+                               #   column(6, uiOutput("UiDensityAdjust")),
+                               # ),
+                               
                                #option for theme
-                               uiOutput("UiTheme"),
-                               uiOutput(outputId = "uiForMoreParameters"),
+                               # uiOutput("UiTheme"),
+                               conditionalPanel(condition = "input.plotType !== 'none'",
+                                                selectInput(inputId = "theme", label = "Background theme", choices = c("default", "dark", "white", "white with grid lines","blank"), selected = "default") 
+                                                ),
                                
                                #Aesthetic setting
                                div(
@@ -473,7 +501,23 @@ ui <- fluidPage(
                                         tags$p("Customize color, shape, line type and compare between variables", style = "margin-top:0; text-align:center"))
                                  ),
                                  #ui for color
-                                 uiOutput("UiColorSet"),
+                                 # uiOutput("UiColorSet"),
+                                 stop here------------------
+                                 selectInput(inputId = "colorSet", label = "Add color", choices = list("none")),
+                                 stop here------------------
+                                   
+                                
+                                   
+                                   
+                                   
+                                   
+                                
+                                   
+                                   
+                                   
+                                   
+                                 
+                                 
                                  #ui to give option to auto set colors or customize
                                  uiOutput("uiAutoCustome"),
                                  #ui for entering color
@@ -1839,18 +1883,18 @@ server <- function(input, output){
     
   }
   )
-  #variable message for reshape
-  output$trNameMsg <- renderUI({
-    req(input$variables)
-    helpText("Choosen variables will be the independent variable. The values associated with the variables will be the dependent variable and will be placed in a separate column named 'value'.", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")
-  })
-  #Name to be used as column name for the reshaped
-  output$trValue <- renderUI({
-    req(pInputTable$data, input$transform == "Yes")
-    message("trValue")
-    #this should be compulsory, so that user understand the transformation
-    if(input$transform == "Yes") textInput(inputId = "enterName", label = "Enter a name for the reshaped column")
-  })
+  # #variable message for reshape
+  # output$trNameMsg <- renderUI({
+  #   req(input$variables)
+  #   helpText("Choosen variables will be the independent variable. The values associated with the variables will be the dependent variable and will be placed in a separate column named 'value'.", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")
+  # })
+  # #Name to be used as column name for the reshaped
+  # output$trValue <- renderUI({
+  #   req(pInputTable$data, input$transform == "Yes")
+  #   message("trValue")
+  #   #this should be compulsory, so that user understand the transformation
+  #   if(input$transform == "Yes") textInput(inputId = "enterName", label = "Enter a name for the reshaped column")
+  # })
   
   #Action for transforming the data
   observe({
@@ -1872,6 +1916,7 @@ server <- function(input, output){
     }
     
     output$trAction <- renderUI({
+      req(input$enterName != 'value')
       if(input$transform == "Yes" && !is_empty(input$variables) && isTruthy(input$enterName)) actionButton(inputId = "goAction", label = span("Reshape", style="color:white"), class = "btn-primary", width = "100%")
     })
   })
@@ -2369,19 +2414,19 @@ server <- function(input, output){
   })
   
   
-  #plot choice for different--------------------------
+  # #plot choice for different--------------------------
   planPlotList <- c("none",   "box plot","bar plot", "histogram", "scatter plot",
                     "density plot", "heatmap", "line", "frequency polygon",
                     "violin","jitter","area", "pie chart", "venn", "upset", "tile")
   plotList <- c(  "box plot","violin plot", "density", "frequency polygon", "histogram","line", "scatter plot", "bar plot")
-  
+
   output$UiPlotType <- renderUI({
     req(refresh_1())
     #requires to add check so that user can change the data without crashing the app
-    
+
     selectInput(inputId = "plotType", label = "Choose type of plot",
                 choices = c("none",sort(plotList)), selected = "none")
-    
+
   })
   #update plot
   observe({
@@ -2475,12 +2520,12 @@ server <- function(input, output){
       updateSelectInput(inputId = "xAxis", label = "X-axis", choices = colnames(ptable()), selected = xVarFilter())
     }
   })
-  #msg to provide numeric variable for y-axis
-  output$UiYAxisMsg <- renderUI({
-    if(req(pltType() %in% xyRequire || isTRUE(needYAxis()))){
-      helpText("Provide numeric variable to y-axis", style = "text-align:center; margin-top:0")
-    }
-  })
+  # #msg to provide numeric variable for y-axis
+  # output$UiYAxisMsg <- renderUI({
+  #   if(req(pltType() %in% xyRequire || isTRUE(needYAxis()))){
+  #     helpText("Provide numeric variable to y-axis", style = "text-align:center; margin-top:0")
+  #   }
+  # })
 
   #get the selected variables of axes from the data
   xVar <- reactive({
@@ -2515,7 +2560,7 @@ server <- function(input, output){
     output$uiYlable <- renderUI({if( req(input$plotType) != "none" )textAreaInput(inputId = "yLable", label = "Enter title for Y-axis", height = "35px")})
     output$uiXlable <- renderUI({if( req(input$plotType) != "none" )textAreaInput(inputId = "xLable", label = "Enter title for X-axis", height = "35px")})
     output$uiBinWidth <- renderUI({
-      req(refresh_3(),input$plotType, xVarType())
+      req(input$plotType, xVarType())
       if(input$plotType %in% c("histogram", "frequency polygon") & xVarType()[1] %in% c("integer", "numeric", "double")) sliderInput(inputId = "binWidth", label = "Adjust bin width", min = 0.01, max = 100, value = 30)
     })
     
@@ -2588,16 +2633,16 @@ server <- function(input, output){
   })
   
   #Bar graph settings---------------------
-  output$UiStackDodge <- renderUI({
-    #Bar plot and histogram will have this option
-    #this will be updated when user request for error bar in bar plot, but not for histogram
-    req(refresh_3(), pltType(), xVar())
-    choices <- list(tags$span("Stack", style = "font-weight:bold; color:#0099e6"), 
-                    tags$span("Dodge", style = "font-weight:bold; color:#0099e6"))
-    if(pltType() %in% c("bar plot", "histogram")){
-      radioButtons(inputId = "stackDodge", label = "Bar position", choiceNames = choices, choiceValues = list("Stack", "Dodge"), inline = TRUE)
-    }
-  })
+  # output$UiStackDodge <- renderUI({
+  #   #Bar plot and histogram will have this option
+  #   #this will be updated when user request for error bar in bar plot, but not for histogram
+  #   req(refresh_3(), pltType(), xVar())
+  #   choices <- list(tags$span("Stack", style = "font-weight:bold; color:#0099e6"), 
+  #                   tags$span("Dodge", style = "font-weight:bold; color:#0099e6"))
+  #   if(pltType() %in% c("bar plot", "histogram")){
+  #     radioButtons(inputId = "stackDodge", label = "Bar position", choiceNames = choices, choiceValues = list("Stack", "Dodge"), inline = TRUE)
+  #   }
+  # })
   
   
   
@@ -2605,7 +2650,7 @@ server <- function(input, output){
   # #show option to connect the path within: check below
   # show option to connect the path within 
   output$UiLineConnectPath <- renderUI({
-    req(refresh_3(), ptable(), yVar() )
+    req(ptable(), yVar() )
     # req(ptable(), pltType() == "line", isTruthy(input$lineErrorBar), input$lineComputeSd)
     col <- colnames(ptable())
     varC <- colnames( ptable()[ ,!col %in% colnames(yVar()) ] )
@@ -2613,10 +2658,10 @@ server <- function(input, output){
   })
   
   #add error bar
-  output$UiLineErrorBar <- renderUI({
-    req(refresh_3(), pltType() != "none")
-    if(pltType() %in% c("line", "bar plot", "scatter plot", "violin plot") && (isTruthy(xVar())|| isTruthy(yVar())) ) checkboxInput(inputId = "lineErrorBar", label = tags$span("Add error bar", style = "color:#b30000; font-weight:bold; background:#f7f3f3"))
-  })
+  # output$UiLineErrorBar <- renderUI({
+  #   req(refresh_3(), pltType() != "none")
+  #   if(pltType() %in% c("line", "bar plot", "scatter plot", "violin plot") && (isTruthy(xVar())|| isTruthy(yVar())) ) checkboxInput(inputId = "lineErrorBar", label = tags$span("Add error bar", style = "color:#b30000; font-weight:bold; background:#f7f3f3"))
+  # })
   
   observe({
     req(is.data.frame(ptable()), isTruthy(input$lineErrorBar))
@@ -2805,7 +2850,7 @@ server <- function(input, output){
   #setting for adjusting point, line, bar size----------
   observe({
     req(pltType() != "none")
-    
+
     output$UiFreqPolySize <- renderUI({
       req(input$plotType)
       if(pltType() == "scatter plot"){
@@ -2827,7 +2872,7 @@ server <- function(input, output){
       if(!pltType() %in% c("none", "histogram") && (isTruthy(xVar())|| isTruthy(yVar())) ) sliderInput(inputId = "freqPolySize", label = lab,
                                                                                                                        value = value, min = min, max = max)
     })
-    
+
   })
   
   #add mean, median for histogram
@@ -2875,40 +2920,56 @@ server <- function(input, output){
   })
   
   
-  #theme for plot
-  output$UiTheme <- renderUI({
-    if(isTruthy(input$plotType)){
-      selectInput(inputId = "theme", label = "Background theme", choices = c("default", "dark", "white", "white with grid lines","blank"), selected = "default") 
-    }
-  })
-  
   #scatter plot:----------------------------
-  #add jitter
-  output$UiJitter <- renderUI({
-    req(refresh_2(), pltType())
-    if(pltType() == "scatter plot") checkboxInput(inputId = "jitter", label = tags$span("Handle overplotting (jitter)", style = "font-weight:bold; color:#b30000; background:#f7f3f3"))
-  })
+  # #add jitter
+  # output$UiJitter <- renderUI({
+  #   req(refresh_2(), pltType())
+  #   if(pltType() == "scatter plot") checkboxInput(inputId = "jitter", label = tags$span("Handle overplotting (jitter)", style = "font-weight:bold; color:#b30000; background:#f7f3f3"))
+  # })
   #Density-----------------------------------
-  kde <- c("gaussian", "epanechnikov", "rectangular", "triangular", "biweight", "cosine", "optcosine")
-  output$UiDensityKernel <- renderUI({
-    req(refresh_3(), pltType())
-    if(pltType() == "density") selectInput(inputId = "densityKernel", label = "Kernel\ndensity", choices = sort(kde), selected = "gaussian")
-  })
+  # kde <- c("gaussian", "epanechnikov", "rectangular", "triangular", "biweight", "cosine", "optcosine")
+  # output$UiDensityKernel <- renderUI({
+  #   req(refresh_3(), pltType())
+  #   if(pltType() == "density") selectInput(inputId = "densityKernel", label = "Kernel\ndensity", choices = sort(kde), selected = "gaussian")
+  # })
+  # 
+  # output$UiDensityStat <- renderUI({
+  #   req(refresh_3(), pltType())
+  #   
+  #   if(pltType() == "density") selectInput(inputId = "densityStat", label = "Computed\n stat", choices = sort(computes), selected = "density")
+  # })
   
-  output$UiDensityStat <- renderUI({
-    req(refresh_3(), pltType())
-    computes <- c("density", "count", "scaled", "ndensity")
-    if(pltType() == "density") selectInput(inputId = "densityStat", label = "Computed\n stat", choices = sort(computes), selected = "density")
+  # output$UiDensityBandwidth <- renderUI({
+  #   req(refresh_3(), pltType())
+  #   binwd <- c("nrd0","nrd", "ucv","bcv","SJ-ste","SJ-dpi")
+  #   if(pltType() == "density") selectInput(inputId = "densityBandwidth", label = "Bandwidth (bw)", choices = sort(binwd), selected = "nrd0")
+  # })
+  # output$UiDensityAdjust <- renderUI({
+  #   req(refresh_3(), pltType())
+  #   if(pltType() == "density") sliderInput(inputId = "densityAdjust", label = "Adjust bw", min = 1, max = 20, value = 1)
+  # })
+  #update the density parameters, theme with change in plot type
+  observe({
+    req(pltType())
+    if(pltType() == "density"){
+      kde <- c("gaussian", "epanechnikov", "rectangular", "triangular", "biweight", "cosine", "optcosine")
+      updateSelectInput(inputId = "densityKernel", label = "Kernel\ndensity", choices = sort(kde), selected = "gaussian")
+      computes <- c("density", "count", "scaled", "ndensity")
+      updateSelectInput(inputId = "densityStat", label = "Computed\n stat", choices = sort(computes), selected = "density")
+      binwd <- c("nrd0","nrd", "ucv","bcv","SJ-ste","SJ-dpi")
+      updateSelectInput(inputId = "densityBandwidth", label = "Bandwidth (bw)", choices = sort(binwd), selected = "nrd0")
+      updateSliderInput(inputId = "densityAdjust", label = "Adjust bw", min = 1, max = 20, value = 1)
+    }
+    #theme
+    updateSelectInput(inputId = "theme", label = "Background theme", choices = c("default", "dark", "white", "white with grid lines","blank"), selected = "default") 
   })
-  output$UiDensityBandwidth <- renderUI({
-    req(refresh_3(), pltType())
-    binwd <- c("nrd0","nrd", "ucv","bcv","SJ-ste","SJ-dpi")
-    if(pltType() == "density") selectInput(inputId = "densityBandwidth", label = "Bandwidth (bw)", choices = sort(binwd), selected = "nrd0")
-  })
-  output$UiDensityAdjust <- renderUI({
-    req(refresh_3(), pltType())
-    if(pltType() == "density") sliderInput(inputId = "densityAdjust", label = "Adjust bw", min = 1, max = 20, value = 1)
-  })
+  # #theme for plot
+  # output$UiTheme <- renderUI({
+  #   if(isTruthy(input$plotType)){
+  #     selectInput(inputId = "theme", label = "Background theme", choices = c("default", "dark", "white", "white with grid lines","blank"), selected = "default") 
+  #   }
+  # })
+  
   output$UiDensityPosition <- renderUI({
     req(refresh_1(), pltType(), input$colorSet != "none")
     positions<- c("stack", "identity","fill")
@@ -2919,21 +2980,21 @@ server <- function(input, output){
     if(pltType() == "density" && input$colorSet != "none") sliderInput(inputId = "alpha", label = "Transparency", min = 0.01, max = 1, value = 1)
   })
   #For more settings----------------------------------
-  #reactive input for transform
+  #reactive input for transform:remove this later when displayAes() is no longer useful
   transformation <- reactive(ifelse(input$transform == "Yes", TRUE, FALSE))
   action <- reactive(ifelse(isTruthy(input$goAction), TRUE, FALSE))
-  
-  
-  displayAes <- function(update= "no", transform = TRUE, action = FALSE, pltType = "pltType()",#!isTruthy(input$goAction)
-                         data = ptable(), label = "Variable to fill color", newId = "colorSet", firstChoice = "none", choice = colnames(ptable()), selecteds = "none",...){
-    if(tolower(update) =="no"){
-      if(!is.data.frame(data) || (is.data.frame(data) & isFALSE(transform) & req(pltType) == "none") || (is.data.frame(data) & isTRUE(transform) & isFALSE(action))){
+  #temp: remove from server (it is in global)
+  colorParam <- function(update= TRUE, pltType = "none",
+                         data = ptable(), label = "Add color", newId = "colorSet", 
+                         firstChoice = "none", choice = "", selecteds = "none",...){
+    if(!isTRUE(update)){
+      if(!is.data.frame(data) || (is.data.frame(data) && pltType == "none")){
         selectInput(inputId = newId, label = label, choices = list("none"))
       }else{#} if(is.data.frame(data)){
         selectInput(inputId = newId, label = label, choices = c(firstChoice, choice), selected = selecteds)
       }
-    }else if(tolower(update) == "yes"){
-      if(!is.data.frame(data) || (is.data.frame(data) & isFALSE(transform) & req(pltType) == "none") || (is.data.frame(data) & isTRUE(transform) & isFALSE(action))){
+    }else if(isTRUE(update)){
+      if(!is.data.frame(data) ||  (is.data.frame(data) && pltType == "none")){
         updateSelectInput(inputId = newId, label = label, choices = list("none"))
       }else{#} if(is.data.frame(data)){
         message("-===========updating selectInput================")
@@ -2942,7 +3003,6 @@ server <- function(input, output){
       
     }
   }
-  
   #color setting-------------------------
   
   lineGrpVar <- reactive(req(input$lineGroupVar))
@@ -2971,20 +3031,33 @@ server <- function(input, output){
     }
   })
   
-  output$UiColorSet <- renderUI({
-    req(refresh_2())
-    #This will be updated based on the type of ANOVA, if required
-    displayAes(update = "no", transform = transformation(), action = action(), pltType = pltType(),
-               data = ptable(), label= "Add color", newId = "colorSet", choice = varColorChoice()) #selecteds = selectedChoice()
-  })
-  #update color if the input feature change
+  # output$UiColorSet <- renderUI({
+  #   req(refresh_2())
+  #   #This will be updated based on the type of ANOVA, if required
+  #   displayAes(update = "yes", transform = transformation(), action = action(), pltType = pltType(),
+  #              data = ptable(), label= "Add color", newId = "colorSet", choice = varColorChoice()) #selecteds = selectedChoice()
+  # })
+  #update color option when plot type is choosen
   observe({
-    req(input$replicatePresent, input$transform)
-    if( isTRUE(dataChanged()) || isTruthy(input$replicateActionButton) || isTruthy(input$goAction) ){
-      displayAes(update = "yes", transform = transformation(), action = action(), pltType = pltType(),
+    req(pltType())
+      colorParam(update = TRUE, pltType = pltType(),
                  data = ptable(), label= "Add color", newId = "colorSet", choice = varColorChoice()) 
-    }
   })
+  # #update color if the input feature change
+  # observe({
+  #   req(input$replicatePresent, input$transform)
+  #   if( isTRUE(dataChanged()) || isTruthy(input$replicateActionButton) || isTruthy(input$goAction) ){
+  #     colorParam(update = TRUE, pltType = pltType(),
+  #                data = ptable(), label= "Add color", newId = "colorSet", choice = varColorChoice()) 
+  #   }
+  # })
+  # observe({
+  #   req(input$replicatePresent, input$transform)
+  #   if( isTRUE(dataChanged()) || isTruthy(input$replicateActionButton) || isTruthy(input$goAction) ){
+  #     displayAes(update = "yes", transform = transformation(), action = action(), pltType = pltType(),
+  #                data = ptable(), label= "Add color", newId = "colorSet", choice = varColorChoice()) 
+  #   }
+  # })
   
   #option to provide color 
   #provide option to auto fill the color or customize it
@@ -3007,16 +3080,16 @@ server <- function(input, output){
     }
   })#end of renderUI
   
-  #color and fill for histogram----------------
-  #above option to add color and histogram color setting will be mutually exclusive
-  observeEvent(req(pltType() %in% c("histogram"), input$colorSet == "none"),{
-    output$UiHistBarColor <- renderUI({
-      if(pltType() %in% c("histogram") & input$colorSet == "none") textInput(inputId = "histBarColor", label = "Bar color", placeholder = "red or #ff0000")
-    })
-    output$UiHistBarFill <- renderUI({
-      if(pltType() %in% c("histogram") & input$colorSet == "none") textInput(inputId = "histBarFill", label = "Fill bar", placeholder = "blue or #b3d9ff")
-    })
-  })
+  # #color and fill for histogram----------------
+  # #above option to add color and histogram color setting will be mutually exclusive
+  # observeEvent(req(pltType() %in% c("histogram"), input$colorSet == "none"),{
+  #   output$UiHistBarColor <- renderUI({
+  #     if(pltType() %in% c("histogram") & input$colorSet == "none") textInput(inputId = "histBarColor", label = "Bar color", placeholder = "red or #ff0000")
+  #   })
+  #   output$UiHistBarFill <- renderUI({
+  #     if(pltType() %in% c("histogram") & input$colorSet == "none") textInput(inputId = "histBarFill", label = "Fill bar", placeholder = "blue or #b3d9ff")
+  #   })
+  # })
   #shape and line-----------------
   #shapeExcluded <- c("histogram", "frequency polygon", "line", "scatter plot")
   shapeLineOption <- reactive({
@@ -4815,7 +4888,7 @@ server <- function(input, output){
     )
   },{
     
-    browser()
+    # browser()
     #required parameters
     figType <- reactive(req(input$plotType))
     
@@ -5372,7 +5445,7 @@ server <- function(input, output){
     #display the plot
     output$figurePlot <- renderPlot({
       
-      browser()
+      # browser()
       req(is.data.frame(ptable()), pltType() != "none")
       #Reason for adding all the codes in this reactive is to properly display error msg for the computation.
       
