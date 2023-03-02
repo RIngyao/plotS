@@ -135,7 +135,7 @@ ui <- fluidPage(
                       
                       # selectInput(inputId = "pInput", label = "Input data", choices = list("example","upload data"), selected = ""),
                       #ui for uploading the data, 
-                      uiOutput(outputId = "pUpload"),
+                      uiOutput(outputId = "pUpload"), #ok
                       
                       #ui for na 
                       conditionalPanel(condition = "input.pInput == 'upload data'",
@@ -145,17 +145,44 @@ ui <- fluidPage(
                                          class = "NAdiv",
                                          h4("Manage missing values", align = "center", style = "color:green; margin-bottom:20px"),
                                          uiOutput("UiSelectNA"),
-                                         helpText("You can specify more than one missing values. If no value is specified, 'NA' and empty cell are treated as missing values by default.", style = "margin-top:0;"),#, style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;"),
-                                         uiOutput("UiRemRepNA")
+                                         helpText("You can specify more than one missing values. 'NA' and empty cell are treated as missing values by default.", style = "margin-top:0;"),#, style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;"),
+                                         # uiOutput("UiRemRepNA")
+                                         {
+                                           naOpt <- list(tags$span("Remove NA", style = "font-weight:bold; color:#0099e6"), 
+                                                         tags$span("Replace with 0", style = "font-weight:bold; color:#0099e6"))
+                                           radioButtons(inputId = "remRepNa", label = NULL, choiceNames = naOpt, choiceValues = c("remove", "replace"), inline = TRUE) 
+                                         }
+                                         
                                        )
                                        ),
                      
                       #ui explanation for example
-                      uiOutput("UiExampleDes"),
+                      # uiOutput("UiExampleDes"),
+                      conditionalPanel(condition = "input.pInput =='example' & input.pFile != 'replicate'",
+                                       helpText("Data for 'long' and 'wide' formats are the same. Wide format data need reshape to compare between variables - ctrl, tr1, tr2.",
+                                                style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
+                                       ),
+                      conditionalPanel(condition = "input.pInput =='example' & input.pFile == 'replicate'",
+                                       helpText("It has two header rows and two replicates (R1 and R2) each for two groups/variables - control and treatment.",
+                                                style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
+                      ),
+                      
                       #ui for alerting invalid file type
                       uiOutput(outputId = "UiUploadInvalid"),
                       #ui for present or absent of replicates
-                      uiOutput(outputId = "UiReplicatePresent"),
+                      # uiOutput(outputId = "UiReplicatePresent"),
+                      # conditionalPanel(condition = "input.pInput",
+                      #                  {opts <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
+                      #                                tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
+                      #                  radioButtons(inputId = "replicatePresent", label = "Data with replicates/multiple headers", 
+                      #                               choiceNames = opts, choiceValues = c("no", "yes"), selected = "no", inline = TRUE
+                      #                  )}
+                      #                  ),
+                      {opts <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
+                                    tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
+                      radioButtons(inputId = "replicatePresent", label = "Data with replicates/multiple headers", 
+                                   choiceNames = opts, choiceValues = c("no", "yes"), selected = "no", inline = TRUE
+                      )},
                       
                       conditionalPanel(condition = "input.replicatePresent == 'yes'",
                                        helpText("Manage the replicates. Data must have at least one header.", style = "margin-top:5px; margin-bottom: 10px;"),
@@ -165,7 +192,8 @@ ui <- fluidPage(
                                          # helpText("Provide correct number of header!", style = "margin-top:10px; margin-bottom:0;color:#F49F3A"), 
                                          helpText("Provide number of header row and group/variable of replicates.", style = "margin-top:20px; margin-bottom:7px;font-weight:bold; color:#F4763A"), 
                                          fluidRow(
-                                           column(6,uiOutput("UiHeaderNumber")),
+                                           # column(6,uiOutput("UiHeaderNumber")),
+                                           column(6, selectInput(inputId = "headerNumber", label = "Header row", choices = 1:5, selected = 1)),
                                            #let user specify number of variables:
                                            # It is easier to process
                                            column(6, uiOutput("UiDataVariables"))
@@ -176,7 +204,16 @@ ui <- fluidPage(
                                          #Ui for adding variable name and replicates column
                                          uiOutput("UiVarNameRepCol"),
                                          # #Ui for replicate statistic
-                                         uiOutput("UiReplicateStat"),
+                                         # uiOutput("UiReplicateStat"),
+                                         conditionalPanel(condition = "input.replicatePresent == 'yes'",
+                                                          {
+                                                            lst <- list(tags$span("None", style = "font-weight:bold; color:#0099e6"),
+                                                                        tags$span("Mean", style = "font-weight:bold; color:#0099e6"),
+                                                                        tags$span("Median", style = "font-weight:bold; color:#0099e6"))
+                                                            radioButtons(inputId = "replicateStat", label = "Compute (for the replicates)", choiceNames = lst, choiceValues = c("none", "mean", "median"), inline = TRUE) 
+                                                          }
+                                                          ),
+                                         
                                          #message on when to use mean and median
                                          conditionalPanel(condition = "input.replicateStat != 'none'",
                                                           helpText("'Mean' is appropriate for parametric statistical method and 'Median' for non-parametric method.", 
@@ -211,6 +248,40 @@ ui <- fluidPage(
                       #ui output for choosing columns to transform the data
                       #for names 
                       uiOutput(outputId = "trName"),
+                      
+                      #stop here--------------------------------------------------
+                      # conditionalPanel(condition = "input.transform == 'yes' && input.replicatePresent = 'no'",
+                      #                  
+                      #                  )
+                      # 
+                      # req(pInputTable$data, input$transform == "Yes")
+                      # 
+                      # if(req(input$replicatePresent) == "no"){
+                      #   if(input$transform == "Yes") varSelectInput(inputId = "variables", label = "Specify the columns to reshape", data = pInputTable$data, multiple = TRUE)
+                      # }else if(req(input$replicatePresent) == "yes" && isTruthy(input$replicateActionButton) && !is_empty(replicateData$df)){
+                      #   if(input$transform == "Yes") varSelectInput(inputId = "variables", label = "Specify the columns to reshape", data = replicateData$df, multiple = TRUE)
+                      # }
+                      #
+                      #stop here--------------------------------------------------
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
+                      
                       uiOutput(outputId = "trNameMsg"),
                       # conditionalPanel(condition = "input.transform == 'Yes'",
                       #                  helpText("Choose the multiple variables to transpose and compare", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")),
@@ -900,13 +971,13 @@ server <- function(input, output){
       }
     })
     
-    output$UiRemRepNA <- renderUI({
-      if(input$pInput == "upload data"){
-        naOpt <- list(tags$span("Remove NA", style = "font-weight:bold; color:#0099e6"), 
-                      tags$span("Replace with 0", style = "font-weight:bold; color:#0099e6"))
-        radioButtons(inputId = "remRepNa", label = NULL, choiceNames = naOpt, choiceValues = c("remove", "replace"), inline = TRUE) 
-      }
-    })
+    # output$UiRemRepNA <- renderUI({
+    #   if(input$pInput == "upload data"){
+    #     naOpt <- list(tags$span("Remove NA", style = "font-weight:bold; color:#0099e6"), 
+    #                   tags$span("Replace with 0", style = "font-weight:bold; color:#0099e6"))
+    #     radioButtons(inputId = "remRepNa", label = NULL, choiceNames = naOpt, choiceValues = c("remove", "replace"), inline = TRUE) 
+    #   }
+    # })
     
     output$pUpload <- renderUI(
       if(input$pInput == "upload data"){
@@ -920,20 +991,21 @@ server <- function(input, output){
     
   })
   
+  
   #description of example
-  observe({
-    req(input$pInput, input$pFile)
-    output$UiExampleDes <- renderUI({
-      if(input$pInput == "example" && input$pFile %in% c("long format", "wide format")){
-        helpText("Data for 'long' and 'wide' formats are the same. Wide format data need reshape to compare between variables - ctrl, tr1, tr2.",
-                 style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
-      }else if(input$pInput == "example" && input$pFile == "replicate"){
-        helpText("It has two header rows and two replicates (R1 and R2) each for two groups/variables - control and treatment.",
-                 style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
-      }
-    })
-    
-  })
+  # observe({
+  #   req(input$pInput, input$pFile)
+  #   output$UiExampleDes <- renderUI({
+  #     if(input$pInput == "example" && input$pFile %in% c("long format", "wide format")){
+  #       helpText("Data for 'long' and 'wide' formats are the same. Wide format data need reshape to compare between variables - ctrl, tr1, tr2.",
+  #                style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
+  #     }else if(input$pInput == "example" && input$pFile == "replicate"){
+  #       helpText("It has two header rows and two replicates (R1 and R2) each for two groups/variables - control and treatment.",
+  #                style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
+  #     }
+  #   })
+  #   
+  # })
   #Get the input data for the plot
   #user's file path: reactive value so that user can change the file
   upPath <- reactive({
@@ -1087,14 +1159,14 @@ server <- function(input, output){
  
   
   #managing replicates----------------
-  output$UiReplicatePresent <- renderUI({
-    req(input$pInput)
-    opts <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
-                 tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
-    radioButtons(inputId = "replicatePresent", label = "Data with replicates/multiple headers", 
-                 choiceNames = opts, choiceValues = c("no", "yes"), selected = "no", inline = TRUE
-    )
-  })
+  # output$UiReplicatePresent <- renderUI({
+  #   req(input$pInput)
+  #   opts <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
+  #                tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
+  #   radioButtons(inputId = "replicatePresent", label = "Data with replicates/multiple headers", 
+  #                choiceNames = opts, choiceValues = c("no", "yes"), selected = "no", inline = TRUE
+  #   )
+  # })
   
   observe({
     req(dataChanged())
@@ -1111,12 +1183,13 @@ server <- function(input, output){
   
   observe({
     req(pInputTable_orig(), input$replicatePresent == "yes")
-    output$UiHeaderNumber <- renderUI({
-      if(isTruthy(input$pInput) &&  input$replicatePresent == "yes"){
-        selectInput(inputId = "headerNumber", label = "Header row", choices = 1:5, selected = 1)
-        #Number of table's header
-      }
-    })
+    #putting it in the Ui directly may crash
+    # output$UiHeaderNumber <- renderUI({
+    #   if(isTruthy(input$pInput) &&  input$replicatePresent == "yes"){
+    #     selectInput(inputId = "headerNumber", label = "Header row", choices = 1:5, selected = 1)
+    #     #Number of table's header
+    #   }
+    # })
     
     
     output$UiDataVariables <- renderUI({
@@ -1156,14 +1229,14 @@ server <- function(input, output){
     ))
   })
   #User choice for mean or median of replicates
-  output$UiReplicateStat <- renderUI({
-    if(input$replicatePresent == "yes"){
-      lst <- list(tags$span("None", style = "font-weight:bold; color:#0099e6"),
-                  tags$span("Mean", style = "font-weight:bold; color:#0099e6"),
-                  tags$span("Median", style = "font-weight:bold; color:#0099e6"))
-      radioButtons(inputId = "replicateStat", label = "Compute (for the replicates)", choiceNames = lst, choiceValues = c("none", "mean", "median"), inline = TRUE) 
-    }
-  })
+  # output$UiReplicateStat <- renderUI({
+  #   if(input$replicatePresent == "yes"){
+  #     lst <- list(tags$span("None", style = "font-weight:bold; color:#0099e6"),
+  #                 tags$span("Mean", style = "font-weight:bold; color:#0099e6"),
+  #                 tags$span("Median", style = "font-weight:bold; color:#0099e6"))
+  #     radioButtons(inputId = "replicateStat", label = "Compute (for the replicates)", choiceNames = lst, choiceValues = c("none", "mean", "median"), inline = TRUE) 
+  #   }
+  # })
   
   #action button to run the replicate parameters
   output$UiReplicateActionButton <- renderUI({
@@ -1296,7 +1369,7 @@ server <- function(input, output){
     #what filter to apply?
     output$UiFilterCondition <- renderUI({
       map(req(input$varFilterOpts), ~ fluidRow(
-        selectInput( inputId = .x, label = .x, choices = if(is.character(df[,.x]) || is.factor(df[,.x])){c("contain", "equal to", "not contain", "not equal to")}else if(is.numeric(df[,.x]) || is.double(df[,.x])){ c("not equal", "equal", "equal to or greater", "equal to or less", "geater than", "less than", "between")} )
+        selectInput( inputId = paste0("Ftype_",.x), label = .x, choices = if(is.character(df[,.x]) || is.factor(df[,.x])){c("contain", "equal to", "not contain", "not equal to")}else if(is.numeric(df[,.x]) || is.double(df[,.x])){ c("not equal", "equal", "equal to or greater", "equal to or less", "geater than", "less than", "between")} )
       ))
     })
     
@@ -1380,12 +1453,13 @@ server <- function(input, output){
 
     # filter the data
     tryCatch({
-
+      
       for(i in seq_along(df_coln)){
         # isTruthy(eval(str2expression(paste0("input$",df_coln[i]))))
         req(isTruthy(eval(str2expression(paste0("input$filterVal_",df_coln[i])))))
-        flTy <- eval(str2expression(paste0("input$",df_coln[i])))
+        flTy <- eval(str2expression(paste0("input$Ftype_",df_coln[i])))
         flVal <- eval(str2expression(paste0("input$filterVal_",df_coln[i])))
+        
         if(nrow(data) == 1){
           data <- filterData(df = as.data.frame(cleanData()), col = df_coln[i], filterType = flTy, val = flVal)
         }else if(nrow(data) > 1){
@@ -4741,7 +4815,7 @@ server <- function(input, output){
     )
   },{
     
-    # browser()
+    browser()
     #required parameters
     figType <- reactive(req(input$plotType))
     
@@ -5298,7 +5372,8 @@ server <- function(input, output){
     #display the plot
     output$figurePlot <- renderPlot({
       
-      # browser()
+      browser()
+      req(is.data.frame(ptable()), pltType() != "none")
       #Reason for adding all the codes in this reactive is to properly display error msg for the computation.
       
       #show notification
@@ -5312,7 +5387,6 @@ server <- function(input, output){
       message("catVarbelow2----")
       
       #check condition-----------------------
-      req(is.data.frame(ptable()))
       
       #check for x and y-axis
       if(pltType() %in% xyRequire){
@@ -5367,6 +5441,8 @@ server <- function(input, output){
       #new version---------------
       tryCatch({ 
         
+        
+        
         #data need to be changed based on the type of plots
         if(isFALSE(lineParam()[[1]])){
           #no change in data from ptable()
@@ -5403,8 +5479,8 @@ server <- function(input, output){
             
             firstPlot <- plotFig(data = data, types = figType(), geom_type = geomType(),
                                  histLine = histLine(), lineParam = lineParam(),
-                                 facet = facet(), facetType = faceType(), varRow = varRow(), varColumn = varColumn(), 
-                                 nRow = nRow(), nColumn = nColumn(), scales = scales(), 
+                                 facet = facet(), facetType = faceType(), varRow = varRow(), varColumn = varColumn(),
+                                 nRow = nRow(), nColumn = nColumn(), scales = scales(),
                                  layer = layer(), layerSize = layerSize(),  layerAlpha = layerAlpha(), barSize = freqPolySize(),
                                  xTextLabels = xTextLabels(),
                                  
@@ -5528,6 +5604,7 @@ server <- function(input, output){
         }
         
         #advance graph setting-------------------------
+        #append start------------------
         #get parameters require for plotting
         #compute statistic 
         if(figType() != "none" && methodSt() != "none"){
@@ -5553,6 +5630,8 @@ server <- function(input, output){
           statDataStore$df <<- isolate(statData()[[1]])
         }
         #end of statistic computation
+        
+        #append end-----------------------
         
         #get more parameters for graph
         #shape, linetype taken care in basic plot
@@ -5710,6 +5789,11 @@ server <- function(input, output){
     
   })#end of advance plot
   #end plot figures--------------------------------
+  
+  #for stat
+
+  
+  
   #hover info for the plot
   observe({
     req(ptable(), pltType(), input$hover_info)

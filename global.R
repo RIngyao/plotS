@@ -125,7 +125,8 @@ filterData <- function(df, col, filterType, val){
   #   case 2. Numeric variable - 
   #         i. not between - must be of length 1 and must be able to convert to numeric
   #         ii. between - must be able to convert to numeric and must be colon separated. E.g., 1:10 or 20:40
-  
+  # browser()
+  # message(filterType)
   #dummy data frame 
   filtr_df <- NULL
   #detect error: not in use
@@ -414,7 +415,7 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
   #non-replicate column: May not always be in character column when in proper format
   # later some column may have to be converted to numeric
   # and tidied data will be appended to this data
-  # browser()
+  
   
   #check for addition of header by R: V1, V2, .....Vn
   # removed the header if present. R will add header only if need (not always)
