@@ -354,7 +354,6 @@ ui <- fluidPage(
                                #input panel for figure and statistics
                                #choice of plot
                                uiOutput(outputId = "UiPlotType"),#require reactivity so keep in the server
-                               
                                #ui alert for bar plot
                                conditionalPanel(condition = "input.plotType == 'bar plot'",
                                                 helpText(list(tags$p("Use bar graph for categorical or count data!!"), tags$p("Users are encouraged to use other graph that show data distribution.")), style= "margin-bottom:10px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")
@@ -502,34 +501,51 @@ ui <- fluidPage(
                                  ),
                                  #ui for color
                                  # uiOutput("UiColorSet"),
-                                 stop here------------------
                                  selectInput(inputId = "colorSet", label = "Add color", choices = list("none")),
-                                 stop here------------------
-                                   
-                                
-                                   
-                                   
-                                   
-                                   
-                                
-                                   
-                                   
-                                   
-                                   
                                  
-                                 
-                                 #ui to give option to auto set colors or customize
-                                 uiOutput("uiAutoCustome"),
+                                 # uiOutput("uiAutoCustome"),
+                                 #option to provide color 
+                                 #provide option to auto fill the color or customize it
+                                 conditionalPanel(condition = "input.colorSet !== 'none'",
+                                                  radioButtons("autoCustome", label = NULL, choices = c("auto filled","customize"), selected = "auto filled")
+                                                  ),
                                  #ui for entering color
-                                 uiOutput("UiColorAdd"),
-                                 
+                                 # uiOutput("UiColorAdd"),
+                                 conditionalPanel(condition = "input.colorSet !== 'none' && input.autoCustome == 'customize'",
+                                                  textAreaInput(inputId = "colorAdd", label = "Enter colors",
+                                                                placeholder = "comma or space separated. \nE.g. red, #cc0000, BLUE")
+                                                  ),
                                  #UI for positioning of density and alpha
-                                 fluidRow(
-                                   column(6, uiOutput("UiDensityPosition")),
-                                   column(6, uiOutput("UiAlpha"))
-                                 ),
+                                 conditionalPanel(condition = "input.plotType === 'density' && input.colorSet !== 'none'",
+                                                  fluidRow(
+                                                    column(6, {
+                                                      positions<- c("stack", "identity","fill")
+                                                      selectInput(inputId = "densityPosition", label = "Position", choices = c("default", sort(positions)), selected = "default")
+                                                      }),
+                                                    column(6, sliderInput(inputId = "alpha", label = "Transparency", min = 0.01, max = 1, value = 1))
+                                                  )),
+                                 # fluidRow(
+                                 #   column(6, uiOutput("UiDensityPosition")),
+                                 #   column(6, uiOutput("UiAlpha"))
+                                 # ),
+                                 
                                  #ui for adding shape and linetype
-                                 uiOutput("UiShapeLine"),
+                                 # uiOutput("UiShapeLine"),
+                                 conditionalPanel(condition = "input.plotType",
+                                                  checkboxGroupInput(inputId = "shapeLine", label = "Add more aesthetic", choices = c("Shape", "Line type"), inline = TRUE)
+                                                  ),
+                                 
+                                 stop here---------------
+                                 
+                                 
+                                 
+                                 
+                                 
+                                 
+                                 
+                                 
+                                 
+                                 
                                  #ui for shape
                                  map(1:3,function(.)uiOutput(paste0("shape_",.))),
                                  #1. variable 2. 
@@ -2969,16 +2985,13 @@ server <- function(input, output){
   #     selectInput(inputId = "theme", label = "Background theme", choices = c("default", "dark", "white", "white with grid lines","blank"), selected = "default") 
   #   }
   # })
+  #update density position
+  observe({
+    req(input$plotType, input$colorSet)
+    updateSelectInput(inputId = "densityPosition", label = "Position", choices = c("default", sort(positions)), selected = "default")
+    updateSliderInput(inputId = "alpha", label = "Transparency", min = 0.01, max = 1, value = 1)
+  })
   
-  output$UiDensityPosition <- renderUI({
-    req(refresh_1(), pltType(), input$colorSet != "none")
-    positions<- c("stack", "identity","fill")
-    if(pltType() == "density" && input$colorSet != "none") selectInput(inputId = "densityPosition", label = "Position", choices = c("default", sort(positions)), selected = "default")
-  })
-  output$UiAlpha <- renderUI({
-    req(refresh_1(), pltType(), input$colorSet != "none")
-    if(pltType() == "density" && input$colorSet != "none") sliderInput(inputId = "alpha", label = "Transparency", min = 0.01, max = 1, value = 1)
-  })
   #For more settings----------------------------------
   #reactive input for transform:remove this later when displayAes() is no longer useful
   transformation <- reactive(ifelse(input$transform == "Yes", TRUE, FALSE))
@@ -3059,26 +3072,30 @@ server <- function(input, output){
   #   }
   # })
   
-  #option to provide color 
-  #provide option to auto fill the color or customize it
-  output$uiAutoCustome <- renderUI(
+  # #option to provide color 
+  # #provide option to auto fill the color or customize it
+  # output$uiAutoCustome <- renderUI(
+  #   if(req(input$colorSet) != "none"){
+  #     radioButtons("autoCustome", label = NULL, choices = c("auto filled","customize"), selected = "auto filled")
+  #   })
+  #update auto and custome options
+  observe({
     if(req(input$colorSet) != "none"){
-      radioButtons("autoCustome", label = NULL, choices = c("auto filled","customize"), selected = "auto filled")
-    })
-  #if customize is selected than provide option to add colors
-  output$UiColorAdd <- renderUI({
-    req(input$autoCustome)
-    customize <- reactive(input$autoCustome)
-    if(input$colorSet != "none" & customize() == "customize"){
-      #get number of variables
-      countVar <- ptable() %>%
-        #count number of variables 
-        distinct(.data[[input$colorSet]], .keep_all = T) %>% nrow()
-      
-      textAreaInput(inputId = "colorAdd", label = glue::glue("Enter {countVar} colors"),
-                    placeholder = "comma or space separated. \nE.g. red, #cc0000, BLUE")
-    }
-  })#end of renderUI
+          updateRadioButtons(inputId = "autoCustome", label = NULL, choices = c("auto filled","customize"), selected = "auto filled")
+        }
+  })
+  #update color customization
+  observe({
+    req(input$autoCustome == "customize", is.data.frame(ptable()), input$colorSet %in% colnames(ptable()))
+    #get number of variables
+    countVar <- ptable() %>%
+      #count number of variables 
+      distinct(.data[[input$colorSet]], .keep_all = T) %>% nrow()
+    
+    updateTextAreaInput(inputId = "colorAdd", label = glue::glue("Enter {countVar} colors"), value= character(0),
+                  placeholder = "comma or space separated. \nE.g. red, #cc0000, BLUE")
+    
+  })
   
   # #color and fill for histogram----------------
   # #above option to add color and histogram color setting will be mutually exclusive
@@ -3092,22 +3109,37 @@ server <- function(input, output){
   # })
   #shape and line-----------------
   #shapeExcluded <- c("histogram", "frequency polygon", "line", "scatter plot")
-  shapeLineOption <- reactive({
-    if(req(pltType()) %in% c("scatter plot")){
-      # list(tags$span("Shape", style = "font-weight:bold; color:#0099e6"))
-      c("Shape")
-    }else if(req(pltType()) %in% c(  "box plot","violin plot", "bar plot", "histogram", "frequency polygon", "line", "density")){
-      #remove shape for histogram, frequency polygon, line
-      c("Line type")
-    }else{
-      c("Shape", "Line type")
-    }
+  # shapeLineOption <- reactive({
+  #   if(req(pltType()) %in% c("scatter plot")){
+  #     # list(tags$span("Shape", style = "font-weight:bold; color:#0099e6"))
+  #     c("Shape")
+  #   }else if(req(pltType()) %in% c(  "box plot","violin plot", "bar plot", "histogram", "frequency polygon", "line", "density")){
+  #     #remove shape for histogram, frequency polygon, line
+  #     c("Line type")
+  #   }else{
+  #     c("Shape", "Line type")
+  #   }
+  # })
+  #update shapeline
+  observe({
+    req(input$plotType, input$stat)
+    shapeLineOption <- reactive({
+      if(req(input$plotType) %in% c("scatter plot")){
+        # list(tags$span("Shape", style = "font-weight:bold; color:#0099e6"))
+        c("Shape")
+      }else if(req(input$plotType) %in% c(  "box plot","violin plot", "bar plot", "histogram", "frequency polygon", "line", "density")){
+        #remove shape for histogram, frequency polygon, line
+        c("Line type")
+      }else{
+        c("Shape", "Line type")
+      }
+    })
+    updateCheckboxGroupInput(inputId = "shapeLine", label = "Add more aesthetic", choices = shapeLineOption(), inline = TRUE)
   })
-  
-  output$UiShapeLine <- renderUI({
-    req(refresh_2(), pltType(), input$stat)
-    checkboxGroupInput(inputId = "shapeLine", label = "Add more aesthetic", choices = shapeLineOption(), inline = TRUE)
-  })
+  # output$UiShapeLine <- renderUI({
+  #   req(refresh_2(), pltType(), input$stat)
+  #   checkboxGroupInput(inputId = "shapeLine", label = "Add more aesthetic", choices = shapeLineOption(), inline = TRUE)
+  # })
   #update shapeLine if input parameters for data changed
   observe({
     req(input$replicatePresent, input$transform, pltType())
