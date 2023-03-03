@@ -72,8 +72,8 @@ newId = character. ID for the selectinput
 firchoice = character. 'none' as default first choice
 choice = list of character. 
 selecteds = character. must be present in the choice list"
-colorParam <- function(update= TRUE, pltType = "none",
-                       data = ptable(), label = "Add color", newId = "colorSet", 
+selectInputParam <- function(update= TRUE, pltType = "none",
+                       data, label = "Add color", newId = "colorSet", 
                        firstChoice = "none", choice = "", selecteds = "none",...){
   if(!isTRUE(update)){
     if(!is.data.frame(data) || (is.data.frame(data) && pltType == "none")){
@@ -94,7 +94,7 @@ colorParam <- function(update= TRUE, pltType = "none",
 
 #remove the below later: when color option is being optimized
 displayAes <- function(update= "no", transform = TRUE, action = FALSE, pltType = "pltType()",#!isTruthy(input$goAction)
-                       data = ptable(), label = "Variable to fill color", newId = "colorSet", firstChoice = "none", choice = colnames(ptable()), selecteds = "none",...){
+                       data, label = "Variable to fill color", newId = "colorSet", firstChoice = "none", choice = colnames(ptable()), selecteds = "none",...){
   if(tolower(update) =="no"){
     if(!is.data.frame(data) || (is.data.frame(data) & isFALSE(transform) & req(pltType) == "none") || (is.data.frame(data) & isTRUE(transform) & isFALSE(action))){
       selectInput(inputId = newId, label = label, choices = list("none"))

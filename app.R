@@ -405,22 +405,22 @@ ui <- fluidPage(
                                uiOutput("UiLineConnectPath"),
                                #Ui for scatter plot, jitter the points
                                # uiOutput("UiJitter"),
-                               conditionalPanel(condition = "input.plotType === 'scatter plot'",
-                                                checkboxInput(inputId = "jitter", label = tags$span("Handle overplotting (jitter)", style = "font-weight:bold; color:#b30000; background:#f7f3f3"))
+                               conditionalPanel(condition = "input.plotType == 'scatter plot'",
+                                                checkboxInput(inputId = "jitter", label = tags$span("Handle overplotting (jitter)", style = " color:#b30000; background:#f7f3f3")) #font-weight:bold;
                                                 ),
                                #Ui to add error bar for line type
                                # uiOutput("UiLineErrorBar"),
-                               conditionalPanel(condition = "input.plotType === 'line' || input.plotType === 'bar plot' ||
-                                                input.plotType === 'scatter plot' || input.plotType === 'violin plot'",
-                                                checkboxInput(inputId = "lineErrorBar", label = tags$span("Add error bar", style = "color:#b30000; font-weight:bold; background:#f7f3f3"))
+                               conditionalPanel(condition = "input.plotType == 'line' || input.plotType == 'bar plot' ||
+                                                input.plotType == 'scatter plot' || input.plotType == 'violin plot'",
+                                                div(
+                                                  style ="color:#b30000; font-weight:bold",
+                                                  checkboxInput(inputId = "lineErrorBar", label = "Add error bar") #tags$span("Add error bar", style = "color:#b30000; font-weight:bold; background:#f7f3f3"))
+                                                  )
                                                 ),
-                               # output$UiLineErrorBar <- renderUI({
-                               #   req(refresh_3(), pltType() != "none")
-                               #   if(pltType() %in% c("line", "bar plot", "scatter plot", "violin plot") && (isTruthy(xVar())|| isTruthy(yVar())) ) checkboxInput(inputId = "lineErrorBar", label = tags$span("Add error bar", style = "color:#b30000; font-weight:bold; background:#f7f3f3"))
-                               # })
+                               
                                #parameters for error bar
-                               conditionalPanel(condition = "input.plotType === 'line' || input.plotType === 'bar plot' ||
-                                                input.plotType === 'scatter plot' || input.plotType === 'violin plot'", #input.lineErrorBar",
+                               conditionalPanel(condition = "input.plotType == 'line' || input.plotType == 'bar plot' ||
+                                                input.plotType == 'scatter plot' || input.plotType == 'violin plot'", #input.lineErrorBar",
                                                 div(
                                                   style= "border-top:dotted 1px; border-bottom:dotted 1px; margin-bottom:20px; margin-right:0; 
                                                       background-image:linear-gradient(rgba(206,247,250, 0.3), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5))",
@@ -429,10 +429,10 @@ ui <- fluidPage(
                                                   uiOutput("UiErrorBarStat"),
                                                   #ui message for confidence interval
                                                   uiOutput("UiCIMsg"),
-                                                  #ui to display error for sd
-                                                  uiOutput("UiSdError"),
+                                                  # #ui to display error for sd
+                                                  # uiOutput("UiSdError"),
                                                   #Ui to compute or specify the computed sd
-                                                  uiOutput("UilineComputeSd"),
+                                                  uiOutput("UilineComputeSd"), #have to be in the server logic
                                                   #Ui to group by for computing standard deviation 
                                                   uiOutput("UiLineGroupVar"),
                                                   #ui for error bar size
@@ -531,30 +531,58 @@ ui <- fluidPage(
                                  
                                  #ui for adding shape and linetype
                                  # uiOutput("UiShapeLine"),
-                                 conditionalPanel(condition = "input.plotType",
+                                 conditionalPanel(condition = "input.plotType !== ''",
                                                   checkboxGroupInput(inputId = "shapeLine", label = "Add more aesthetic", choices = c("Shape", "Line type"), inline = TRUE)
                                                   ),
                                  
-                                 stop here---------------
+                                 # #ui for shape
+                                 # map(1:3,function(.)uiOutput(paste0("shape_",.))),
+                                 # #1. variable 2. 
+                                 # #ui for line
+                                 # map(1:3,function(.)uiOutput(paste0("line_",.)))
                                  
                                  
-                                 
-                                 
-                                 
-                                 
-                                 
-                                 
-                                 
-                                 
-                                 #ui for shape
-                                 map(1:3,function(.)uiOutput(paste0("shape_",.))),
-                                 #1. variable 2. 
-                                 #ui for line
-                                 map(1:3,function(.)uiOutput(paste0("line_",.)))
-                                 
+                                 #shape
+                                 conditionalPanel(condition = "input.plotType !== 'bar plot' && input.shapeLine == 'Shape'",
+                                                  selectInput(inputId = "shapeSet", label = "Variable for shape", choices = "none")
+                                                  ),
+                                 #line
+                                 conditionalPanel(condition = "input.shapeLine == 'Line type'",
+                                                  selectInput(inputId = "lineSet", label = "Variable for line type", choices = "none")
+                                                  )
+                                 # #line
+                                 # output$line_1 <- renderUI({
+                                 #   req(input$shapeLine == "Line type")
+                                 #   if(pltType() == "line" && input$lineConnectPath != "none"){
+                                 #     displayAes(transform = transformation(), action = action(), pltType = pltType(),
+                                 #                label = "Variable for line type", newId = "lineSet", firstChoice = NULL, choice = input$lineConnectPath, selected = input$lineConnectPath)
+                                 #   }else{
+                                 #     displayAes(transform = transformation(), action = action(), pltType = pltType(),
+                                 #                label = "Variable for line type", newId = "lineSet", firstChoice = NULL, choice = choiceVar, selected = var) 
+                                 #   }
+                                 # })
+                                 # })
+                               
                                )#end of div aesthetic
                                
                         ),#end of 1st column
+                        
+                        
+                        
+                        #stop here-------------------------------
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
                         
                         column(6,
                                #setting for statistical computing
@@ -2673,7 +2701,11 @@ server <- function(input, output){
     if(req(pltType()) == "line" && (isTruthy(xVar())|| isTruthy(yVar())) ) selectInput(inputId = "lineConnectPath", label = "Connect the line", choices = c("none", varC), selected = "none")
   })
   
-  #add error bar
+  #update error bar
+  observe({
+    req(is.data.frame(ptable()), input$plotType %in% c("line", "bar plot", "scatter plot", "violin plot"))
+    updateCheckboxInput(inputId = "lineErrorBar", label = "Add error bar", value = FALSE) #tags$("Add error bar", style = "color:#b30000; font-weight:bold; background:#f7f3f3"))
+  })
   # output$UiLineErrorBar <- renderUI({
   #   req(refresh_3(), pltType() != "none")
   #   if(pltType() %in% c("line", "bar plot", "scatter plot", "violin plot") && (isTruthy(xVar())|| isTruthy(yVar())) ) checkboxInput(inputId = "lineErrorBar", label = tags$span("Add error bar", style = "color:#b30000; font-weight:bold; background:#f7f3f3"))
@@ -2700,13 +2732,11 @@ server <- function(input, output){
     })
   })
   
-  
-  
   #Option for the user to used computed sd or to compute sd
   output$UilineComputeSd <- renderUI({
     req(refresh_3(), pltType() != "none", input$errorBarStat)
     if(pltType() %in% c("line", "bar plot", "scatter plot", "violin plot") & req(isTruthy(input$lineErrorBar))){
-      choic <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
+      choic <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"),
                     tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
       
       if(input$errorBarStat == "Standard error (SE)"){
@@ -2719,6 +2749,24 @@ server <- function(input, output){
       
     }
   })
+  
+  # #update ci, se and sd
+  # observe({
+  #   req(pltType() != "none", isTruthy(input$lineErrorBar), input$errorBarStat)
+  #   
+  #     choic <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"),
+  #                   tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
+  #     
+  #     if(input$errorBarStat == "Standard error (SE)"){
+  #       updateRadioButtons(inputId = "lineComputeSd", label = "Auto compute SE?", choiceNames = choic, choiceValues = c("no","yes"), selected = "no", inline = TRUE)
+  #     }else if(input$errorBarStat == 'Standard deviation (SD)'){
+  #       updateRadioButtons(inputId = "lineComputeSd", label = "Auto compute SD?", choiceNames = choic, choiceValues = c("no","yes"), selected = "no", inline = TRUE)
+  #     }else{
+  #       updateRadioButtons(inputId = "lineComputeSd", label = "Auto compute CI?", choiceNames = choic, choiceValues = c("no","yes"), selected = "no", inline = TRUE)
+  #     }
+  # })
+  # 
+
   #display error message for SD
   sdError <- 0
   observe({
@@ -2997,7 +3045,7 @@ server <- function(input, output){
   transformation <- reactive(ifelse(input$transform == "Yes", TRUE, FALSE))
   action <- reactive(ifelse(isTruthy(input$goAction), TRUE, FALSE))
   #temp: remove from server (it is in global)
-  colorParam <- function(update= TRUE, pltType = "none",
+  selectInputParam <- function(update= TRUE, pltType = "none",
                          data = ptable(), label = "Add color", newId = "colorSet", 
                          firstChoice = "none", choice = "", selecteds = "none",...){
     if(!isTRUE(update)){
@@ -3053,14 +3101,14 @@ server <- function(input, output){
   #update color option when plot type is choosen
   observe({
     req(pltType())
-      colorParam(update = TRUE, pltType = pltType(),
+      selectInputParam(update = TRUE, pltType = pltType(),
                  data = ptable(), label= "Add color", newId = "colorSet", choice = varColorChoice()) 
   })
   # #update color if the input feature change
   # observe({
   #   req(input$replicatePresent, input$transform)
   #   if( isTRUE(dataChanged()) || isTruthy(input$replicateActionButton) || isTruthy(input$goAction) ){
-  #     colorParam(update = TRUE, pltType = pltType(),
+  #     selectInputParam(update = TRUE, pltType = pltType(),
   #                data = ptable(), label= "Add color", newId = "colorSet", choice = varColorChoice()) 
   #   }
   # })
@@ -3148,8 +3196,29 @@ server <- function(input, output){
     }
   })
   
+  #remove the below later: when color option is being optimized
+  displayAes <- function(update= "no", transform = TRUE, action = FALSE, pltType = "pltType()",#!isTruthy(input$goAction)
+                         data = ptable(), label = "Variable to fill color", newId = "colorSet", firstChoice = "none", choice = colnames(ptable()), selecteds = "none",...){
+    if(tolower(update) =="no"){
+      if(!is.data.frame(data) || (is.data.frame(data) & isFALSE(transform) & req(pltType) == "none") || (is.data.frame(data) & isTRUE(transform) & isFALSE(action))){
+        selectInput(inputId = newId, label = label, choices = list("none"))
+      }else{#} if(is.data.frame(data)){
+        selectInput(inputId = newId, label = label, choices = c(firstChoice, choice), selected = selecteds)
+      }
+    }else if(tolower(update) == "yes"){
+      if(!is.data.frame(data) || (is.data.frame(data) & isFALSE(transform) & req(pltType) == "none") || (is.data.frame(data) & isTRUE(transform) & isFALSE(action))){
+        updateSelectInput(inputId = newId, label = label, choices = list("none"))
+      }else{#} if(is.data.frame(data)){
+        message("-===========updating selectInput================")
+        updateSelectInput(inputId = newId, label = label, choices = c(firstChoice, choice), selected = selecteds)
+      }
+      
+    }
+  }
+  
   observeEvent(req(input$shapeLine),{
-    req(is.data.frame(ptable()))
+    req(is.data.frame(ptable()), input$plotType != "none")
+    # browser()
     #This will be updated later based on ANOVA, if required
     #variables to choose
     var <- selectedVar(data = ptable())
@@ -3159,24 +3228,24 @@ server <- function(input, output){
     }else{
       choiceVar <- ""
     }
-    #shape
-    output$shape_1 <- renderUI({
-      req(pltType() != "bar plot" && input$shapeLine == "Shape", input$stat)
-      displayAes(transform = transformation(), action = action(), pltType = pltType(),
-                 label = "Variable for shape", newId = "shapeSet", firstChoice = NULL, choice = choiceVar, selected = var) 
-      
-    })
-    #line
-    output$line_1 <- renderUI({
-      req(input$shapeLine == "Line type")
-      if(pltType() == "line" && input$lineConnectPath != "none"){
-        displayAes(transform = transformation(), action = action(), pltType = pltType(),
-                   label = "Variable for line type", newId = "lineSet", firstChoice = NULL, choice = input$lineConnectPath, selected = input$lineConnectPath)
+    #update shape
+    req(input$shapeLine)
+    
+    if(input$shapeLine == "Shape"){
+      req(input$plotType != 'bar plot')
+      #use the function
+      selectInputParam(update = TRUE, pltType = input$plotType, data = ptable(),
+                 label = "Variable for shape", newId = "shapeSet",
+                 firstChoice = NULL, choice = choiceVar, selected = var)
+    }
+    
+    if(input$shapeLine == "Line type"){
+      if(req(input$plotType) == "line" && req(input$lineConnectPath) != "none"){
+        updateSelectInput(inputId = "lineSet", label = "Variable for line type", choices = input$lineConnectPath, selected = input$lineConnectPath)
       }else{
-        displayAes(transform = transformation(), action = action(), pltType = pltType(),
-                   label = "Variable for line type", newId = "lineSet", firstChoice = NULL, choice = choiceVar, selected = var) 
+        updateSelectInput(inputId = "lineSet", label = "Variable for line type", choices = choiceVar, selected = var)
       }
-    })
+    }
   })
   
   
@@ -3189,18 +3258,22 @@ server <- function(input, output){
   observe({
     req( pltType() %in% c("scatter plot", "bar plot"), isTruthy(input$lineErrorBar), xVar() )
     if( isTruthy(input$lineErrorBar) && !input$colorSet %in% c("none", colnames(xVar())) ){
-      
+      browser()
       if(pltType() == "scatter plot"){
         #update shape
-        displayAes(update = "yes", transform = transformation(), action = action(), pltType = pltType(),
-                   data = ptable(), label = "Variable for shape", newId = "shapeSet", firstChoice = NULL, choice = c(colnames(xVar()), input$colorSet), selected= input$colorSet )
+        selectInputParam(update = TRUE, pltType = input$plotType, data = ptable(), label = "Variable for shape", 
+                         newId = "shapeSet", firstChoice = NULL, choice = c(colnames(xVar()), input$colorSet), selected= input$colorSet)
+        # displayAes(update = "yes", transform = transformation(), action = action(), pltType = pltType(),
+        #            data = ptable(), label = "Variable for shape", newId = "shapeSet", firstChoice = NULL, choice = c(colnames(xVar()), input$colorSet), selected= input$colorSet )
       }else if(pltType() == "bar plot"){
         #update line
         #for line plot, it will be taken care by connect line path
         message("update lineSet2")
         # updateSelectInput(inputId = "lineSet", label = "Variable for line type2", choices = c(colnames(xVar()), input$colorSet), selected= input$colorSet)
-        displayAes(update = "yes", transform = transformation(), action = action(), pltType = pltType(),
-                   data = ptable(), label = "Variable for line type", newId = "lineSet", firstChoice = NULL, choice = c(colnames(xVar()), input$colorSet), selected= input$colorSet )
+        selectInputParam(update = TRUE, pltType = input$plotType, data = ptable(), label = "Variable for line type", 
+                         newId = "lineSet", firstChoice = NULL, choice = c(colnames(xVar()), input$colorSet), selected= input$colorSet )
+        # displayAes(update = "yes", transform = transformation(), action = action(), pltType = pltType(),
+        #            data = ptable(), label = "Variable for line type", newId = "lineSet", firstChoice = NULL, choice = c(colnames(xVar()), input$colorSet), selected= input$colorSet )
       }
       
     }
@@ -5033,8 +5106,14 @@ server <- function(input, output){
                geom_freqpoly(size = freqPolySize(), binwidth = binwd())
              },
              "line" = if(connectVar() == 1){
-               #no need to group for character type
-               geom_line(size = freqPolySize())
+               
+               if(xVarType()[1] %in% c("integer", "numeric", "double")){
+                 #group for numeric type
+                 geom_line(group =1, size = freqPolySize())
+               }else{
+                 #no need to group for character type
+                 geom_line(size = freqPolySize())
+               }
              }else{
                geom_line(aes(group=.data[[connectVar()]]), size = freqPolySize())
              },
@@ -5324,7 +5403,7 @@ server <- function(input, output){
                                  "line" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
                                                         width = 0.2, position = position_dodge(0.03), size = freqPolySize()),
                                  "bar plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
-                                                            width = 0.2, position = position_dodge(width = 0.9)),
+                                                            width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize)),
                                  "scatter plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
                                                                 width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize)),
                                  "violin plot" = geom_pointrange(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
@@ -5336,7 +5415,7 @@ server <- function(input, output){
                                  "line" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
                                                         width = 0.2, position = position_dodge(0.03), size = freqPolySize(), color = errorBarColor()),
                                  "bar plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
-                                                            width = 0.2, position = position_dodge(width = 0.9), color = errorBarColor()),
+                                                            width = 0.2, position = position_dodge(width = 0.9), color = errorBarColor(), size = req(input$errorBarSize)),
                                  "scatter plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
                                                                 width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize), color = errorBarColor()),
                                  "violin plot" = geom_pointrange(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
@@ -5360,7 +5439,7 @@ server <- function(input, output){
                                                           position = position_dodge(0.03), size = freqPolySize()),
                                    "bar plot" = geom_errorbar(data = newData, aes(ymin = .data[[ colnm ]] - .data[[ lineGroupVar() ]],
                                                                                   ymax = .data[[ colnm ]] + .data[[ lineGroupVar() ]]),  width = 0.2,
-                                                              position = position_dodge(width = 0.9)), #position will always be dodge for error_bar
+                                                              position = position_dodge(width = 0.9), size = req(input$errorBarSize)), #position will always be dodge for error_bar
                                    "scatter plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - sd, ymax = .data[[colnm]] + sd), 
                                                                   width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize)),
                                    "violin plot" = geom_pointrange(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
@@ -5373,7 +5452,7 @@ server <- function(input, output){
                                                           position = position_dodge(0.03), size = freqPolySize(), color = errorBarColor()),
                                    "bar plot" = geom_errorbar(data = newData, aes(ymin = .data[[ colnm ]] - .data[[ lineGroupVar() ]],
                                                                                   ymax = .data[[ colnm ]] + .data[[ lineGroupVar() ]]),  width = 0.2,
-                                                              position = position_dodge(width = 0.9), color = errorBarColor()), #position will always be dodge for error_bar
+                                                              position = position_dodge(width = 0.9), color = errorBarColor(), size = req(input$errorBarSize)), #position will always be dodge for error_bar
                                    "scatter plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - sd, ymax = .data[[colnm]] + sd), 
                                                                   width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize), color = errorBarColor()),
                                    "violin plot" = geom_pointrange(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
