@@ -14,12 +14,15 @@ ui <- fluidPage(
         
         $("#hover_display").show();         
         $("#hover_display").css({  
-          top: (yCord - 30) + "px",           
+          top: (yCord + 100) + "px",           
           left: (xCord - 140) + "px"
         });     
       });     
     });
   '),
+  
+  #30
+  #140
   #header-------------
   # Application title
   div(class="header",
@@ -1135,7 +1138,7 @@ server <- function(input, output){
       
       #alert and validate the file type
       output$UiUploadInvalid <- renderUI({
-        if(!ext %in% c("csv","tsv","xlsx", "xls","rds", "txt") ){
+        if(req(input$pInput) == "upload data" && !ext %in% c("csv","tsv","xlsx", "xls","rds", "txt") ){
           helpText(list(tags$p("Invalid file!!"), tags$p("Please upload a valid file: csv/tsv/txt/xlsx/xls/rds")), style= "color:red; text-align:center")
         }
       })
@@ -2955,6 +2958,11 @@ server <- function(input, output){
                                                                                                                        value = value, min = min, max = max)
     })
 
+  })
+  #update alpha
+  observe({
+    req(input$plotType == "scatter plot")
+    updateSliderInput(inputId = "scatterAlpha", min = 0.1, max = 1, value = 1)
   })
   
   #add mean, median for histogram
@@ -6066,13 +6074,6 @@ server <- function(input, output){
     req(c(input$xAxis, input$yAxis) %in% colnames(ptable()))
     
     df <- nearPoints(ptable(), input$hover_info, xvar = req(input$xAxis), yvar = req(input$yAxis) )
-    # output$UiHover_display <- renderUI({
-    #   # df <- nearPoints(ptable(), input$hover_info, xvar = req(input$xAxis), yvar = req(input$yAxis) )
-    #   if(nrow(df) != 0){
-    #     verbatimTextOutput("hover_display")
-    #   }
-    #   
-    # })
     
     output$hover_display <- renderPrint({
       if(nrow(df) != 0){
@@ -6103,13 +6104,17 @@ server <- function(input, output){
   observe({
     req(ptable(), input$plotType, input$xAxis, input$yAxis, input$click_info)# input$UiHover_display)
     #get brush data
-    validate(
-      need(req(input$xAxis) %in% colnames(ptable()) && req(input$yAxis) %in% colnames(ptable()), "")
-      # need(all( c(req(input$xAxis), req(input$yAxis) ) %in% colnames(ptable())), "")
-    )
-    browser()
+    # validate(
+    #   need(req(input$xAxis) %in% colnames(ptable()) && req(input$yAxis) %in% colnames(ptable()), "")
+    #   # need(all( c(req(input$xAxis), req(input$yAxis) ) %in% colnames(ptable())), "")
+    # )
+    
     #get click data
-    df <- nearPoints(ptable(),coordinfo = req(input$click_info), xvar = input$xAxis, yvar = input$yAxis)
+    if(req(input$xAxis) %in% colnames(ptable()) && req(input$yAxis) %in% colnames(ptable())){
+      df <- nearPoints(ptable(),coordinfo = req(input$click_info), xvar = input$xAxis, yvar = input$yAxis)
+    }else{ df <- data.frame(matrix(nrow = 0, ncol = 0)) }
+    
+    
     clickBrush_df(df)#save it for download
     
     if(input$plotType != "none" && nrow(df) != 0){
@@ -6148,10 +6153,12 @@ server <- function(input, output){
   observe({
     req(ptable(), pltType(), input$xAxis, input$yAxis, input$brush_info)# input$UiHover_display)
     #get brush data
-    validate(
-      need(input$xAxis %in% colnames(ptable()) && input$yAxis %in% colnames(ptable()), "")
-    )
-    df <- brushedPoints(df = ptable(), brush = input$brush_info, xvar = input$xAxis, yvar = input$yAxis)
+    #get click data
+    if(req(input$xAxis) %in% colnames(ptable()) && req(input$yAxis) %in% colnames(ptable())){
+      df <- brushedPoints(df = ptable(), brush = input$brush_info, xvar = input$xAxis, yvar = input$yAxis)
+    }else{ df <- data.frame(matrix(nrow = 0, ncol = 0)) }
+    
+    
     clickBrush_df(df)#save it for download
     #table to display
     if(input$plotType != "none" && nrow(df) != 0){
