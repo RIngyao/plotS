@@ -42,9 +42,19 @@ library(shinyWidgets)
 # library(shinyauthr)
 
 #Objects necesary to create---------------
+#list of graph
+planPlotList <- c("none",   "box plot","bar plot", "histogram", "scatter plot",
+                  "density plot", "heatmap", "line", "frequency polygon",
+                  "violin","jitter","area", "pie chart", "venn", "upset", "tile")
+plotList <- c(  "box plot","violin plot", "density", "frequency polygon", "histogram","line", "scatter plot", "bar plot")
+
 #plot that require x and y-axis
 xyRequire <- c(  "box plot", "bar plot", "line", "scatter plot", "violin plot") 
 NS_methods <- list(Normalization= c("log2", "log10", "square-root", "box-cox"), Standardization = c("scale","") )
+
+#statistical method----------
+statMethods <- list(Parametric = c("t.test", "anova"), `Non-parametric`=c("wilcoxon.test","kruskal-wallis"))
+statList <- c("t.test", "anova", "wilcoxon.test","kruskal-wallis")
 
 #stat object
 aovClt <- NULL #anova compact leter

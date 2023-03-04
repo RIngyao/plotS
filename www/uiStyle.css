@@ -265,6 +265,13 @@ body{
       }
       
       /*statistic*/
+      /* 
+.CPChoosePFormat{
+      font-weight:bolder; 
+      color:red
+      }
+ */
+      
       #UiChooseSignif{
       margin:0;
       padding:0;
