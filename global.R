@@ -41,7 +41,19 @@ library(shinyWidgets)
 # library(shinyvalidate)
 # library(shinyauthr)
 
-#Objects necesary to create---------------
+#Objects necessary to create---------------
+#example dataset
+long_df <- PlantGrowth
+wide_df <- structure(list(ctrl = c(4.17, 5.58, 5.18, 6.11, 4.5, 4.61, 5.17,4.53, 5.33, 5.14), 
+                          trt1 = c(4.81, 4.17, 4.41, 3.59, 5.87, 3.83,6.03, 4.89, 4.32, 4.69), 
+                          trt2 = c(6.31, 5.12, 5.54, 5.5, 5.37,5.29, 4.92, 6.15, 5.8, 5.26)), 
+                     row.names = c(NA, -10L), class = c("data.frame"))
+replicate_df <- structure(list(...1 = c("variable", "ob1", "ob2", "ob3", "ob4", "ob5", "ob6", "ob7"), 
+                               control = c("R1","23", "41", "24", "5", "23", "56", "23"), 
+                               ...3 = c("R2","23", "54", "65", "32", "57", "73", "42"), 
+                               treatment = c("R1", "2", "3", "4", "67", "2", "45", "24"), 
+                               ...5 = c("R2", "1", "4", "6", "32", "1", "35", "23")), class = c("data.frame"), row.names = c(NA, -7L))
+
 #list of graph
 planPlotList <- c("none",   "box plot","bar plot", "histogram", "scatter plot",
                   "density plot", "heatmap", "line", "frequency polygon",

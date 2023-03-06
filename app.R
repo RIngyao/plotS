@@ -567,9 +567,9 @@ ui <- fluidPage(
                                                   ),
                                                   #Ui for selecting test method of statistics
                                                   conditionalPanel(condition = "input.stat == 't.test'",
-                                                                   uiOutput("UiTtestMethod"),
+                                                                   uiOutput("UiTtestMethod")
                                                                    # radioButtons(inputId = "ttestMethod", label = "Test method", choiceNames = choices, choiceValues = c(FALSE, TRUE), inline = TRUE)}
-                                                                   helpText("Refer the summary and change the method, if necessary.")
+                                                                   # helpText("Refer the summary and change the method, if necessary.")
                                                   ),
                                                   #Ui for data type: paired or unpaired
                                                   # uiOutput("UiPairedData"),
@@ -837,8 +837,7 @@ ui <- fluidPage(
                       ) %>% tagAppendAttributes(class = "figurePlotBox"),
                       #box for figure settings:theme  
                       box(
-                        #title = span("Additional settings:", style="font-weight:bold"),
-                        # style="overflow-y:auto; position:fixed; width:inherit",
+                        
                         width = 12,
                         
                         #text label for x-axis
@@ -848,33 +847,64 @@ ui <- fluidPage(
                                                       background-image:linear-gradient(rgba(206,247,250, 0.2), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5))",
                                            h4("Change variable name of x-axis", align = "center", style = "color:green; margin-bottom:7px"),
                                            fluidRow(
-                                             column(4, uiOutput("uiXAxisTextLabelChoice")),
-                                             column(8, uiOutput("uiXAxisTextLabel"))
+                                             # column(4, uiOutput("uiXAxisTextLabelChoice")),
+                                             column(4, selectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = "none", multiple = TRUE)),
+                                             column(8, uiOutput("uiXAxisTextLabel"))#manage in server logic
                                            )
                                          )
                         ),
+                        
                         #font size
-                        column(6, uiOutput("uiTitleSize")),
-                        column(6, uiOutput("uiTextSize")),
-                        fluidRow(
-                          column(6, uiOutput("uiYlable")),
-                          column(6, uiOutput("uiXlable")),
-                        ),
+                        conditionalPanel(condition = "input.plotType != 'none'",
+                                         column(6, sliderInput(inputId = "titleSize", label = "Axis title font size", min = 10, max = 50, value = 15)),
+                                         column(6, sliderInput(inputId = "textSize", label = "Axis text font size", min = 10, max = 50, value = 15)),
+                                         fluidRow(
+                                           column(6, textAreaInput(inputId = "yLable", label = "Enter title for Y-axis", height = "35px")),
+                                           column(6, textAreaInput(inputId = "xLable", label = "Enter title for X-axis", height = "35px"))
+                                         )
+                                         ),
+                        # column(6, uiOutput("uiTitleSize")),
+                        # column(6, uiOutput("uiTextSize")),
+                        # fluidRow(
+                        #   column(6, uiOutput("uiYlable")),
+                        #   column(6, uiOutput("uiXlable")),
+                        # ),
+                        
                         #ui for legend
                         # fluidRow(
+                        conditionalPanel(condition = "input.plotType != 'none' && (input.colorSet != 'none' || (input.shapeLine == 'Shape' || input.shapeLine == 'Line type'))",
+                                         fluidRow(
+                                           
+                                           #position
+                                           column(3, selectInput(inputId = "legendPosition", label = "Legend position", choices = c("none","bottom","left","right","top"), selected = "right")),
+                                           conditionalPanel(condition = "input.legendPosition != 'none'",
+                                                            #direction
+                                                            column(3, selectInput(inputId = "legendDirection", label = "Legend direction", choices = c("horizontal","vertical"), selected = "vertical")),
+                                                            #font size
+                                                            column(3, sliderInput(inputId = "legendSize", label = "Legend size", min = 10, max = 50, value = 15)),
+                                                            #Legend title on & off
+                                                            column(3, checkboxInput(inputId = "legendTitle", label = span("Remove legend title", style = "font-weight:bold; color:cornflowerblue")))
+                                                            )
+                                         )
+                                         ),
+                        # fluidRow(
+                        #   
+                        #   #position
+                        #   column(3, uiOutput("UiLegendPosition")),
+                        #   #direction
+                        #   column(3, uiOutput("UiLegendDirection")),
+                        #   #font size
+                        #   column(3,uiOutput("UiLegendSize")),
+                        #   #Legend title on & off
+                        #   column(3, uiOutput("UiLegendTitle"))
+                        # ),
+                        
                         fluidRow(
+                          # uiOutput("UiPlabelSize"),
+                          conditionalPanel(condition = "input.plotType != 'none' && input.stat != 'none'",
+                                           sliderInput(inputId = "plabelSize", label = "Adjust p-value label size", min = 1, max = 15, value = 7)
+                                           ),
                           
-                          #position
-                          column(3, uiOutput("UiLegendPosition")),
-                          #direction
-                          column(3, uiOutput("UiLegendDirection")),
-                          #font size
-                          column(3,uiOutput("UiLegendSize")),
-                          #Legend title on & off
-                          column(3, uiOutput("UiLegendTitle"))
-                        ),
-                        fluidRow(
-                          uiOutput("UiPlabelSize"),
                         #Miscellaneous setting for graph
                         conditionalPanel(condition = "input.plotType != 'none'",
                                          dropdownButton(
@@ -1193,22 +1223,15 @@ server <- function(input, output){
       req(input$pFile %in% c("long format", "wide format", "replicate"))
       if(req(input$pFile) == "long format"){
         #example for long format
-        pData <- PlantGrowth
+        pData <- long_df
       }else if(req(input$pFile) == "wide format"){
         #example for wide format
-        pData <- structure(list(ctrl = c(4.17, 5.58, 5.18, 6.11, 4.5, 4.61, 5.17,4.53, 5.33, 5.14), 
-                       trt1 = c(4.81, 4.17, 4.41, 3.59, 5.87, 3.83,6.03, 4.89, 4.32, 4.69), 
-                       trt2 = c(6.31, 5.12, 5.54, 5.5, 5.37,5.29, 4.92, 6.15, 5.8, 5.26)), 
-                  row.names = c(NA, -10L), class = c("data.frame"))
+        pData <- wide_df
         
         
       }else if (req(input$pFile) == "replicate"){
         #example for replicate
-        pData <- structure(list(...1 = c("variable", "ob1", "ob2", "ob3", "ob4", "ob5", "ob6", "ob7"), 
-                       control = c("R1","23", "41", "24", "5", "23", "56", "23"), 
-                       ...3 = c("R2","23", "54", "65", "32", "57", "73", "42"), 
-                       treatment = c("R1", "2", "3", "4", "67", "2", "45", "24"), 
-                       ...5 = c("R2", "1", "4", "6", "32", "1", "35", "23")), class = c("data.frame"), row.names = c(NA, -7L))
+        pData <- replicate_df
         
       }
     }
@@ -2619,16 +2642,28 @@ server <- function(input, output){
   
   #labelling and adjusting size of axis
   observe({
-    req(is.data.frame(ptable()))
-    output$uiTextSize <- renderUI({if( req(input$plotType) != "none" ) sliderInput(inputId = "textSize", label = "Axis text font size", min = 10, max = 50, value = 15)})
-    output$uiTitleSize <- renderUI({if( req(input$plotType) != "none" ) sliderInput(inputId = "titleSize", label = "Axis title font size", min = 10, max = 50, value = 15)})
-    output$uiYlable <- renderUI({if( req(input$plotType) != "none" )textAreaInput(inputId = "yLable", label = "Enter title for Y-axis", height = "35px")})
-    output$uiXlable <- renderUI({if( req(input$plotType) != "none" )textAreaInput(inputId = "xLable", label = "Enter title for X-axis", height = "35px")})
-    output$uiBinWidth <- renderUI({
-      req(input$plotType, xVarType())
-      if(input$plotType %in% c("histogram", "frequency polygon") & xVarType()[1] %in% c("integer", "numeric", "double")) sliderInput(inputId = "binWidth", label = "Adjust bin width", min = 0.01, max = 100, value = 30)
-    })
+    req(is.data.frame(ptable()), input$plotType != "none")
     
+    updateSliderInput(inputId = "textSize", min = 10, max = 50, value = 15)
+    updateSliderInput(inputId = "titleSize", min = 10, max = 50, value = 15)
+    updateTextAreaInput(inputId = "yLable", value = character(0))
+    updateTextAreaInput(inputId = "xLable", value = character(0))
+    
+    
+    # output$uiTextSize <- renderUI({if( req(input$plotType) != "none" ) sliderInput(inputId = "textSize", label = "Axis text font size", min = 10, max = 50, value = 15)})
+    # output$uiTitleSize <- renderUI({if( req(input$plotType) != "none" ) sliderInput(inputId = "titleSize", label = "Axis title font size", min = 10, max = 50, value = 15)})
+    # output$uiYlable <- renderUI({if( req(input$plotType) != "none" )textAreaInput(inputId = "yLable", label = "Enter title for Y-axis", height = "35px")})
+    # output$uiXlable <- renderUI({if( req(input$plotType) != "none" )textAreaInput(inputId = "xLable", label = "Enter title for X-axis", height = "35px")})
+    # output$uiBinWidth <- renderUI({
+    #   req(input$plotType, xVarType())
+    #   if(input$plotType %in% c("histogram", "frequency polygon") & xVarType()[1] %in% c("integer", "numeric", "double")) sliderInput(inputId = "binWidth", label = "Adjust bin width", min = 0.01, max = 100, value = 30)
+    # })
+
+  })
+  
+  output$uiBinWidth <- renderUI({
+    req(input$plotType, xVarType())
+    if(input$plotType %in% c("histogram", "frequency polygon") & xVarType()[1] %in% c("integer", "numeric", "double")) sliderInput(inputId = "binWidth", label = "Adjust bin width", min = 0.01, max = 100, value = 30)
   })
   
   #changing variable names for the x-axis
@@ -2640,13 +2675,15 @@ server <- function(input, output){
     )
     #get number of variables in x-axis
     x <- req(input$xAxis)
-    cVar <- ptable() %>% distinct(.data[[x]]) 
+    cVar <- ptable() %>% distinct(.data[[x]]) %>% as.data.frame() %>% as.vector()
     # cVar <- unique(ptable()[,x]) %>% as.character() %>% as.list()#this will avoid issue with factor variable
-    output$uiXAxisTextLabelChoice <- renderUI({
-      if( req(input$plotType) != "none" ){
-        selectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = c(All="All", cVar), selected = "ALL", multiple = TRUE)
-      }
-    })
+    # output$uiXAxisTextLabelChoice <- renderUI({
+    #   if( req(input$plotType) != "none" ){
+    #     selectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = c(All="All", cVar), selected = "ALL", multiple = TRUE)
+    #   }
+    # })
+    #update option
+    updateSelectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = c(All="All", cVar), selected = "ALL")
     
     output$uiXAxisTextLabel <- renderUI({
       if( req(input$plotType) != "none" ){
@@ -3337,26 +3374,35 @@ server <- function(input, output){
   })
   
   
-  #Figure legend and other theme parameters------------
+  #figure legend and other theme parameters------------
+  #update figure legend
   observe({
-    req(input$plotType, input$xAxis, input$colorSet)
-    shl <- reactive({
-      ifelse(isTruthy(input$shapeLine), input$shapeLine, "none")
-    })
-    output$UiLegendPosition <- renderUI({if(input$plotType != "none" && (input$colorSet != "none" | shl() %in% c("Shape", "Line type"))) selectInput(inputId = "legendPosition", label = "Legend position", choices = c("none","bottom","left","right","top"), selected = "right")})
-    output$UiLegendDirection <- renderUI({if(input$plotType != "none" && (input$colorSet != "none" | shl() %in% c("Shape", "Line type")) && req(input$legendPosition) != "none") selectInput(inputId = "legendDirection", label = "Legend direction", choices = c("horizontal","vertical"), selected = "vertical")})
-    output$UiLegendSize <- renderUI({if(input$plotType != "none" && (input$colorSet != "none" | shl() %in% c("Shape", "Line type")) && req(input$legendPosition) != "none") sliderInput(inputId = "legendSize", label = "Legend size", min = 10, max = 50, value = 15)})
-    output$UiLegendTitle <- renderUI({if(input$plotType != "none" && (input$colorSet != "none" | shl() %in% c("Shape", "Line type")) && req(input$legendPosition) != "none") checkboxInput(inputId = "legendTitle", label = span("Remove legend title", style = "font-weight:bold; color:cornflowerblue"))})
+    req(ptable(), input$plotType)
+    updateSelectInput(inputId = "legendPosition", label = "Legend position", choices = c("none","bottom","left","right","top"), selected = "right")
   })
+  # observe({
+  #   req(input$plotType, input$xAxis, input$colorSet)
+  #   shl <- reactive({
+  #     ifelse(isTruthy(input$shapeLine), input$shapeLine, "none")
+  #   })
+  #   output$UiLegendPosition <- renderUI({if(input$plotType != "none" && (input$colorSet != "none" | shl() %in% c("Shape", "Line type"))) selectInput(inputId = "legendPosition", label = "Legend position", choices = c("none","bottom","left","right","top"), selected = "right")})
+  #   output$UiLegendDirection <- renderUI({if(input$plotType != "none" && (input$colorSet != "none" | shl() %in% c("Shape", "Line type")) && req(input$legendPosition) != "none") selectInput(inputId = "legendDirection", label = "Legend direction", choices = c("horizontal","vertical"), selected = "vertical")})
+  #   output$UiLegendSize <- renderUI({if(input$plotType != "none" && (input$colorSet != "none" | shl() %in% c("Shape", "Line type")) && req(input$legendPosition) != "none") sliderInput(inputId = "legendSize", label = "Legend size", min = 10, max = 50, value = 15)})
+  #   output$UiLegendTitle <- renderUI({if(input$plotType != "none" && (input$colorSet != "none" | shl() %in% c("Shape", "Line type")) && req(input$legendPosition) != "none") checkboxInput(inputId = "legendTitle", label = span("Remove legend title", style = "font-weight:bold; color:cornflowerblue"))})
+  # })
   
-  #p label size
+  #update p label size
   observe({
-    req(ptable(), pltType(), input$stat)
-    output$UiPlabelSize <- renderUI({
-      # val <- if(input$stat %in% c("anova", "kruskal-wallis")){7}else{15}
-      if(pltType() != "none" && input$stat != "none") sliderInput(inputId = "plabelSize", label = "Adjust p-value label size", min = 1, max = 15, value = 7)
-    })
+    req(input$plotType, input$stat)
+    if(input$plotType != "none" && input$stat != "none") updateSliderInput(inputId = "plabelSize", min = 1, max = 15, value = 7)
   })
+  # observe({
+  #   req(ptable(), pltType(), input$stat)
+  #   output$UiPlabelSize <- renderUI({
+  #     # val <- if(input$stat %in% c("anova", "kruskal-wallis")){7}else{15}
+  #     if(pltType() != "none" && input$stat != "none") sliderInput(inputId = "plabelSize", label = "Adjust p-value label size", min = 1, max = 15, value = 7)
+  #   })
+  # })
   
   #Miscellaneous settings--------------------
   #bracket
@@ -5074,7 +5120,7 @@ server <- function(input, output){
     )
   },{
     
-    # browser()
+    browser()
     #required parameters
     figType <- reactive(req(input$plotType))
     
