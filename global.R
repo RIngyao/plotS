@@ -8,6 +8,7 @@ options(shiny.maxRequestSize = 50*1024^2) # too large: use 50
 #                "rstatix", "shiny", "tidyverse", "reactable")
 # lapply(libraries, library, character.only = TRUE)
 # 
+library(ggpp)
 library(shinyBS)
 library(memoise)
 library(effectsize)
@@ -41,10 +42,32 @@ library(shinyWidgets)
 # library(shinyvalidate)
 # library(shinyauthr)
 
-#Objects necesary to create---------------
+#Objects necessary to create---------------
+#example dataset
+long_df <- PlantGrowth
+wide_df <- structure(list(ctrl = c(4.17, 5.58, 5.18, 6.11, 4.5, 4.61, 5.17,4.53, 5.33, 5.14), 
+                          trt1 = c(4.81, 4.17, 4.41, 3.59, 5.87, 3.83,6.03, 4.89, 4.32, 4.69), 
+                          trt2 = c(6.31, 5.12, 5.54, 5.5, 5.37,5.29, 4.92, 6.15, 5.8, 5.26)), 
+                     row.names = c(NA, -10L), class = c("data.frame"))
+replicate_df <- structure(list(...1 = c("variable", "ob1", "ob2", "ob3", "ob4", "ob5", "ob6", "ob7"), 
+                               control = c("R1","23", "41", "24", "5", "23", "56", "23"), 
+                               ...3 = c("R2","23", "54", "65", "32", "57", "73", "42"), 
+                               treatment = c("R1", "2", "3", "4", "67", "2", "45", "24"), 
+                               ...5 = c("R2", "1", "4", "6", "32", "1", "35", "23")), class = c("data.frame"), row.names = c(NA, -7L))
+
+#list of graph
+planPlotList <- c("none",   "box plot","bar plot", "histogram", "scatter plot",
+                  "density plot", "heatmap", "line", "frequency polygon",
+                  "violin","jitter","area", "pie chart", "venn", "upset", "tile")
+plotList <- c(  "box plot","violin plot", "density", "frequency polygon", "histogram","line", "scatter plot", "bar plot")
+
 #plot that require x and y-axis
 xyRequire <- c(  "box plot", "bar plot", "line", "scatter plot", "violin plot") 
 NS_methods <- list(Normalization= c("log2", "log10", "square-root", "box-cox"), Standardization = c("scale","") )
+
+#statistical method----------
+statMethods <- list(Parametric = c("t.test", "anova"), `Non-parametric`=c("wilcoxon.test","kruskal-wallis"))
+statList <- c("t.test", "anova", "wilcoxon.test","kruskal-wallis")
 
 #stat object
 aovClt <- NULL #anova compact leter
@@ -61,6 +84,57 @@ sdError <- NULL
 waitNotify <- function(msg = "Computing... Please wait..", id = NULL, type = "message"){
   showNotification(msg, id = id, duration = NULL, closeButton = FALSE, type = type)
 }
+#function to create input and update options: mainly for color options
+"date: 2/3/23
+arguments
+update = logical. TRUE to update the selectinput and false to reset.
+pltType = character. type of graph
+data = data frame. 
+label = character.
+newId = character. ID for the selectinput
+firchoice = character. 'none' as default first choice
+choice = list of character. 
+selecteds = character. must be present in the choice list"
+selectInputParam <- function(update= TRUE, pltType = "none",
+                       data, label = "Add color", newId = "colorSet", 
+                       firstChoice = "none", choice = "", selecteds = "none",...){
+  if(!isTRUE(update)){
+    if(!is.data.frame(data) || (is.data.frame(data) && pltType == "none")){
+      selectInput(inputId = newId, label = label, choices = list("none"))
+    }else{#} if(is.data.frame(data)){
+      selectInput(inputId = newId, label = label, choices = c(firstChoice, choice), selected = selecteds)
+    }
+  }else if(isTRUE(update)){
+    if(!is.data.frame(data) ||  (is.data.frame(data) && pltType == "none")){
+      updateSelectInput(inputId = newId, label = label, choices = list("none"))
+    }else{#} if(is.data.frame(data)){
+      message("-===========updating selectInput================")
+      updateSelectInput(inputId = newId, label = label, choices = c(firstChoice, choice), selected = selecteds)
+    }
+    
+  }
+}
+
+#remove the below later: when color option is being optimized
+displayAes <- function(update= "no", transform = TRUE, action = FALSE, pltType = "pltType()",#!isTruthy(input$goAction)
+                       data, label = "Variable to fill color", newId = "colorSet", firstChoice = "none", choice = colnames(ptable()), selecteds = "none",...){
+  if(tolower(update) =="no"){
+    if(!is.data.frame(data) || (is.data.frame(data) & isFALSE(transform) & req(pltType) == "none") || (is.data.frame(data) & isTRUE(transform) & isFALSE(action))){
+      selectInput(inputId = newId, label = label, choices = list("none"))
+    }else{#} if(is.data.frame(data)){
+      selectInput(inputId = newId, label = label, choices = c(firstChoice, choice), selected = selecteds)
+    }
+  }else if(tolower(update) == "yes"){
+    if(!is.data.frame(data) || (is.data.frame(data) & isFALSE(transform) & req(pltType) == "none") || (is.data.frame(data) & isTRUE(transform) & isFALSE(action))){
+      updateSelectInput(inputId = newId, label = label, choices = list("none"))
+    }else{#} if(is.data.frame(data)){
+      message("-===========updating selectInput================")
+      updateSelectInput(inputId = newId, label = label, choices = c(firstChoice, choice), selected = selecteds)
+    }
+    
+  }
+}
+
 #function to get all variables: numeric and characters----------------------------------
 #get all numeric or character variables
 "
@@ -125,7 +199,8 @@ filterData <- function(df, col, filterType, val){
   #   case 2. Numeric variable - 
   #         i. not between - must be of length 1 and must be able to convert to numeric
   #         ii. between - must be able to convert to numeric and must be colon separated. E.g., 1:10 or 20:40
-  
+  # browser()
+  # message(filterType)
   #dummy data frame 
   filtr_df <- NULL
   #detect error: not in use
@@ -414,7 +489,7 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
   #non-replicate column: May not always be in character column when in proper format
   # later some column may have to be converted to numeric
   # and tidied data will be appended to this data
-  # browser()
+  
   
   #check for addition of header by R: V1, V2, .....Vn
   # removed the header if present. R will add header only if need (not always)
