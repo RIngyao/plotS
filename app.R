@@ -775,7 +775,7 @@ ui <- fluidPage(
                         plotOutput(outputId = "figurePlot", 
                                    hover = hoverOpts(id = "hover_info", delay = 0, nullOutside = FALSE), 
                                    click = clickOpts(id = "click_info"), 
-                                   brush = brushOpts(id = "brush_info", delay = 100, resetOnNew = TRUE, fill= "rgba(190, 237, 253)", stroke = "rgba(60, 186, 249)")),
+                                   brush = brushOpts(id = "brush_info", delay = 100, resetOnNew = FALSE, fill= "rgba(190, 237, 253)", stroke = "rgba(60, 186, 249)")),
                         
                         conditionalPanel(condition = "input.plotType != 'none'",
                                          div(
@@ -828,6 +828,16 @@ ui <- fluidPage(
                         div(
                           class = "hoverClickBrushDiv",
                           # style = "margin-bottom:10px; border-color: brown; background-color:rgba(253, 231, 203, 0.4);",
+                          #inset parameters
+                          fluidRow(
+                            column(3, uiOutput("UiInset")),
+                            conditionalPanel(condition = "input.inset == 'yes'",
+                                             column(3, selectInput(inputId = "insetPlotType", label = "type", choices = c("box plot","violin plot", "scatter plot", "line"))),
+                                             column(3, sliderInput(inputId = "insetXPosition", label = "x position", min = 0, max = 1, value = 0)),
+                                             column(3, sliderInput(inputId = "insetYPosition", label = "y position", min = 0, max = 1, value = 0))
+                                             )
+                            
+                          ),
                           # uiOutput("UiHover_display"),
                           verbatimTextOutput("hover_display"),
                           uiOutput("UiBrushClick_display"),
@@ -6091,12 +6101,57 @@ server <- function(input, output){
             otherTheme
         }
         
+        #inset in the figure----------------------------------
+        # # fluidRow(
+        #   column(4, radioButtons(inputId = "inset", label = "Add inset", choices = c("yes", "no"), selected = "yes", inline = TRUE)),
+        # column(3, selectInput(inputId = "insetPlotType", label = "type", choices = c("box plot","violin plot", "scatter plot", "line graph"))),
+        #   column(4, sliderInput(inputId = "insetXPosition", label = "x position", min = 0, max = 1, value = 0)),
+        #   column(4, sliderInput(inputId = "insetYPosition", label = "y position", min = 0, max = 1, value = 0))
+        # ),
+        if(nrow(clickBrush_df()) > 1 && isTruthy(input$brush_info) && req(input$inset) == "yes"){
+          req(insetGeomType())
+          
+          message(xyAxis()[[1]])
+          validate(
+            need(xyAxis()[[1]] %in% colnames(clickBrush_df()), "")
+          )
+          if(!input$insetPlotType %in% c("line", "scatter plot")){
+            insetPlt <<- plotFig(data = req(clickBrush_df()), types = req(input$insetPlotType), geom_type = insetGeomType(),
+                                xTextLabels = xTextLabels(),
+                                xl = xyAxis()[[1]], yl = xyAxis()[[2]], shapes = shapeSet(), 
+                                linetypes = lineSet(), fills = varSet(), varSet = varSet(),
+                                lineParam = FALSE, autoCust = autoCust(), colorTxt = colorTxt()
+            )
+          }else{
+            insetPlt <<- plotFig(data = req(clickBrush_df()), types = req(input$insetPlotType), geom_type = insetGeomType(),
+                    xTextLabels = xTextLabels(),
+                    xl = xyAxis()[[1]], yl = xyAxis()[[2]], shapes = shapeSet(), 
+                    linetypes = lineSet(), colr = varSet(), varSet = varSet(),
+                    lineParam = FALSE, autoCust = autoCust(), colorTxt = colorTxt())
+          }
+          #generate table for the inset
+          message(clickBrush_df()[[ xyAxis()[[2]] ]])
+          message(str(clickBrush_df()[[ xyAxis()[[2]] ]]))
+          yMin <- min(clickBrush_df()[[ xyAxis()[[2]] ]])
+          
+          inset_df <- tibble(x= req(input$insetXPosition), y = input$insetYPosition,
+                             plot = list( insetPlt + labs(x=NULL, y = NULL) +
+                                            coord_cartesian(ylim = c(min(clickBrush_df()[[ xyAxis()[[2]] ]]), max(clickBrush_df()[[ xyAxis()[[2]] ]]))) +
+                                            theme_bw(10)+
+                                            theme(legend.position = "none", axis.text = element_text(face = "bold"))
+                                         )
+                             )
+          finalInsetPlt <- geom_plot_npc(data = inset_df, aes(npcx =x, npcy = y, label = plot))
+        }else{
+          finalInsetPlt <- NULL
+        }
+        
         #save it for download option
-        saveFigure(finalPlt) 
+        saveFigure(finalPlt + finalInsetPlt) 
         #signal message
         computeFuncError(0)
         
-        return(finalPlt) #final plot
+        return(finalPlt + finalInsetPlt) #final plot
         
       }, error = function(e){
         
@@ -6149,7 +6204,53 @@ server <- function(input, output){
     })
   })
   
+  
+  #save the click and brush data
   clickBrush_df <- reactiveVal(NULL)
+  #save inset plot
+  insetGeomType <- reactiveVal(NULL)
+  
+  #inset button
+  observe({
+    req(input$plotType, input$brush_info)
+    output$UiInset <- renderUI({
+      if(req(input$plotType) %in% insetList && isTruthy(input$brush_info)) radioButtons(inputId = "inset", label = "Add inset", choices = c("yes", "no"), selected = "yes", inline = TRUE)
+    })
+  })
+  
+  observe({
+    req(input$inset == "no")
+    updateSelectInput(inputId = "insetPlotType", choices = c("box plot","violin plot", "scatter plot", "line"))
+    updateSliderInput(inputId = "insetXPosition", min = 0, max = 1, value = 0)
+    updateSliderInput(inputId = "insetYPosition", min = 0, max = 1, value = 0)
+  })
+  #use the data to provide inset
+  observe({
+    req(input$plotType, input$brush_info, input$inset)
+    #get details for inset graph
+    if(req(input$plotType) != "none" && input$inset == "yes"){
+      #get geomtype
+      insetGeomType({
+        switch(input$insetPlotType,
+               
+               "box plot" = geom_boxplot(), #width = freqPolySize()
+               "violin plot" = geom_violin(), #width = freqPolySize()
+               "line" = if(xVarType()[1] %in% c("integer", "numeric", "double")){
+                   #group for numeric type
+                   geom_line(group =1)
+                 }else{
+                   #no need to group for character type
+                   geom_line()
+                 },
+               "scatter plot" = geom_point(),
+               "density" = geom_density(aes(y = ..density..))
+        ) #end switch
+      })#end geomtype
+      
+    }
+    
+  })
+  
   #display table for the click 
   observe({
     req(ptable(), input$plotType, input$xAxis, input$yAxis, input$click_info)# input$UiHover_display)
@@ -6459,9 +6560,9 @@ shinyApp(ui, server, onStart = function(){
   rm(list=ls(), envir = .GlobalEnv)
   
   #clear all after session end--------------------
-  onStop(function(){ 
-    message("ended session and all data cleared")
-    rm(list = ls(), envir = .GlobalEnv)
-  })
+  # onStop(function(){
+  #   message("ended session and all data cleared")
+  #   rm(list = ls(), envir = .GlobalEnv)
+  # })
 }
 )

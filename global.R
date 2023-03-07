@@ -9,6 +9,7 @@ options(shiny.maxRequestSize = 50*1024^2) # too large: use 50
 # lapply(libraries, library, character.only = TRUE)
 # 
 library(ggpp)
+library(ggforce)
 library(shinyBS)
 library(memoise)
 library(effectsize)
@@ -56,11 +57,12 @@ replicate_df <- structure(list(...1 = c("variable", "ob1", "ob2", "ob3", "ob4", 
                                ...5 = c("R2", "1", "4", "6", "32", "1", "35", "23")), class = c("data.frame"), row.names = c(NA, -7L))
 
 #list of graph
-planPlotList <- c("none",   "box plot","bar plot", "histogram", "scatter plot",
+planPlotList <- c("none", "box plot","bar plot", "histogram", "scatter plot",
                   "density plot", "heatmap", "line", "frequency polygon",
                   "violin","jitter","area", "pie chart", "venn", "upset", "tile")
-plotList <- c(  "box plot","violin plot", "density", "frequency polygon", "histogram","line", "scatter plot", "bar plot")
-
+plotList <- c("box plot","violin plot", "density", "frequency polygon", "histogram","line", "scatter plot", "bar plot")
+#list of graph allow for inset
+insetList <- c( "box plot","violin plot", "line", "scatter plot", "bar plot")
 #plot that require x and y-axis
 xyRequire <- c(  "box plot", "bar plot", "line", "scatter plot", "violin plot") 
 NS_methods <- list(Normalization= c("log2", "log10", "square-root", "box-cox"), Standardization = c("scale","") )
@@ -1440,6 +1442,8 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
                     autoCust, colorTxt, varSet = "none"
                     #, ...
 ){ #if y axis is required specifically mention in function parameter
+  
+  # browser()
   if(types == "none"){
     break
   }else if(!types %in% c("frequency polygon", "histogram")){
