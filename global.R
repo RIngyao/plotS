@@ -8,6 +8,7 @@ options(shiny.maxRequestSize = 50*1024^2) # too large: use 50
 #                "rstatix", "shiny", "tidyverse", "reactable")
 # lapply(libraries, library, character.only = TRUE)
 # 
+library(ggpp)
 library(shinyBS)
 library(memoise)
 library(effectsize)

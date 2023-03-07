@@ -765,7 +765,7 @@ ui <- fluidPage(
                                  ) %>% tagAppendAttributes(class="figHWDFluidRow")
                           )
                         ),
-                        helpText("Image resolution is 300 dpi. Default dimension is 4 * 4 inches.", style = "font-style:italic; text-align:center; margin:0;")
+                        helpText("Image resolution is 400 dpi. Default dimension is 4 * 4 inches.", style = "font-style:italic; text-align:center; margin:0;")
                       )%>% tagAppendAttributes(class="figDownloadDiv"),
                       #display figure
                       div(
@@ -5120,7 +5120,11 @@ server <- function(input, output){
     )
   },{
     
-    browser()
+    # browser()
+    #show notification
+    computeMsg <- showNotification("Computing.. Please wait.....", duration = NULL, closeButton = FALSE,
+                                   type ="message", id = "computeMsg")
+    on.exit(removeNotification(computeMsg), add = TRUE)
     #required parameters
     figType <- reactive(req(input$plotType))
     
@@ -5687,10 +5691,10 @@ server <- function(input, output){
       req(is.data.frame(ptable()), pltType() != "none")
       #Reason for adding all the codes in this reactive is to properly display error msg for the computation.
       
-      #show notification
-      computeMsg <- showNotification("Computing.. Please wait.....", duration = NULL, closeButton = FALSE,
-                                     type ="message", id = "computeMsg")
-      on.exit(removeNotification(computeMsg), add = TRUE)
+      # #show notification
+      # computeMsg <- showNotification("Computing.. Please wait.....", duration = NULL, closeButton = FALSE,
+      #                                type ="message", id = "computeMsg")
+      # on.exit(removeNotification(computeMsg), add = TRUE)
       
       #resolution for the plot
       res=400
@@ -6277,7 +6281,7 @@ server <- function(input, output){
         plt <- if(!is.null(saveFigure())){
           saveFigure()
         }else{ NULL}
-        ggsave(file, plot = plt, device = pDev, height = heights, width = widths, dpi = 300, units = "in")
+        ggsave(file, plot = plt, device = pDev, height = heights, width = widths, dpi = 400, units = "in")
       }
     )
   })
