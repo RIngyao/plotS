@@ -5,9 +5,11 @@ options(shiny.maxRequestSize = 50*1024^2) # too large: use 50
 # libraries <- c("flextable", "openxlsx", "svglite",
 #                "MASS", "skimr", "coin", "DT", "data.table", 
 #                "readxl", "markdown", "shinydashboard","ggpubr","multcompView",
-#                "rstatix", "shiny", "tidyverse", "reactable")
+#                "rstatix", "shiny", "tidyverse", "reactable", "ggside", "ggforce")
 # lapply(libraries, library, character.only = TRUE)
 # 
+# install.packages("ggside", dependencies = TRUE)
+
 library(ggpp)
 library(ggforce)
 library(shinyBS)
@@ -87,6 +89,36 @@ sdError <- NULL
 waitNotify <- function(msg = "Computing... Please wait..", id = NULL, type = "message"){
   showNotification(msg, id = id, duration = NULL, closeButton = FALSE, type = type)
 }
+#module for side graph
+sideGraphList <- c("density", "bar plot", "box plot", "scatter plot", "frequency")
+sideGraphUi <- function(id,side = "X"){
+  ns <- NS(id)
+  tagList(
+    #graph option
+    selectInput(ns("sideGraphType"), label = paste0(side, "-graph"), choices = sort(sideGraphList), selected = "density"),
+    conditionalPanel(ns=ns, condition = "input.sideGraphType == 'density'",
+                     #position for 
+                     {
+                       position <- list(tags$span("Stack", style = "font-weight:bold; color:#0099e6"), tags$span("Dodge", style = "font-weight:bold; color:#0099e6"))
+                       radioButtons(inputId = ns("position"), label = "Position", choiceNames = position, choiceValues = c("stack", "dodge"), inline = TRUE, selected = "stack")
+                     },
+                     #transparency
+                     sliderInput(inputId = ns("alpha"), label = "Transparency", min = 0, max=1, value=0.5),
+                     bsTooltip(id = ns("alpha"), title = "Affect depends on the main graph", placement = "top", trigger = "hover",
+                               options = list(container = "body")),
+                     
+                     #orientation
+                     {
+                       #deafult = NA (auto)
+                       oreint <- list(tags$span("default", style = "font-weight:bold; color:#0099e6"), tags$span("X", style = "font-weight:bold; color:#0099e6"), tags$span("Y", style = "font-weight:bold; color:#0099e6"))
+                       radioButtons(inputId = ns("orientation"), label = "Orientation", choiceNames = oreint, choiceValues = c("default","x", "y"), inline = TRUE, selected = "default")
+                     },
+                     )
+    
+  )
+}
+
+
 #function for inset text label and color-------
 #reactive objects for inset
 insetXTextLabels <- reactiveVal(NULL)

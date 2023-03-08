@@ -862,6 +862,69 @@ ui <- fluidPage(
                                                                      ) #end inset dropdown
                                                                      )#end condition for inset
                                              ), #end column for inset
+                                             column(3,
+                                                    conditionalPanel(condition = "input.pairedData !== 'two'",
+                                                                     dropdownButton( inputId = "sideDropdownButton", right = TRUE, width="450px", label = tags$b("Side graph", style="color:#C622FA"), circle = FALSE, size = "sm", tooltip = tooltipOptions(title = "Add side graph"), icon = icon("sliders"),
+                                                                       div(
+                                                                         class = "sideDropdownDiv",
+                                                                         #option to add side graph
+                                                                         {
+                                                                           #apply inset?
+                                                                           sideChoice <- list(tags$span("None", style = "font-weight:bold; color:#0099e6"), tags$span("X-side", style = "font-weight:bold; color:#0099e6"),
+                                                                                              tags$span("Y-side", style = "font-weight:bold; color:#0099e6"), tags$span("both sides", style = "font-weight:bold; color:#0099e6"))
+                                                                           radioButtons(inputId = "sideGraph",label = "Add side graph", choiceNames = sideChoice, choiceValues = c("none", "x", "y", "both"), inline = TRUE)
+                                                                         },
+                                                                         #two columns for x and y side
+                                                                         # #end different style--------
+                                                                         # fluidRow(
+                                                                         #          #x-side column
+                                                                         #          column(6,
+                                                                         #                 conditionalPanel(condition = "input.sideGraph == 'x' || input.sideGraph == 'both'",
+                                                                         #                 sideGraphUi(id = "xside", side = "X")
+                                                                         #                 )
+                                                                         #          ),
+                                                                         #          #y-side column
+                                                                         #   
+                                                                         #          column(6,
+                                                                         #                 conditionalPanel(condition = "input.sideGraph == 'y' || input.sideGraph == 'both'",
+                                                                         #                 sideGraphUi(id = "xside", side = "Y")
+                                                                         #                 )
+                                                                         #          )
+                                                                         # 
+                                                                         #        )
+                                                                         # #end different style--------
+                                                                         #separate x and y side:
+                                                                         conditionalPanel(condition = "input.sideGraph == 'both'",
+                                                                                          fluidRow(
+                                                                                            #x-side column
+                                                                                            column(6,
+                                                                                                   sideGraphUi(id = "xside", side = "X")
+                                                                                            ),
+                                                                                            #y-side column
+                                                                                            column(6,
+                                                                                                   sideGraphUi(id = "yside", side = "Y")
+                                                                                            )
+
+                                                                                          )
+                                                                         ),
+                                                                         #for x only
+                                                                         conditionalPanel(condition = "input.sideGraph == 'x'",
+                                                                                          #x-side column
+                                                                                          sideGraphUi(id = "xside", side="X")
+                                                                         ),
+
+                                                                         #for y only
+                                                                         conditionalPanel(condition = "input.sideGraph == 'y'",
+                                                                                          #x-side column
+                                                                                          sideGraphUi(id = "yside", side = "Y")
+                                                                         )
+                                                                         
+                                                                       )#end of side div
+                                                                       
+                                                                     )#end of side dropdown button
+                                                                     
+                                                                     )#end of side condition
+                                                    ),
                                              # column(4, actionBttn("previewActionButton", label = "Preview image",  style = "minimal", size = "xs", color = "royal")),
                                              column(3, uiOutput("UiClickBrushDownload"))
                                            ),
@@ -6191,8 +6254,6 @@ server <- function(input, output){
                                                   linetype = "dotted") + finalInsetPlt 
           }
           
-          
-          
         }
         
         #save it for download option
@@ -6201,19 +6262,6 @@ server <- function(input, output){
         computeFuncError(0)
         
         return(finalPlt) #final plot
-        #   else{
-        #     finalInsetPlt <- NULL
-        #   }
-        #   
-        # }else{ finalInsetPlt <- NULL }
-        # 
-        # #save it for download option
-        # saveFigure(finalPlt + finalInsetPlt) 
-        # #signal message
-        # computeFuncError(0)
-        # 
-        # return(finalPlt + finalInsetPlt) #final plot
-        
       }, error = function(e){
         
         computeFuncError(1)
@@ -6278,25 +6326,6 @@ server <- function(input, output){
   #save inset plot
   insetGeomType <- reactiveVal(NULL)
   
-  #inset button
-  # output$UiInset <- renderUI({
-  #   if( req(input$plotType) %in% insetList && (isTruthy(input$brush_info))){
-  #     radioButtons(inputId = "inset", label = "Add inset", choices = c("yes", "no"), selected = "yes", inline = TRUE)
-  #   }
-  # })
-  
-  # output$UiInset <- renderUI({
-  #   if(req(input$plotType) %in% insetList && req(!is.null(clickBrush_df()))){
-  #     radioButtons(inputId = "inset", label = "Add inset", choices = c("yes", "no"), selected = "yes", inline = TRUE)
-  #   }
-  # })
-  # observe({
-  #   req(input$plotType, isTruthy(input$brush_info))#!is.null(clickBrush_df()))  : this has issue
-  #   output$UiInset <- renderUI({
-  #     # browser()
-  #     if(req(input$plotType) %in% insetList && isTruthy(input$brush_info)) radioButtons(inputId = "inset", label = "Add inset", choices = c("yes", "no"), selected = "yes", inline = TRUE)
-  #   })
-  # })
   observe({
     req(input$plotType)
     updateRadioButtons(inputId = "inset", choiceNames = insetChoice, choiceValues = c("yes", "no"), selected = "yes", inline = TRUE)
@@ -6348,7 +6377,7 @@ server <- function(input, output){
   
   #display table for the click 
   observe({
-    req(ptable(), input$plotType, input$xAxis, input$yAxis, input$click_info, !input$stat %in% "anova")# input$UiHover_display)
+    req(ptable(), input$plotType, input$xAxis, input$yAxis, input$click_info)# input$UiHover_display)
     #get brush data
     
     # validate(
@@ -6399,7 +6428,7 @@ server <- function(input, output){
   
   #display table for the click and brush
   observe({
-    req(ptable(), pltType(), input$xAxis, input$yAxis, input$brush_info, !input$stat %in% "anova")# input$UiHover_display)
+    req(ptable(), pltType(), input$xAxis, input$yAxis, input$brush_info)# input$UiHover_display)
     #get brush data
     #get click data
     if(req(input$xAxis) %in% colnames(ptable()) && req(input$yAxis) %in% colnames(ptable())){

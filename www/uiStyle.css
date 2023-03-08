@@ -344,13 +344,13 @@ body{
       margin-left:0px;
       }
       
-      .miscDiv, .dbBootStrapDiv, .filterDataDiv, .insetDoprdownDiv{
+      .miscDiv, .dbBootStrapDiv, .filterDataDiv, .insetDoprdownDiv, .sideDropdownDiv{
       background:rgba(206,247,250, 0.5);
       font-size:14px;
       border:solid 1px;
       padding:5px;
       }
-      .filterDataDiv > *, .insetDoprdownDiv > * {
+      .filterDataDiv > *, .insetDoprdownDiv > *, .sideDropdownDiv > *{
       text-align:center;
       margin:10px;
       }
