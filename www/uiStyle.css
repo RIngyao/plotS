@@ -205,7 +205,7 @@ body{
       /*Graph*/
       .figureMainPanel{
       margin:auto;
-      max-width: 820px;
+      max-width: 920px;
       /*color:#F4F4F4;*/
       }
       
@@ -213,7 +213,7 @@ body{
       max-width:600px;
       }
       .figurePlotBox, .figureTheme{
-      max-width: 800px;
+      max-width: 900px;
       /*margin-left:10%;
       margin-right:10%;*/
       padding:auto;
@@ -344,13 +344,13 @@ body{
       margin-left:0px;
       }
       
-      .miscDiv, .dbBootStrapDiv, .filterDataDiv{
+      .miscDiv, .dbBootStrapDiv, .filterDataDiv, .insetDoprdownDiv{
       background:rgba(206,247,250, 0.5);
       font-size:14px;
       border:solid 1px;
       padding:5px;
       }
-      .filterDataDiv > * {
+      .filterDataDiv > *, .insetDoprdownDiv > * {
       text-align:center;
       margin:10px;
       }

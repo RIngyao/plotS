@@ -63,6 +63,7 @@ planPlotList <- c("none", "box plot","bar plot", "histogram", "scatter plot",
 plotList <- c("box plot","violin plot", "density", "frequency polygon", "histogram","line", "scatter plot", "bar plot")
 #list of graph allow for inset
 insetList <- c( "box plot","violin plot", "line", "scatter plot", "bar plot")
+
 #plot that require x and y-axis
 xyRequire <- c(  "box plot", "bar plot", "line", "scatter plot", "violin plot") 
 NS_methods <- list(Normalization= c("log2", "log10", "square-root", "box-cox"), Standardization = c("scale","") )
@@ -85,6 +86,62 @@ sdError <- NULL
 #function for notification-------------
 waitNotify <- function(msg = "Computing... Please wait..", id = NULL, type = "message"){
   showNotification(msg, id = id, duration = NULL, closeButton = FALSE, type = type)
+}
+#function for inset text label and color-------
+#reactive objects for inset
+insetXTextLabels <- reactiveVal(NULL)
+insetColor <- reactiveVal(NULL)
+
+"
+  arguments:
+  inDf = data frame. data for inset
+  oriDf = data frame. original data 
+  orix = character. original variable of x axis
+  oriTextLabel =  character. vector of variable names for labeling x-axis (original graph)
+  finalPlt = ggplot object. to get the color use in the graph
+  color = character. variable for which to apply color
+  shapeLine = character. to apply shape or line or none
+  shape = character. variable for shape. default null
+  line = character. variable for line. default null
+  
+  Note: the function will return empty value. necessary output will be saved in the reactive objects
+"
+
+insetParamFunc <- function(inDf, oriDf, orix, oriTextLabel, finalPlt, color = "none", shape=NULL, line=NULL){
+  # for name: depend only only on x-axis
+  #get original variables of x-axis from the original data
+  xVarName <- unique(as.data.frame(oriDf)[,orix]) %>% as.vector() %>% sort()
+  #get variable name of the inset
+  insetXVarName <- unique(as.data.frame(inDf)[,orix]) %>% as.vector() %>% sort()
+  #filter only the variables  present in inset data and saved as reactive object
+  insetXTextLabels( oriTextLabel[which(xVarName %in% insetXVarName)] )
+  
+  
+  #for color: depend on aesthetic
+  if(color != "none"){# && (is.null(shape) && is.null(line))){
+    #get original variables of x-axis from the original data
+    xVarName <- unique(as.data.frame(oriDf)[,color]) %>% as.vector() %>% sort()
+    #get variable name of the inset
+    insetXVarName <- unique(as.data.frame(inDf)[,color]) %>% as.vector() %>% sort()
+  }else if(color == "none" && !is.null(shape)){
+    #get original variables of x-axis from the original data
+    xVarName <- unique(as.data.frame(oriDf)[,shape]) %>% as.vector() %>% sort()
+    #get variable name of the inset
+    insetXVarName <- unique(as.data.frame(inDf)[,shape]) %>% as.vector() %>% sort()
+    
+  }else if(color == "none" && !is.null(line)){
+    #get original variables of x-axis from the original data
+    xVarName <- unique(as.data.frame(oriDf)[,line]) %>% as.vector() %>% sort()
+    #get variable name of the inset
+    insetXVarName <- unique(as.data.frame(inDf)[,line]) %>% as.vector() %>% sort() 
+  }
+  
+  #get color from the original graph (variables of x axis)
+  origColor <- unique(ggplot_build(finalPlt)$data[[1]][,1]) %>% as.vector()
+  #filter only the color for the inset variables and save as reactive object
+  insetColor(origColor[which(xVarName %in% insetXVarName)])
+  #return empty
+  return("")
 }
 #function to create input and update options: mainly for color options
 "date: 2/3/23
@@ -1579,12 +1636,11 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
   
   message(xTextLabels)
   #change variable name of x-axis
-  message(plt)
-  
   plt <<- plt
   plt + scale_x_discrete(labels = xTextLabels ) 
-  
 }#end
+
+
 #theme function---------------------
 themeF <- function(thme = "user preferred theme"){
   switch(thme,
@@ -1592,7 +1648,8 @@ themeF <- function(thme = "user preferred theme"){
          "white" = theme_classic(),
          "white with grid lines" = theme_bw(),
          "dark" = theme_dark(),
-         "blank" = theme_void())
+         "blank" = theme_void(),
+         "theme5" = theme_bw(10))
 }
 
 #Axis labeling Function-------------
