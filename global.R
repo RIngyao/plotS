@@ -5,12 +5,14 @@ options(shiny.maxRequestSize = 50*1024^2) # too large: use 50
 # libraries <- c("flextable", "openxlsx", "svglite",
 #                "MASS", "skimr", "coin", "DT", "data.table", 
 #                "readxl", "markdown", "shinydashboard","ggpubr","multcompView",
-#                "rstatix", "shiny", "tidyverse", "reactable", "ggside", "ggforce")
+#                "rstatix", "shiny", "tidyverse", "reactable", "ggside", "ggforce",
+#                 "scales")
 # lapply(libraries, library, character.only = TRUE)
 # 
 # install.packages("ggside", dependencies = TRUE)
-
+library(scales)
 library(ggpp)
+library(ggside)
 library(ggforce)
 library(shinyBS)
 library(memoise)
@@ -69,7 +71,8 @@ insetList <- c( "box plot","violin plot", "line", "scatter plot", "bar plot")
 #plot that require x and y-axis
 xyRequire <- c(  "box plot", "bar plot", "line", "scatter plot", "violin plot") 
 NS_methods <- list(Normalization= c("log2", "log10", "square-root", "box-cox"), Standardization = c("scale","") )
-
+#brush data
+clickBrush_df <- reactiveVal(NULL)
 #statistical method----------
 statMethods <- list(Parametric = c("t.test", "anova"), `Non-parametric`=c("wilcoxon.test","kruskal-wallis"))
 statList <- c("t.test", "anova", "wilcoxon.test","kruskal-wallis")
@@ -89,23 +92,31 @@ sdError <- NULL
 waitNotify <- function(msg = "Computing... Please wait..", id = NULL, type = "message"){
   showNotification(msg, id = id, duration = NULL, closeButton = FALSE, type = type)
 }
-#module for side graph
+#module for side graph-----------------
 sideGraphList <- c("density", "bar plot", "box plot", "scatter plot", "frequency")
 sideGraphUi <- function(id,side = "X"){
   ns <- NS(id)
   tagList(
     #graph option
-    selectInput(ns("sideGraphType"), label = paste0(side, "-graph"), choices = sort(sideGraphList), selected = "density"),
-    conditionalPanel(ns=ns, condition = "input.sideGraphType == 'density'",
+    selectInput(ns("sideGraphType"), label = paste0(side, "-graph"), choices = c("none",sort(sideGraphList)), selected = "none"),
+    conditionalPanel(ns=ns, condition = "input.sideGraphType == 'bar plot'",
+                     #stat: identity or count
+                     {
+                       statList <- list(tags$span("Identity", style = "font-weight:bold; color:#0099e6"), tags$span("Count", style = "font-weight:bold; color:#0099e6"))
+                       radioButtons(inputId = ns("stat"), label = "Evaluate", choiceNames = statList, choiceValues = c("identity", "count"), selected = "identity", inline = TRUE)
+                     },
+                     bsTooltip(id = ns("stat"), title = "Identity will use the Y-axis value.", placement = "top", trigger = "hover",
+                               options = list(container = "body")),
+                     sliderInput(inputId = ns("barWidth"), label = "Bar width", min = 0, max = 1, value = 0.5)
+                     ),
+    
+    conditionalPanel(ns=ns, condition = "input.sideGraphType == 'density' || input.sideGraphType == 'bar plot'",
+                     
                      #position for 
                      {
                        position <- list(tags$span("Stack", style = "font-weight:bold; color:#0099e6"), tags$span("Dodge", style = "font-weight:bold; color:#0099e6"))
                        radioButtons(inputId = ns("position"), label = "Position", choiceNames = position, choiceValues = c("stack", "dodge"), inline = TRUE, selected = "stack")
                      },
-                     #transparency
-                     sliderInput(inputId = ns("alpha"), label = "Transparency", min = 0, max=1, value=0.5),
-                     bsTooltip(id = ns("alpha"), title = "Affect depends on the main graph", placement = "top", trigger = "hover",
-                               options = list(container = "body")),
                      
                      #orientation
                      {
@@ -113,9 +124,97 @@ sideGraphUi <- function(id,side = "X"){
                        oreint <- list(tags$span("default", style = "font-weight:bold; color:#0099e6"), tags$span("X", style = "font-weight:bold; color:#0099e6"), tags$span("Y", style = "font-weight:bold; color:#0099e6"))
                        radioButtons(inputId = ns("orientation"), label = "Orientation", choiceNames = oreint, choiceValues = c("default","x", "y"), inline = TRUE, selected = "default")
                      },
+                     ),
+    
+    conditionalPanel(ns=ns, condition = "input.sideGraphType == 'density'",
+                     #transparency
+                     sliderInput(inputId = ns("alpha"), label = "Transparency", min = 0, max=1, value=0.5),
+                     bsTooltip(id = ns("alpha"), title = "Effects depend on the main graph", placement = "top", trigger = "hover",
+                               options = list(container = "body"))
+                     ),
+    #theme applied to all type
+    conditionalPanel(ns=ns, condition = "input.sideGraphType != 'none'",
+                     sliderInput(inputId = ns("panelTextSize"), label = "Text size", min=5, max=20, value= 10),
+                     sliderInput(inputId = ns("panelScale"), label = "Panel size", min=0, max=1, value= 0.1),
+                     sliderInput(inputId = ns("panelSpacing"), label = "Panel space", min=1, max=15, value= 2),
+                     selectInput(inputId = ns("panelBackground"), label = "Panel background", choices = c("default", "blank")),
+                     
+                     #border
+                     {
+                       colorOpt <- c("black","grey","red","blue", "brown","orange")
+                       selectInput(inputId = ns("panelBorderColor"), label = "Border color", choices = sort(colorOpt), selected = "grey")
+                     },
+                     sliderInput(inputId = ns("panelBorderWidth"), label = "Border width", min= 0, max = 5, value = 1),
+                     
+                     #grid
+                     selectInput(inputId = ns("panelGridColor"), label = "Grid color", choices = sort(colorOpt), selected = "grey"),
+                     sliderInput(inputId = ns("panelGridLineWidth"), label = "Grid line width", min=0, max= 1, value=0.1),
+                     selectInput(inputId = ns("panelGridLineType"), label = "Grid line type", choices = sort(c("solid","dotted","dashed")))
                      )
     
   )
+}
+
+"
+argument:
+x = character. variable of x-axis
+side = character. side to add the graph - x or y side
+color, linetype, shape = character. variables name. It will be evaluated and use in aes(). 
+
+**note: it will return a list of two ggside objects
+"
+sideGraphData <- function(id, side, linetype = NULL, color = NULL, shape = NULL){
+  #variable of x axis must be a column of data
+  # req(x %in% colnames(data))
+  moduleServer(id, function(input, output, session){
+    # browser()
+    
+    if(req(input$sideGraphType) != "none"){
+     
+      if(req(input$sideGraphType) == "density"){
+        #inherit.aes = TRUE
+        if(req(input$orientation) == "default"){
+          graph1 <- geom_xsidedensity(position = req(input$position), alpha = req(input$alpha))
+        }else{
+          graph1 <- geom_xsidedensity(position = req(input$position), alpha = req(input$alpha), orientation = req(input$orientation))
+        }
+      }else if(req(input$sideGraphType) == "bar plot"){
+        message(str(req(input$stat)))
+        graph1 <- geom_xsidebar(aes(fill= color, linetype = linetype), 
+                                stat = req(input$stat), width = req(input$barWidth), #req(input$stat)
+                                position = req(input$position), orientation = req(input$orientation))
+      }
+      
+      
+      #add theme to the graph
+      if(tolower(side) == "x"){
+        sideThemes <- theme(ggside.axis.text.x = element_text(face = "bold", size = req(input$panelTextSize)),
+                       ggside.panel.scale.x = req(input$panelScale),
+                       ggside.panel.spacing.x = unit(req(input$panelSpacing), "pt"),
+                       ggside.panel.background = if(req(input$panelBackground) == "default"){element_rect()}else{element_blank()},
+                       ggside.panel.border = element_rect(fill = NA, color = req(input$panelBorderColor), linewidth = req(input$panelBorderWidth)),
+                       ggside.panel.grid = element_line(color= req(input$panelGridColor), linewidth = req(input$panelGridLineWidth), linetype = req(input$panelGridLineType))
+                       )
+        
+      }else if(tolower(side) == "y"){
+        sideThemes <- theme(ggside.axis.text.y = element_text(face = "bold", size = req(input$panelTextSize)),
+                        ggside.panel.scale.y = req(input$panelScale),
+                        ggside.panel.background = if(req(input$panelBackground) == "default"){element_rect()}else{element_blank()},
+                        ggside.panel.border = element_rect(fill = NA, color = req(input$panelBorderColor), linewidth = req(input$panelBorderWidth)),
+                        ggside.panel.grid = element_line(color= req(input$panelGridColor), linewidth = req(input$panelGridLineWidth), linetype = req(input$panelGridLineType))
+        )
+      }
+    
+      
+      graph <- list(graph1, sideThemes)
+      
+    }else{
+      graph <- list(NULL,NULL)
+    }
+    #return
+    graph
+    
+  })#end module
 }
 
 
@@ -138,7 +237,6 @@ insetColor <- reactiveVal(NULL)
   
   Note: the function will return empty value. necessary output will be saved in the reactive objects
 "
-
 insetParamFunc <- function(inDf, oriDf, orix, oriTextLabel, finalPlt, color = "none", shape=NULL, line=NULL){
   # for name: depend only only on x-axis
   #get original variables of x-axis from the original data
@@ -169,12 +267,52 @@ insetParamFunc <- function(inDf, oriDf, orix, oriTextLabel, finalPlt, color = "n
   }
   
   #get color from the original graph (variables of x axis)
-  origColor <- unique(ggplot_build(finalPlt)$data[[1]][,1]) %>% as.vector()
+  origColor <- hue_pal()(length(xVarName))
+  # origColor <- unique(ggplot_build(finalPlt)$data[[1]][,1]) %>% as.vector()
   #filter only the color for the inset variables and save as reactive object
   insetColor(origColor[which(xVarName %in% insetXVarName)])
   #return empty
   return("")
 }
+
+#old version--------------
+# insetParamFunc <- function(inDf, oriDf, orix, oriTextLabel, finalPlt, color = "none", shape=NULL, line=NULL){
+#   # for name: depend only only on x-axis
+#   #get original variables of x-axis from the original data
+#   xVarName <- unique(as.data.frame(oriDf)[,orix]) %>% as.vector() %>% sort()
+#   #get variable name of the inset
+#   insetXVarName <- unique(as.data.frame(inDf)[,orix]) %>% as.vector() %>% sort()
+#   #filter only the variables  present in inset data and saved as reactive object
+#   insetXTextLabels( oriTextLabel[which(xVarName %in% insetXVarName)] )
+#   
+#   
+#   #for color: depend on aesthetic
+#   if(color != "none"){# && (is.null(shape) && is.null(line))){
+#     #get original variables of x-axis from the original data
+#     xVarName <- unique(as.data.frame(oriDf)[,color]) %>% as.vector() %>% sort()
+#     #get variable name of the inset
+#     insetXVarName <- unique(as.data.frame(inDf)[,color]) %>% as.vector() %>% sort()
+#   }else if(color == "none" && !is.null(shape)){
+#     #get original variables of x-axis from the original data
+#     xVarName <- unique(as.data.frame(oriDf)[,shape]) %>% as.vector() %>% sort()
+#     #get variable name of the inset
+#     insetXVarName <- unique(as.data.frame(inDf)[,shape]) %>% as.vector() %>% sort()
+#     
+#   }else if(color == "none" && !is.null(line)){
+#     #get original variables of x-axis from the original data
+#     xVarName <- unique(as.data.frame(oriDf)[,line]) %>% as.vector() %>% sort()
+#     #get variable name of the inset
+#     insetXVarName <- unique(as.data.frame(inDf)[,line]) %>% as.vector() %>% sort() 
+#   }
+#   
+#   #get color from the original graph (variables of x axis)
+#   origColor <- unique(ggplot_build(finalPlt)$data[[1]][,1]) %>% as.vector()
+#   #filter only the color for the inset variables and save as reactive object
+#   insetColor(origColor[which(xVarName %in% insetXVarName)])
+#   #return empty
+#   return("")
+# }
+#old version-----------
 #function to create input and update options: mainly for color options
 "date: 2/3/23
 arguments

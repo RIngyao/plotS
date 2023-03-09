@@ -710,12 +710,12 @@ ui <- fluidPage(
                                                   
                                                   fluidRow(
                                                     #ui for choosing variable: row ~ col
-                                                    map(1:2, function(.) column(6,uiOutput(paste0("UiVar_",.))))
+                                                    purrr::map(1:2, function(.) column(6,uiOutput(paste0("UiVar_",.))))
                                                   ),
                                                   #1. type 2. variable 3. formula
                                                   #row and column
                                                   fluidRow(
-                                                    map(1:2, function(.) column(6,uiOutput(paste0("UiRowColumn_",.)))),
+                                                    purrr::map(1:2, function(.) column(6,uiOutput(paste0("UiRowColumn_",.)))),
                                                     conditionalPanel(condition = "input.facet != 'none'",
                                                                      helpText("0 = default row or column", style = "text-align:center; margin-top:0; margin-bottom: 7px")
                                                     )
@@ -867,57 +867,15 @@ ui <- fluidPage(
                                                                      dropdownButton( inputId = "sideDropdownButton", right = TRUE, width="450px", label = tags$b("Side graph", style="color:#C622FA"), circle = FALSE, size = "sm", tooltip = tooltipOptions(title = "Add side graph"), icon = icon("sliders"),
                                                                        div(
                                                                          class = "sideDropdownDiv",
+                                                                         
                                                                          #option to add side graph
-                                                                         {
-                                                                           #apply inset?
-                                                                           sideChoice <- list(tags$span("None", style = "font-weight:bold; color:#0099e6"), tags$span("X-side", style = "font-weight:bold; color:#0099e6"),
-                                                                                              tags$span("Y-side", style = "font-weight:bold; color:#0099e6"), tags$span("both sides", style = "font-weight:bold; color:#0099e6"))
-                                                                           radioButtons(inputId = "sideGraph",label = "Add side graph", choiceNames = sideChoice, choiceValues = c("none", "x", "y", "both"), inline = TRUE)
-                                                                         },
-                                                                         #two columns for x and y side
-                                                                         # #end different style--------
-                                                                         # fluidRow(
-                                                                         #          #x-side column
-                                                                         #          column(6,
-                                                                         #                 conditionalPanel(condition = "input.sideGraph == 'x' || input.sideGraph == 'both'",
-                                                                         #                 sideGraphUi(id = "xside", side = "X")
-                                                                         #                 )
-                                                                         #          ),
-                                                                         #          #y-side column
-                                                                         #   
-                                                                         #          column(6,
-                                                                         #                 conditionalPanel(condition = "input.sideGraph == 'y' || input.sideGraph == 'both'",
-                                                                         #                 sideGraphUi(id = "xside", side = "Y")
-                                                                         #                 )
-                                                                         #          )
-                                                                         # 
-                                                                         #        )
-                                                                         # #end different style--------
-                                                                         #separate x and y side:
-                                                                         conditionalPanel(condition = "input.sideGraph == 'both'",
-                                                                                          fluidRow(
-                                                                                            #x-side column
-                                                                                            column(6,
-                                                                                                   sideGraphUi(id = "xside", side = "X")
-                                                                                            ),
-                                                                                            #y-side column
-                                                                                            column(6,
-                                                                                                   sideGraphUi(id = "yside", side = "Y")
-                                                                                            )
-
-                                                                                          )
-                                                                         ),
-                                                                         #for x only
-                                                                         conditionalPanel(condition = "input.sideGraph == 'x'",
-                                                                                          #x-side column
-                                                                                          sideGraphUi(id = "xside", side="X")
-                                                                         ),
-
-                                                                         #for y only
-                                                                         conditionalPanel(condition = "input.sideGraph == 'y'",
-                                                                                          #x-side column
-                                                                                          sideGraphUi(id = "yside", side = "Y")
+                                                                         fluidRow(
+                                                                           #x side
+                                                                           column(6, sideGraphUi(id = "xside", side = "X")),
+                                                                           #y side
+                                                                           column(6, sideGraphUi(id = "xside", side = "Y"))
                                                                          )
+                                                                         
                                                                          
                                                                        )#end of side div
                                                                        
@@ -6202,66 +6160,76 @@ server <- function(input, output){
             otherTheme
         }
         
-        #inset in the figure-------------------
-        if(methodSt() != "anova" || (methodSt() == "anova" && anovaType() == "one")){
-          if(nrow(clickBrush_df()) > 1 && isTruthy(input$brush_info) && req(input$inset) == "yes"){
-            req(insetGeomType())
-            
-            message(xyAxis()[[1]])
-            validate(
-              need(xyAxis()[[1]] %in% colnames(clickBrush_df()), "")
-            )
-            #get necessary parameters
-            # insetParamFunc(inDf, oriDf, orix, oriTextLabel, finalPlt, color = "none", shape=NULL, line=NULL)
-            # browser()
-            insetParamFunc(inDf= clickBrush_df(), oriDf = ptable(), orix = xyAxis()[[1]], oriTextLabel = xTextLabels(), finalPlt = finalPlt, color = varSet(), shape=shapeSet(), line=lineSet())
-            #reactive value: insetXTextLabels() - in insetPlt & insetColor() - to be used in inset_df
-            #generate inset graph
-            if(!req(input$insetPlotType) %in% c("line", "scatter plot")){
-              insetPlt <<- plotFig(data = req(clickBrush_df()), types = req(input$insetPlotType), geom_type = insetGeomType(),
-                                   xTextLabels = insetXTextLabels(),
-                                   xl = xyAxis()[[1]], yl = xyAxis()[[2]], shapes = shapeSet(), 
-                                   linetypes = lineSet(), fills = varSet(), varSet = varSet(),
-                                   lineParam = FALSE, autoCust = autoCust(), colorTxt = colorTxt()
-              )
-            }else{
-              insetPlt <<- plotFig(data = req(clickBrush_df()), types = req(input$insetPlotType), geom_type = insetGeomType(),
-                                   xTextLabels = insetXTextLabels(),
-                                   xl = xyAxis()[[1]], yl = xyAxis()[[2]], shapes = shapeSet(), 
-                                   linetypes = lineSet(), colr = varSet(), varSet = varSet(),
-                                   lineParam = FALSE, autoCust = autoCust(), colorTxt = colorTxt())
-            }
-            # browser()
-            
-            #generate table for the inset
-            yMin <- min(clickBrush_df()[[ xyAxis()[[2]] ]])
-            
-            inset_df <- tibble(x= req(input$insetXPosition), y = input$insetYPosition,
-                               plot = list( insetPlt + labs(x=NULL, y = NULL) +
-                                              coord_cartesian(ylim = c(min(clickBrush_df()[[ xyAxis()[[2]] ]]), max(clickBrush_df()[[ xyAxis()[[2]] ]]))) +
-                                              themeF(thme = req(input$insetTheme))+
-                                              theme(legend.position = "none", axis.text = element_text(face = "bold", size = req(input$insetTextSize)))+ scale_fill_manual(values = insetColor())
-                                            # if(!input$insetPlotType %in% c("line", "scatter plot")){scale_fill_manual(values = origColor)}else{scale_color_manual(values = origColor)}
-                               )
-            )
-            
-            #color: dependening on the data add fill or color and scale_*_manual
-            finalInsetPlt <- geom_plot_npc(data = inset_df, aes(npcx =x, npcy = y, label = plot), vp.width = req(input$insetWidth), vp.height = req(input$insetHeight))
-            
-            #add mark area in the graph
-            finalPlt <- finalPlt + geom_mark_rect(data = clickBrush_df(), radius = unit(0,"mm"), expand = unit(3, "mm"), #expand = unit(req(input$insetExpandMarkedArea),"mm"), #expand the marked area
-                                                  alpha = 0, fill = "white",
-                                                  linetype = "dotted") + finalInsetPlt 
-          }
-          
-        }
+        # browser()
+        # #revise will try combine inset and side graph
+        # #need to revise: inset in the figure-------------------
+        # if(req(input$stat) != "anova" || (req(input$stat) == "anova" && anovaType() == "one")){
+        #   if(nrow(clickBrush_df()) > 1 && isTruthy(input$brush_info) && req(input$inset) == "yes"){
+        #     req(insetGeomType())
+        # 
+        #     message(req(input$xAxis))
+        #     validate(
+        #       need(req(input$xAxis) %in% colnames(clickBrush_df()), "")
+        #     )
+        #     #get necessary parameters
+        #     # insetParamFunc(inDf, oriDf, orix, oriTextLabel, finalPlt, color = "none", shape=NULL, line=NULL)
+        #     # browser()
+        #     # insetParamFunc(inDf= clickBrush_df(), oriDf = ptable(), orix = xyAxis()[[1]], oriTextLabel = xTextLabels(), finalPlt = finalPlt, color = varSet(), shape=shapeSet(), line=lineSet())
+        #     insetParamFunc(inDf= clickBrush_df(), oriDf = ptable(), orix = req(input$xAxis), oriTextLabel = xTextLabels(), color = req(input$colorSet), shape=shapeSet(), line=lineSet())
+        # 
+        #     #reactive value: insetXTextLabels() - in insetPlt & insetColor() - to be used in inset_df
+        #     #generate inset graph
+        #     if(!req(input$insetPlotType) %in% c("line", "scatter plot")){
+        #       insetPlt <- plotFig(data = req(clickBrush_df()), types = req(input$insetPlotType), geom_type = insetGeomType(),
+        #                            xTextLabels = insetXTextLabels(),
+        #                            xl = req(input$xAxis), yl = req(input$yAxis), shapes = shapeSet(),
+        #                            linetypes = lineSet(), fills = req(input$colorSet), varSet = req(input$colorSet),
+        #                            lineParam = FALSE, autoCust = autoCust(), colorTxt = colorTxt()
+        #       )
+        #     }else{
+        #       insetPlt <- plotFig(data = req(clickBrush_df()), types = req(input$insetPlotType), geom_type = insetGeomType(),
+        #                            xTextLabels = insetXTextLabels(),
+        #                            xl = xyAxis()[[1]], yl = xyAxis()[[2]], shapes = shapeSet(),
+        #                            linetypes = lineSet(), colr = varSet(), varSet = varSet(),
+        #                            lineParam = FALSE, autoCust = autoCust(), colorTxt = colorTxt())
+        #     }
+        #     # browser()
+        # 
+        #     #generate table for the inset
+        #     yMin <- min(clickBrush_df()[[ xyAxis()[[2]] ]])
+        # 
+        #     inset_df <- tibble(x= req(input$insetXPosition), y = input$insetYPosition,
+        #                        plot = list( insetPlt + labs(x=NULL, y = NULL) +
+        #                                       coord_cartesian(ylim = c(min(clickBrush_df()[[ xyAxis()[[2]] ]]), max(clickBrush_df()[[ xyAxis()[[2]] ]]))) +
+        #                                       themeF(thme = req(input$insetTheme))+
+        #                                       theme(legend.position = "none", axis.text = element_text(face = "bold", size = req(input$insetTextSize)))+ scale_fill_manual(values = insetColor())
+        #                                     # if(!input$insetPlotType %in% c("line", "scatter plot")){scale_fill_manual(values = origColor)}else{scale_color_manual(values = origColor)}
+        #                        )
+        #     )
+        # 
+        #     #color: dependening on the data add fill or color and scale_*_manual
+        #     finalInsetPlt <- geom_plot_npc(data = inset_df, aes(npcx =x, npcy = y, label = plot), vp.width = req(input$insetWidth), vp.height = req(input$insetHeight))
+        # 
+        #     #add mark area in the graph
+        #     finalPlt <- finalPlt + geom_mark_rect(data = clickBrush_df(), radius = unit(0,"mm"), expand = unit(3, "mm"), #expand = unit(req(input$insetExpandMarkedArea),"mm"), #expand the marked area
+        #                                           alpha = 0, fill = "white",
+        #                                           linetype = "dotted") + finalInsetPlt
+        #   }
+        # 
+        # }
+        # #end of inset------------
+        # browser()
+        #currently unable to combine side and inset together
+        #add side graph and inset 
+        finalPlt <- finalPlt + sideGraphx()[[1]] + sideGraphx()[[2]] + insetPlt()[[1]] + insetPlt()[[2]]
         
         #save it for download option
-        saveFigure(finalPlt) 
-        #signal message
-        computeFuncError(0)
+        saveFigure(finalPlt)
         
-        return(finalPlt) #final plot
+        # #signal message
+        computeFuncError(0)
+        return(finalPlt)
+        
       }, error = function(e){
         
         computeFuncError(1)
@@ -6276,6 +6244,108 @@ server <- function(input, output){
     
   })#end of advance plot
   #end plot figures--------------------------------
+  #side graph
+  sideGraphx <- reactive({
+    # browser()
+    color <- if(req(input$colorSet) != "none"){ input$colorSet }else{ NULL }
+    shape <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Shape"){ input$shapeSet}else{NULL}
+    line <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Line type"){ input$lineSet}else{NULL}
+    
+    sideGraphData(id="xside", side = "x", color = color, linetype = line, shape = shape)
+    })
+  sideGraphy <- reactive(sideGraphData(id="xside", side = "Y"))
+  
+  
+  
+  #inset---
+  #it will return a list of two elements
+  insetPlt <- reactive({
+    # browser()
+    
+    #inset in the figure------------------
+    value <- list(NULL, NULL) #to be return as reactive value
+    if(req(input$stat) != "anova" || (req(input$stat) == "anova" && req(input$pairedData) == "one")){
+      
+      if(nrow(clickBrush_df()) > 1 && isTruthy(input$brush_info) && req(input$inset) == "yes"){
+        #currently inset and side not supported
+        req(is.null(sideGraphx()[[1]]))
+        req(insetGeomType())
+        
+        message(req(input$xAxis))
+        validate(
+          need(req(input$xAxis) %in% colnames(clickBrush_df()), "")
+        )
+        #get necessary parameters
+        shapeLine <- reactive(ifelse(isTruthy(input$shapeLine), input$shapeLine, "none"))
+        shapeSet <- reactive(if(shapeLine() == "Shape") {req(input$shapeSet)}else{NULL})
+        lineSet <- reactive(if(shapeLine() == "Line type") {req(input$lineSet)}else{NULL})
+        
+        autoCust <- reactive(ifelse(req(input$colorSet) != "none", req(input$autoCustome), "none"))
+        colorTxt <- reactive(ifelse(autoCust() == "customize" && isTruthy(input$colorAdd), input$colorAdd, "noneProvided"))
+        
+        xTextLabels <- reactive({
+          req(input$plotType != 'none', input$xAxis %in% colnames(ptable()))
+          xTextLabel()
+        })
+        # insetParamFunc(inDf, oriDf, orix, oriTextLabel, finalPlt, color = "none", shape=NULL, line=NULL)
+        # browser()
+        # insetParamFunc(inDf= clickBrush_df(), oriDf = ptable(), orix = xyAxis()[[1]], oriTextLabel = xTextLabels(), finalPlt = finalPlt, color = varSet(), shape=shapeSet(), line=lineSet())
+        insetParamFunc(inDf= clickBrush_df(), oriDf = ptable(), orix = req(input$xAxis), oriTextLabel = xTextLabels(), color = req(input$colorSet), shape=shapeSet(), line=lineSet())
+        
+        #reactive value: insetXTextLabels() - in insetPlt & insetColor() - to be used in inset_df
+        #generate inset graph
+        if(!req(input$insetPlotType) %in% c("line", "scatter plot")){
+          insetPlt <- plotFig(data = req(clickBrush_df()), types = req(input$insetPlotType), geom_type = insetGeomType(),
+                              xTextLabels = insetXTextLabels(),
+                              xl = req(input$xAxis), yl = req(input$yAxis), shapes = shapeSet(),
+                              linetypes = lineSet(), fills = req(input$colorSet), varSet = req(input$colorSet),
+                              lineParam = FALSE, autoCust = autoCust(), colorTxt = colorTxt()
+          )
+        }else{
+          insetPlt <- plotFig(data = req(clickBrush_df()), types = req(input$insetPlotType), geom_type = insetGeomType(),
+                              xTextLabels = insetXTextLabels(),
+                              xl = req(input$xAxis), yl = req(input$yAxis), shapes = shapeSet(),
+                              linetypes = lineSet(), colr = req(input$colorSet), varSet = req(input$colorSet),
+                              lineParam = FALSE, autoCust = autoCust(), colorTxt = colorTxt())
+        }
+        # browser()
+        
+        #generate table for the inset
+        yMin <- min(clickBrush_df()[[ req(input$yAxis) ]])
+        
+        inset_df <- tibble(x= req(input$insetXPosition), y = input$insetYPosition,
+                           plot = list( insetPlt + labs(x=NULL, y = NULL) +
+                                          coord_cartesian(ylim = c(min(clickBrush_df()[[ req(input$yAxis) ]]), max(clickBrush_df()[[ req(input$yAxis) ]]))) +
+                                          themeF(thme = req(input$insetTheme))+
+                                          theme(legend.position = "none", axis.text = element_text(face = "bold", size = req(input$insetTextSize)))+ scale_fill_manual(values = insetColor())
+                                        # if(!input$insetPlotType %in% c("line", "scatter plot")){scale_fill_manual(values = origColor)}else{scale_color_manual(values = origColor)}
+                           )
+        )
+        
+        #color: dependening on the data add fill or color and scale_*_manual
+        finalInsetPlt <- geom_plot_npc(data = inset_df, aes(npcx =x, npcy = y, label = plot), vp.width = req(input$insetWidth), vp.height = req(input$insetHeight))
+        #add mark area in the graph: 
+        geom_mark <- geom_mark_rect(data = clickBrush_df(), radius = unit(0,"mm"), expand = unit(3, "mm"), #expand = unit(req(input$insetExpandMarkedArea),"mm"), #expand the marked area
+                                    alpha = 0, fill = "white",
+                                    linetype = "dotted")
+        
+        #return as list
+        value <- list(finalInsetPlt, geom_mark)
+      }
+      
+    }
+    
+    #return
+    value
+    #end of inset------------
+  })
+  
+  
+  
+  # observe({
+  #   sideGraph(sideGraphData(id="xside", layer = input$sideGraph))
+  # })
+  
   
   #for stat
 
@@ -6315,7 +6385,7 @@ server <- function(input, output){
   
   
   #save the click and brush data
-  clickBrush_df <- reactiveVal(NULL)
+  # clickBrush_df <- reactiveVal(NULL)
   observe({
     req(!isTruthy(input$brush_info) & !isTruthy(input$click_info))
     # browser()
@@ -6386,7 +6456,9 @@ server <- function(input, output){
     # )
     
     #get click data
+    
     if(req(input$xAxis) %in% colnames(ptable()) && req(input$yAxis) %in% colnames(ptable())){
+      
       df <- nearPoints(ptable(),coordinfo = req(input$click_info), xvar = input$xAxis, yvar = input$yAxis)
     }else{ df <- data.frame(matrix(nrow = 0, ncol = 0)) }
     
@@ -6426,15 +6498,23 @@ server <- function(input, output){
   })
   
   
-  #display table for the click and brush
+  #display table for the brush
   observe({
-    req(ptable(), pltType(), input$xAxis, input$yAxis, input$brush_info)# input$UiHover_display)
+    req(ptable(), input$plotType, input$xAxis, input$yAxis, input$brush_info)# input$UiHover_display)
     #get brush data
-    #get click data
+    
     if(req(input$xAxis) %in% colnames(ptable()) && req(input$yAxis) %in% colnames(ptable())){
+      # if(!is.null(req(sideGraphx()[[1]])) && !is.null(clickBrush_df())){
+      #   df <- clickBrush_df()
+      # }else{
+      #   df <- brushedPoints(df = ptable(), brush = input$brush_info, xvar = input$xAxis, yvar = input$yAxis)
+      # }
+      message(input$click_info)
+      message(str(input$click_info))
       df <- brushedPoints(df = ptable(), brush = input$brush_info, xvar = input$xAxis, yvar = input$yAxis)
     }else{ df <- data.frame(matrix(nrow = 0, ncol = 0)) }
     
+    message(df)
     
     clickBrush_df(df)#save it for download
     #table to display
