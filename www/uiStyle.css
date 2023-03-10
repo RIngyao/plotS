@@ -350,7 +350,11 @@ body{
       border:solid 1px;
       padding:5px;
       }
-      .filterDataDiv > *, .insetDoprdownDiv > *, .sideDropdownDiv > *{
+      
+/*       .sideDropdownDiv > * */
+      
+      
+      .filterDataDiv > *, .insetDoprdownDiv > *{
       text-align:center;
       margin:10px;
       }

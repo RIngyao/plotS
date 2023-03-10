@@ -864,7 +864,7 @@ ui <- fluidPage(
                                              ), #end column for inset
                                              column(3,
                                                     conditionalPanel(condition = "input.pairedData !== 'two'",
-                                                                     dropdownButton( inputId = "sideDropdownButton", right = TRUE, width="450px", label = tags$b("Side graph", style="color:#C622FA"), circle = FALSE, size = "sm", tooltip = tooltipOptions(title = "Add side graph"), icon = icon("sliders"),
+                                                                     dropdownButton( inputId = "sideDropdownButton", right = TRUE, width="600px", label = tags$b("Side graph", style="color:#C622FA"), circle = FALSE, size = "sm", tooltip = tooltipOptions(title = "Add side graph"), icon = icon("sliders"),
                                                                        div(
                                                                          class = "sideDropdownDiv",
                                                                          
@@ -873,7 +873,7 @@ ui <- fluidPage(
                                                                            #x side
                                                                            column(6, sideGraphUi(id = "xside", side = "X")),
                                                                            #y side
-                                                                           column(6, sideGraphUi(id = "xside", side = "Y"))
+                                                                           column(6, sideGraphUi(id = "yside", side = "Y"))
                                                                          )
                                                                          
                                                                          
@@ -6221,7 +6221,11 @@ server <- function(input, output){
         # browser()
         #currently unable to combine side and inset together
         #add side graph and inset 
-        finalPlt <- finalPlt + sideGraphx()[[1]] + sideGraphx()[[2]] + insetPlt()[[1]] + insetPlt()[[2]]
+        finalPlt <- finalPlt + sideGraphx()[[1]] + sideGraphx()[[2]] +
+          #y side
+          sideGraphy()[[1]] + sideGraphy()[[2]] +
+          #insed
+          insetPlt()[[1]] + insetPlt()[[2]]
         
         #save it for download option
         saveFigure(finalPlt)
@@ -6251,10 +6255,16 @@ server <- function(input, output){
     shape <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Shape"){ input$shapeSet}else{NULL}
     line <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Line type"){ input$lineSet}else{NULL}
     
-    sideGraphData(id="xside", side = "x", color = color, linetype = line, shape = shape)
+    sideGraphData(id="xside", side = "x", xyRequire = xyRequire,mainGraph = req(input$plotType), color = color, linetype = line, shape = shape)
     })
-  sideGraphy <- reactive(sideGraphData(id="xside", side = "Y"))
-  
+  sideGraphy <- reactive({
+    # browser()
+    color <- if(req(input$colorSet) != "none"){ input$colorSet }else{ NULL }
+    shape <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Shape"){ input$shapeSet}else{NULL}
+    line <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Line type"){ input$lineSet}else{NULL}
+    
+    sideGraphData(id="yside", side = "Y", xyRequire = xyRequire, mainGraph = req(input$plotType), color = color, linetype = line, shape = shape)
+  })
   
   
   #inset---
