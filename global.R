@@ -95,11 +95,16 @@ waitNotify <- function(msg = "Computing... Please wait..", id = NULL, type = "me
 #module for side graph-----------------
 sideGraphList <- c("density", "bar plot", "box plot", "scatter plot", "frequency")
 colorOpt <- c("black","grey","red","blue", "brown","orange")
+
+"
+arguments:
+rm = Logical. If TRUE, remove frequency plot and FALSE is to keep all the plot"
+
 sideGraphUi <- function(id,side = "X"){
   ns <- NS(id)
   tagList(
     #graph option binwidth
-    selectInput(ns("sideGraphType"), label = paste0(side, "-graph"), choices = c("none",sort(sideGraphList)), selected = "none"),
+    selectInput(ns("sideGraphType"), label = paste0(side, "-graph"), choices = if(!isTRUE(rm)){c("none",sort(sideGraphList))}else{c("none",sort(sideGraphList[which(sideGraphList != "frequency")]))}, selected = "none"),
     conditionalPanel(ns=ns, condition = "input.sideGraphType == 'bar plot'",
                      #stat: identity or count
                      {
@@ -225,13 +230,15 @@ sideGraphData <- function(id, side, mainGraph = "none", xyRequire = xyRequire, l
   # req(x %in% colnames(data))
   moduleServer(id, function(input, output, session){
     # browser()
-    if(mainGraph %in% xyRequire){
-      updateSelectInput(ns("sideGraphType"), label = paste0(side, "-graph"), choices = c("none",sort(sideGraphList) - "frequency"), selected = "none")
-    }
     
+    # if(mainGraph %in% xyRequire && length(sideGraphList) == 5){
+    # # Issue with this update method
+    #   updateSelectInput(inputId = "sideGraphType", choices = c("none",sort(sideGraphList[which(sideGraphList !="frequency")])))
+    # }
     
     if(req(input$sideGraphType) != "none"){
      #graph
+      graph1 <- list(NULL,NULL)  
       
       if(tolower(side) == "x"){
         #x side
@@ -296,7 +303,7 @@ sideGraphData <- function(id, side, mainGraph = "none", xyRequire = xyRequire, l
       
       #add theme to the graph
       if(tolower(side) == "x"){
-        sideThemes <- theme(ggside.axis.text.x = element_text(face = "bold", size = req(input$panelTextSize)),
+        sideThemes <- theme(ggside.axis.text.y = element_text(face = "bold", size = req(input$panelTextSize)),
                        ggside.panel.scale.x = req(input$panelScale),
                        ggside.panel.spacing.y = unit(req(input$panelSpacing), "pt"),
                        ggside.panel.background = if(req(input$panelBackground) == "default"){element_rect()}else{element_blank()},
@@ -305,7 +312,7 @@ sideGraphData <- function(id, side, mainGraph = "none", xyRequire = xyRequire, l
                        )
         
       }else if(tolower(side) == "y"){
-        sideThemes <- theme(ggside.axis.text.y = element_text(face = "bold", size = req(input$panelTextSize)),
+        sideThemes <- theme(ggside.axis.text.x = element_text(face = "bold", size = req(input$panelTextSize)),
                         ggside.panel.scale.y = req(input$panelScale),
                         ggside.panel.spacing.x = unit(req(input$panelSpacing), "pt"),
                         ggside.panel.background = if(req(input$panelBackground) == "default"){element_rect()}else{element_blank()},
@@ -1928,7 +1935,9 @@ themeF <- function(thme = "user preferred theme"){
          "white with grid lines" = theme_bw(),
          "dark" = theme_dark(),
          "blank" = theme_void(),
-         "theme5" = theme_bw(10))
+         "theme5" = theme_bw(10),
+         "minimal" = theme_minimal(),
+         "grey" = theme_grey())
 }
 
 #Axis labeling Function-------------

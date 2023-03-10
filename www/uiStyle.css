@@ -358,6 +358,9 @@ body{
       text-align:center;
       margin:10px;
       }
+      .sideDropdownDiv{
+      margin:10px
+      }
       #UiFilterAndOr{
       margin-left:5px;
       }
@@ -385,6 +388,7 @@ body{
       margin-top: 10px;
       margin-bottom:0;
       }
+      
       #UiClickBrushDownload{
       float:right; 
       background-image:linear-gradient(white, white, rgba(190, 237, 253));

@@ -491,7 +491,7 @@ ui <- fluidPage(
                                #option for theme
                                # uiOutput("UiTheme"),
                                conditionalPanel(condition = "input.plotType !== 'none'",
-                                                selectInput(inputId = "theme", label = "Background theme", choices = c("default", "dark", "white", "white with grid lines","blank"), selected = "default") 
+                                                selectInput(inputId = "theme", label = "Background theme", choices = c("default", sort(c( "dark","grey", "white", "white with grid lines","blank", "minimal"))), selected = "default") 
                                                 ),
                                
                                #Aesthetic setting
@@ -779,11 +779,13 @@ ui <- fluidPage(
                         
                         conditionalPanel(condition = "input.plotType != 'none'",
                                          div(
-                                           class = "preViewDiv",
+                                           class = "preViewDiv", 
+                                           style = "border-style:none;  padding:10px; background-image:linear-gradient(rgba(56, 168, 249, 0.3), white 20%);
+                                                    ",
                                            fluidRow(
                                              column(3, 
                                                     fluidRow(
-                                                      dropdownButton(inputId = "filterData", label = tags$b("Filter", style="color:#C622FA"), circle = FALSE, size = "sm", tooltip = tooltipOptions(title = "Filter the input data"), icon = icon("sliders"),
+                                                      dropdownButton(inputId = "filterData", label = tags$b("Filter", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Filter the input data", placement = "bottom"), icon = icon("sliders"),
                                                                      div(
                                                                        class = "filterDataDiv",
                                                                        h4("Apply filter", align = "center", style = "color:green; margin-bottom:5px"),
@@ -818,7 +820,7 @@ ui <- fluidPage(
                                              ),
                                              column(3, 
                                                     conditionalPanel(condition = "input.pairedData !== 'two'",
-                                                                     dropdownButton(inputId = "insetDropdownButton", width="450px", label = tags$b("Inset", style="color:#C622FA"), circle = FALSE, size = "sm", tooltip = tooltipOptions(title = "Inset settings"), icon = icon("sliders"),
+                                                                     dropdownButton(inputId = "insetDropdownButton", width="450px", label = tags$b("Inset", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Add or remove inset",placement = "bottom"), icon = icon("sliders"),
                                                                                     div(
                                                                                       class = "insetDoprdownDiv",
                                                                                       
@@ -864,19 +866,22 @@ ui <- fluidPage(
                                              ), #end column for inset
                                              column(3,
                                                     conditionalPanel(condition = "input.pairedData !== 'two'",
-                                                                     dropdownButton( inputId = "sideDropdownButton", right = TRUE, width="600px", label = tags$b("Side graph", style="color:#C622FA"), circle = FALSE, size = "sm", tooltip = tooltipOptions(title = "Add side graph"), icon = icon("sliders"),
+                                                                     dropdownButton( inputId = "sideDropdownButton", right = TRUE, width="600px", label = tags$b("Side graph", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Add or remove side graph", placement = "bottom"), icon = icon("sliders"),
                                                                        div(
                                                                          class = "sideDropdownDiv",
-                                                                         
+                                                                         h4("Add graphs on the x- and y-sides of the main graph.", align = "center", style = "color:green; margin-bottom:5px"),
+                                                                         helpText( tags$p("Some functions will apply on both the sides"), style = "text-align:center; margin-bottom: 7px"),
                                                                          #option to add side graph
+                                                                         #updating from module create issue so condition applied outside module
+                                                                         #x side
                                                                          fluidRow(
-                                                                           #x side
-                                                                           column(6, sideGraphUi(id = "xside", side = "X")),
+                                                                           column(6, div(
+                                                                           style ="border-right:dotted; padding-right: 2px; margin-right:2px;",
+                                                                           sideGraphUi(id = "xside", side = "X" )
+                                                                           )),
                                                                            #y side
                                                                            column(6, sideGraphUi(id = "yside", side = "Y"))
                                                                          )
-                                                                         
-                                                                         
                                                                        )#end of side div
                                                                        
                                                                      )#end of side dropdown button
@@ -913,7 +918,7 @@ ui <- fluidPage(
                         conditionalPanel(condition = "input.plotType != 'none'",
                                          div(
                                            style= "border-top:dotted 1px;margin:0; text-align:center;
-                                                      background-image:linear-gradient(rgba(206,247,250, 0.2), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5))",
+                                                      background-image:linear-gradient(rgba(206,247,250, 0.2), rgba(206,247,250, 0.1), white)", #rgba(206,247,250, 0.2), rgba(254, 254, 254, 0.1), rgba(206,247,250, 0.5)
                                            h4("Change variable name of x-axis", align = "center", style = "color:green; margin-bottom:7px"),
                                            fluidRow(
                                              # column(4, uiOutput("uiXAxisTextLabelChoice")),
@@ -3157,7 +3162,7 @@ server <- function(input, output){
       updateSliderInput(inputId = "densityAdjust", label = "Adjust bw", min = 1, max = 20, value = 1)
     }
     #theme
-    updateSelectInput(inputId = "theme", label = "Background theme", choices = c("default", "dark", "white", "white with grid lines","blank"), selected = "default") 
+    updateSelectInput(inputId = "theme", label = "Background theme", choices = c("default", sort(c( "dark", "grey", "white", "white with grid lines","blank", "minimal"))), selected = "default") 
   })
   # #theme for plot
   # output$UiTheme <- renderUI({
@@ -6255,7 +6260,7 @@ server <- function(input, output){
     shape <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Shape"){ input$shapeSet}else{NULL}
     line <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Line type"){ input$lineSet}else{NULL}
     
-    sideGraphData(id="xside", side = "x", xyRequire = xyRequire,mainGraph = req(input$plotType), color = color, linetype = line, shape = shape)
+    sideGraphData(id="xside", side = "x", xyRequire = xyRequire, mainGraph = req(input$plotType), color = color, linetype = line, shape = shape)
     })
   sideGraphy <- reactive({
     # browser()
