@@ -780,7 +780,7 @@ ui <- fluidPage(
                         conditionalPanel(condition = "input.plotType != 'none'",
                                          div(
                                            class = "preViewDiv", 
-                                           style = "border-style:none;  padding:10px; background-image:linear-gradient(rgba(56, 168, 249, 0.3), white 20%);
+                                           style = "border-top:solid #9cd4fc;  padding:10px; background-image:linear-gradient(rgba(56, 168, 249, 0.15), white 17%);
                                                     ",
                                            fluidRow(
                                              column(3, 
@@ -788,6 +788,7 @@ ui <- fluidPage(
                                                       dropdownButton(inputId = "filterData", label = tags$b("Filter", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Filter the input data", placement = "bottom"), icon = icon("sliders"),
                                                                      div(
                                                                        class = "filterDataDiv",
+                                                                       style = "text-align:center",
                                                                        h4("Apply filter", align = "center", style = "color:green; margin-bottom:5px"),
                                                                        #UI option for variable selection
                                                                        # uiOutput("UiVarFilterOpts"),
@@ -869,8 +870,9 @@ ui <- fluidPage(
                                                                      dropdownButton( inputId = "sideDropdownButton", right = TRUE, width="600px", label = tags$b("Side graph", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Add or remove side graph", placement = "bottom"), icon = icon("sliders"),
                                                                        div(
                                                                          class = "sideDropdownDiv",
-                                                                         h4("Add graphs on the x- and y-sides of the main graph.", align = "center", style = "color:green; margin-bottom:5px"),
-                                                                         helpText( tags$p("Some functions will apply on both the sides"), style = "text-align:center; margin-bottom: 7px"),
+                                                                         style = "text-align:center",
+                                                                         h4("Add graph on the x- and y-sides of the main graph.", align = "center", style = "color:green; margin-bottom:20px"),
+                                                                         # helpText( tags$p("Some functions will apply on both the sides"), style = "text-align:center; margin-bottom: 7px"),
                                                                          #option to add side graph
                                                                          #updating from module create issue so condition applied outside module
                                                                          #x side
@@ -881,6 +883,25 @@ ui <- fluidPage(
                                                                            )),
                                                                            #y side
                                                                            column(6, sideGraphUi(id = "yside", side = "Y"))
+                                                                         ),
+                                                                         div(
+                                                                           style = "border-top:dotted 1px;",
+                                                                           h5("Common to both x- and y-graphs. Works only when side graph is not none.", align = "center", style = "color:cornflowerblue; margin-bottom:5px"),
+                                                                           fluidRow(
+                                                                             column(6, sliderInput(inputId = "panelBorderWidth", label = "Border width", min= 0, max = 5, value = 1)),
+                                                                             column(6, selectInput(inputId = "panelBorderColor", label = "Border color", choices = sort(colorOpt), selected = "grey"))
+                                                                           ),
+                                                                           
+                                                                           fluidRow(
+                                                                             column(6, selectInput(inputId = "panelBackground", label = "Background theme", choices = c("default", "blank"))),
+                                                                             column(6, selectInput(inputId = "panelGridColor", label = "Grid color", choices = sort(colorOpt), selected = "grey"))
+                                                                           ),
+                                                                           
+                                                                           fluidRow(
+                                                                             column(6, sliderInput(inputId = "panelGridLineWidth", label = "Grid line width", min=0, max= 1, value=0.1)),
+                                                                             column(6, selectInput(inputId = "panelGridLineType", label = "Grid line type", choices = sort(c("solid","dotted","dashed"))))
+                                                                           )
+                                                                           
                                                                          )
                                                                        )#end of side div
                                                                        
@@ -6260,7 +6281,9 @@ server <- function(input, output){
     shape <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Shape"){ input$shapeSet}else{NULL}
     line <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Line type"){ input$lineSet}else{NULL}
     
-    sideGraphData(id="xside", side = "x", xyRequire = xyRequire, mainGraph = req(input$plotType), color = color, linetype = line, shape = shape)
+    sideGraphData(id="xside", side = "x", xyRequire = xyRequire, mainGraph = req(input$plotType), color = color, linetype = line, shape = shape,
+                  borderWidth = req(input$panelBorderWidth), borderColor = req(input$panelBorderColor), panelTheme = req(input$panelBackground),
+                  gridColor = req(input$panelGridColor), gridlineWidth = req(input$panelGridLineWidth), gridLineType = req(input$panelGridLineType))
     })
   sideGraphy <- reactive({
     # browser()
@@ -6268,9 +6291,13 @@ server <- function(input, output){
     shape <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Shape"){ input$shapeSet}else{NULL}
     line <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Line type"){ input$lineSet}else{NULL}
     
-    sideGraphData(id="yside", side = "Y", xyRequire = xyRequire, mainGraph = req(input$plotType), color = color, linetype = line, shape = shape)
+    sideGraphData(id="yside", side = "Y", xyRequire = xyRequire, mainGraph = req(input$plotType), color = color, linetype = line, shape = shape,
+                  borderWidth = req(input$panelBorderWidth), borderColor = req(input$panelBorderColor), panelTheme = req(input$panelBackground),
+                  gridColor = req(input$panelGridColor), gridlineWidth = req(input$panelGridLineWidth), gridLineType = req(input$panelGridLineType))
   })
   
+  
+ 
   
   #inset---
   #it will return a list of two elements
