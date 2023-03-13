@@ -879,10 +879,12 @@ ui <- fluidPage(
                                                                          fluidRow(
                                                                            column(6, div(
                                                                            style ="border-right:dotted; padding-right: 2px; margin-right:2px;",
-                                                                           sideGraphUi(id = "xside", side = "X" )
+                                                                           # sideGraphUi(id = "xside", side = "X")
+                                                                           uiOutput("UiXside")
                                                                            )),
                                                                            #y side
-                                                                           column(6, sideGraphUi(id = "yside", side = "Y"))
+                                                                           # column(6, sideGraphUi(id = "yside", side = "Y")) #sideGraphUi(id = "xside", side = "X")
+                                                                           column(6, uiOutput("UiYside")) 
                                                                          ),
                                                                          div(
                                                                            style = "border-top:dotted 1px;",
@@ -1182,6 +1184,16 @@ ui <- fluidPage(
 #server------------------------
 server <- function(input, output){
   
+  
+  #side graph----------------
+  observe({
+    req(ptable(), input$plotType != "none")
+    output$UiXside <- renderUI({
+      sideGraphUi(id = "xside", side = "X", sideVar = colnames(ptable()))
+    })
+    output$UiYside <- renderUI(sideGraphUi(id = "yside", side = "Y", sideVar= colnames(ptable())))
+    #
+  })
   #refresh/trigger button for different parameters to none: need rework-------------
   refresh_1 <- reactive({if(isTruthy(input$pInput) | isTruthy(input$transform) | isTruthy(input$pFile)) TRUE})
   refresh_2 <- reactive({
@@ -6277,23 +6289,33 @@ server <- function(input, output){
   #side graph
   sideGraphx <- reactive({
     # browser()
-    color <- if(req(input$colorSet) != "none"){ input$colorSet }else{ NULL }
-    shape <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Shape"){ input$shapeSet}else{NULL}
-    line <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Line type"){ input$lineSet}else{NULL}
+    if(!isTruthy(input$sideDropdownButton)){
+      list(NULL, NULL)
+    }else{
+      color <- if(req(input$colorSet) != "none"){ input$colorSet }else{ NULL }
+      shape <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Shape"){ input$shapeSet}else{NULL}
+      line <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Line type"){ input$lineSet}else{NULL}
+      
+      sideGraphData(id="xside", side = "x", xyRequire = xyRequire, sideVar = colnames(ptable()), mainGraph = req(input$plotType), color = color, linetype = line, shape = shape,
+                    borderWidth = req(input$panelBorderWidth), borderColor = req(input$panelBorderColor), panelTheme = req(input$panelBackground),
+                    gridColor = req(input$panelGridColor), gridlineWidth = req(input$panelGridLineWidth), gridLineType = req(input$panelGridLineType))
+    }
     
-    sideGraphData(id="xside", side = "x", xyRequire = xyRequire, mainGraph = req(input$plotType), color = color, linetype = line, shape = shape,
-                  borderWidth = req(input$panelBorderWidth), borderColor = req(input$panelBorderColor), panelTheme = req(input$panelBackground),
-                  gridColor = req(input$panelGridColor), gridlineWidth = req(input$panelGridLineWidth), gridLineType = req(input$panelGridLineType))
     })
   sideGraphy <- reactive({
     # browser()
-    color <- if(req(input$colorSet) != "none"){ input$colorSet }else{ NULL }
-    shape <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Shape"){ input$shapeSet}else{NULL}
-    line <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Line type"){ input$lineSet}else{NULL}
+    if(!isTruthy(input$sideDropdownButton)){
+      list(NULL, NULL)
+    }else{
+      color <- if(req(input$colorSet) != "none"){ input$colorSet }else{ NULL }
+      shape <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Shape"){ input$shapeSet}else{NULL}
+      line <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Line type"){ input$lineSet}else{NULL}
+      
+      sideGraphData(id="yside", side = "Y", xyRequire = xyRequire, mainGraph = req(input$plotType), color = color, linetype = line, shape = shape,
+                    borderWidth = req(input$panelBorderWidth), borderColor = req(input$panelBorderColor), panelTheme = req(input$panelBackground),
+                    gridColor = req(input$panelGridColor), gridlineWidth = req(input$panelGridLineWidth), gridLineType = req(input$panelGridLineType))
+    }
     
-    sideGraphData(id="yside", side = "Y", xyRequire = xyRequire, mainGraph = req(input$plotType), color = color, linetype = line, shape = shape,
-                  borderWidth = req(input$panelBorderWidth), borderColor = req(input$panelBorderColor), panelTheme = req(input$panelBackground),
-                  gridColor = req(input$panelGridColor), gridlineWidth = req(input$panelGridLineWidth), gridLineType = req(input$panelGridLineType))
   })
   
   

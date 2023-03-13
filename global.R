@@ -101,143 +101,150 @@ colorOpt <- c("black","grey","red","blue", "brown","orange")
 "
 arguments:
 rm = Logical. If TRUE, remove frequency plot and FALSE is to keep all the plot"
+#old---------------
+# sideGraphUi_old <- function(id,side = "X"){
+#   ns <- NS(id)
+#   tagList(
+#     #graph option binwidth
+#     selectInput(ns("sideGraphType"), label = paste0(side, "-graph"), choices = if(!isTRUE(rm)){c("none",sort(sideGraphList))}else{c("none",sort(sideGraphList[which(sideGraphList != "frequency")]))}, selected = "none"),
+#     
+#     #variables for y
+#     
+#     #other ui
+#     conditionalPanel(ns=ns, condition = "input.sideGraphType == 'bar plot'",
+#                      #stat: identity or count
+#                      {
+#                        statList <- list(tags$span("Identity", style = "font-weight:bold; color:#0099e6"), tags$span("Count", style = "font-weight:bold; color:#0099e6"))
+#                        radioButtons(inputId = ns("stat"), label = "Evaluate", choiceNames = statList, choiceValues = c("identity", "count"), selected = "identity", inline = TRUE)
+#                      },
+#                      bsTooltip(id = ns("stat"), title = "Identity will use the Y-axis value.", placement = "top", trigger = "hover",
+#                                options = list(container = "body"))
+#                      ), 
+#     
+#     conditionalPanel(ns=ns, condition = "input.sideGraphType == 'frequency'",
+#                      #stat: identity or count
+#                      sliderInput(inputId = "binwidth", label = "Bin width", min = 1, max = 100, value = 30)
+#     ),
+#     
+#     #only for scatter plot
+#     conditionalPanel(ns=ns, condition = "input.sideGraphType == 'scatter plot'",
+#                      #stat: identity or count
+#                      fluidRow(
+#                        column(6, sliderInput(inputId = ns("pointSize"), label = "Point size", min = 1, max = 15, value = 1)),#pointstat
+#                               # {
+#                               #      statList <- list(tags$span("Identity", style = "font-weight:bold; color:#0099e6"), tags$span("Count", style = "font-weight:bold; color:#0099e6"))
+#                               #      radioButtons(inputId = ns("pointStat"), label = "Evaluate", choiceNames = statList, choiceValues = c("identity", "count"), selected = "identity", inline = TRUE)
+#                               #    },
+#                               #    bsTooltip(id = ns("pointStat"), title = "Identity will use the Y-axis value.", placement = "top", trigger = "hover",
+#                               #              options = list(container = "body"))
+#                               
+#                        column(6, 
+#                               {
+#                                 statList <- list(tags$span("Yes", style = "font-weight:bold; color:#0099e6"), tags$span("No", style = "font-weight:bold; color:#0099e6"))
+#                                 radioButtons(inputId = ns("pointPosition"), label = "Adjust overlap", choiceNames = statList, choiceValues = c("yes", "no"), selected = "yes", inline = TRUE)
+#                               }
+#                               )
+#                      ),
+#                      
+#                      sliderInput(inputId = ns("pointAlpha"), label = "Transparency", min = 0, max = 1, value = 0.5)
+#                      
+#                      # fluidRow(
+#                      #   column(6, sliderInput(inputId = ns("pointSize"), label = "Point size", min = 1, max = 15, value = 1)),
+#                      #   column(6, sliderInput(inputId = ns("pointAlpha"), label = "Transparency", min = 0, max = 1, value = 0.5))
+#                      # )
+#                      ),
+#     
+#     conditionalPanel(ns=ns, condition = "input.sideGraphType == 'bar plot' || input.sideGraphType == 'box plot'",
+#                      sliderInput(inputId = ns("barWidth"), label = "Width", min = 0, max = 1, value = 0.5)
+#                      ),
+#     
+#     conditionalPanel(ns=ns, condition = "input.sideGraphType == 'density' || input.sideGraphType == 'bar plot'",
+#                      
+#                      #position for 
+#                      {
+#                        position <- list(tags$span("Stack", style = "font-weight:bold; color:#0099e6"), tags$span("Dodge", style = "font-weight:bold; color:#0099e6"))
+#                        radioButtons(inputId = ns("position"), label = "Position", choiceNames = position, choiceValues = c("stack", "dodge"), inline = TRUE, selected = "stack")
+#                      }
+#                      ),
+#     
+#     conditionalPanel(ns=ns, condition = "input.sideGraphType == 'density' || input.sideGraphType == 'bar plot' || input.sideGraphType == 'box plot'",
+#                      #orientation
+#                      {
+#                        #deafult = NA (auto)
+#                        oreint <- list(tags$span("X", style = "font-weight:bold; color:#0099e6"), tags$span("Y", style = "font-weight:bold; color:#0099e6")) #tags$span("default", style = "font-weight:bold; color:#0099e6"), 
+#                        radioButtons(inputId = ns("orientation"), label = "Orientation", choiceNames = oreint, choiceValues = c("x", "y"), inline = TRUE)
+#                        # radioButtons(inputId = ns("orientation"), label = "Orientation", choiceNames = oreint, choiceValues = c("default","x", "y"), inline = TRUE, selected = "default")
+#                      },
+#                      ),
+#     
+#     conditionalPanel(ns=ns, condition = "input.sideGraphType == 'density'",
+#                      #transparency
+#                      sliderInput(inputId = ns("alpha"), label = "Transparency", min = 0, max=1, value=0.5),
+#                      bsTooltip(id = ns("alpha"), title = "Effects depend on the main graph", placement = "top", trigger = "hover",
+#                                options = list(container = "body"))
+#                      ),
+#     #theme applied to all type
+#     conditionalPanel(ns=ns, condition = "input.sideGraphType != 'none'",
+#                      fluidRow(
+#                        column(6, sliderInput(inputId = ns("panelTextSize"), label = "Text size", min=5, max=20, value= 10)),
+#                        column(6, sliderInput(inputId = ns("panelScale"), label = "Panel size", min=0, max=1, value= 0.1))
+#                      ),
+#                      
+#                      fluidRow(
+#                        column(6, sliderInput(inputId = ns("panelSpacing"), label = "Panel space", min=1, max=15, value= 2)),
+#                        column(6, )
+#                      )
+#                      
+#                      # fluidRow(
+#                      #   column(6, selectInput(inputId = ns("panelBackground"), label = "Panel background", choices = c("default", "blank"))),
+#                      #   column(6, selectInput(inputId = ns("panelGridColor"), label = "Grid color", choices = sort(colorOpt), selected = "grey"))
+#                      # ),
+#                      # 
+#                      # fluidRow(
+#                      #   column(6, sliderInput(inputId = ns("panelGridLineWidth"), label = "Grid line width", min=0, max= 1, value=0.1)),
+#                      #   column(6, selectInput(inputId = ns("panelGridLineType"), label = "Grid line type", choices = sort(c("solid","dotted","dashed"))))
+#                      # ),
+#                      # 
+#                      # fluidRow(
+#                      #   column(6, sliderInput(inputId = ns("panelBorderWidth"), label = "Border width", min= 0, max = 5, value = 1)),
+#                      #   column(6, selectInput(inputId = ns("panelBorderColor"), label = "Border color", choices = sort(colorOpt), selected = "grey"))
+#                      # ),
+#                      
+#                      # fluidRow(
+#                      #   column(6, ),
+#                      #   column(6, )
+#                      # )
+#                      #border
+#                      )
+#     
+#   )
+# }
+#end old----------------
 
-sideGraphUi_old <- function(id,side = "X"){
+sideGraphUi <- function(id,side = "X", sideVar = "default"){
   ns <- NS(id)
+  
   tagList(
     #graph option binwidth
-    selectInput(ns("sideGraphType"), label = paste0(side, "-graph"), choices = if(!isTRUE(rm)){c("none",sort(sideGraphList))}else{c("none",sort(sideGraphList[which(sideGraphList != "frequency")]))}, selected = "none"),
+    # selectInput(ns("sideGraphType"), label = paste0(side, "-graph"), choices = if(!isTRUE(rm)){c("none",sort(sideGraphList))}else{c("none",sort(sideGraphList[which(sideGraphList != "frequency")]))}, selected = "none"),
+    selectInput(ns("sideGraphType"), label = paste0(side, "-graph"), choices = c("none",sort(sideGraphList)), selected = "none"),
+    
     #variables for y
-    
-    #other ui
-    conditionalPanel(ns=ns, condition = "input.sideGraphType == 'bar plot'",
-                     #stat: identity or count
-                     {
-                       statList <- list(tags$span("Identity", style = "font-weight:bold; color:#0099e6"), tags$span("Count", style = "font-weight:bold; color:#0099e6"))
-                       radioButtons(inputId = ns("stat"), label = "Evaluate", choiceNames = statList, choiceValues = c("identity", "count"), selected = "identity", inline = TRUE)
-                     },
-                     bsTooltip(id = ns("stat"), title = "Identity will use the Y-axis value.", placement = "top", trigger = "hover",
-                               options = list(container = "body"))
-                     ), 
-    
-    conditionalPanel(ns=ns, condition = "input.sideGraphType == 'frequency'",
-                     #stat: identity or count
-                     sliderInput(inputId = "binwidth", label = "Bin width", min = 1, max = 100, value = 30)
-    ),
-    
-    #only for scatter plot
-    conditionalPanel(ns=ns, condition = "input.sideGraphType == 'scatter plot'",
-                     #stat: identity or count
-                     fluidRow(
-                       column(6, sliderInput(inputId = ns("pointSize"), label = "Point size", min = 1, max = 15, value = 1)),#pointstat
-                              # {
-                              #      statList <- list(tags$span("Identity", style = "font-weight:bold; color:#0099e6"), tags$span("Count", style = "font-weight:bold; color:#0099e6"))
-                              #      radioButtons(inputId = ns("pointStat"), label = "Evaluate", choiceNames = statList, choiceValues = c("identity", "count"), selected = "identity", inline = TRUE)
-                              #    },
-                              #    bsTooltip(id = ns("pointStat"), title = "Identity will use the Y-axis value.", placement = "top", trigger = "hover",
-                              #              options = list(container = "body"))
-                              
-                       column(6, 
-                              {
-                                statList <- list(tags$span("Yes", style = "font-weight:bold; color:#0099e6"), tags$span("No", style = "font-weight:bold; color:#0099e6"))
-                                radioButtons(inputId = ns("pointPosition"), label = "Adjust overlap", choiceNames = statList, choiceValues = c("yes", "no"), selected = "yes", inline = TRUE)
-                              }
-                              )
+    conditionalPanel(ns=ns, condition = "input.sideGraphType !== 'none'",
+                     selectInput(inputId = ns("sideVariable"), label = "Variable", choices = c("default", sort(sideVar))),
                      ),
-                     
-                     sliderInput(inputId = ns("pointAlpha"), label = "Transparency", min = 0, max = 1, value = 0.5)
-                     
-                     # fluidRow(
-                     #   column(6, sliderInput(inputId = ns("pointSize"), label = "Point size", min = 1, max = 15, value = 1)),
-                     #   column(6, sliderInput(inputId = ns("pointAlpha"), label = "Transparency", min = 0, max = 1, value = 0.5))
-                     # )
-                     ),
-    
-    conditionalPanel(ns=ns, condition = "input.sideGraphType == 'bar plot' || input.sideGraphType == 'box plot'",
-                     sliderInput(inputId = ns("barWidth"), label = "Width", min = 0, max = 1, value = 0.5)
-                     ),
-    
-    conditionalPanel(ns=ns, condition = "input.sideGraphType == 'density' || input.sideGraphType == 'bar plot'",
-                     
-                     #position for 
-                     {
-                       position <- list(tags$span("Stack", style = "font-weight:bold; color:#0099e6"), tags$span("Dodge", style = "font-weight:bold; color:#0099e6"))
-                       radioButtons(inputId = ns("position"), label = "Position", choiceNames = position, choiceValues = c("stack", "dodge"), inline = TRUE, selected = "stack")
-                     }
-                     ),
-    
-    conditionalPanel(ns=ns, condition = "input.sideGraphType == 'density' || input.sideGraphType == 'bar plot' || input.sideGraphType == 'box plot'",
-                     #orientation
-                     {
-                       #deafult = NA (auto)
-                       oreint <- list(tags$span("X", style = "font-weight:bold; color:#0099e6"), tags$span("Y", style = "font-weight:bold; color:#0099e6")) #tags$span("default", style = "font-weight:bold; color:#0099e6"), 
-                       radioButtons(inputId = ns("orientation"), label = "Orientation", choiceNames = oreint, choiceValues = c("x", "y"), inline = TRUE)
-                       # radioButtons(inputId = ns("orientation"), label = "Orientation", choiceNames = oreint, choiceValues = c("default","x", "y"), inline = TRUE, selected = "default")
-                     },
-                     ),
-    
-    conditionalPanel(ns=ns, condition = "input.sideGraphType == 'density'",
-                     #transparency
-                     sliderInput(inputId = ns("alpha"), label = "Transparency", min = 0, max=1, value=0.5),
-                     bsTooltip(id = ns("alpha"), title = "Effects depend on the main graph", placement = "top", trigger = "hover",
-                               options = list(container = "body"))
-                     ),
-    #theme applied to all type
-    conditionalPanel(ns=ns, condition = "input.sideGraphType != 'none'",
-                     fluidRow(
-                       column(6, sliderInput(inputId = ns("panelTextSize"), label = "Text size", min=5, max=20, value= 10)),
-                       column(6, sliderInput(inputId = ns("panelScale"), label = "Panel size", min=0, max=1, value= 0.1))
-                     ),
-                     
-                     fluidRow(
-                       column(6, sliderInput(inputId = ns("panelSpacing"), label = "Panel space", min=1, max=15, value= 2)),
-                       column(6, )
-                     )
-                     
-                     # fluidRow(
-                     #   column(6, selectInput(inputId = ns("panelBackground"), label = "Panel background", choices = c("default", "blank"))),
-                     #   column(6, selectInput(inputId = ns("panelGridColor"), label = "Grid color", choices = sort(colorOpt), selected = "grey"))
-                     # ),
-                     # 
-                     # fluidRow(
-                     #   column(6, sliderInput(inputId = ns("panelGridLineWidth"), label = "Grid line width", min=0, max= 1, value=0.1)),
-                     #   column(6, selectInput(inputId = ns("panelGridLineType"), label = "Grid line type", choices = sort(c("solid","dotted","dashed"))))
-                     # ),
-                     # 
-                     # fluidRow(
-                     #   column(6, sliderInput(inputId = ns("panelBorderWidth"), label = "Border width", min= 0, max = 5, value = 1)),
-                     #   column(6, selectInput(inputId = ns("panelBorderColor"), label = "Border color", choices = sort(colorOpt), selected = "grey"))
-                     # ),
-                     
-                     # fluidRow(
-                     #   column(6, ),
-                     #   column(6, )
-                     # )
-                     #border
-                     )
-    
-  )
-}
-
-
-sideGraphUi <- function(id,side = "X"){
-  ns <- NS(id)
-  tagList(
-    #graph option binwidth
-    selectInput(ns("sideGraphType"), label = paste0(side, "-graph"), choices = if(!isTRUE(rm)){c("none",sort(sideGraphList))}else{c("none",sort(sideGraphList[which(sideGraphList != "frequency")]))}, selected = "none"),
-    #variables for y
-    
+     
     #I have decided to creat ui separately for each plot type for user-friendtly as well as to optimize space constrain
     #bar ui 
     conditionalPanel(ns=ns, condition = "input.sideGraphType == 'bar plot'",
                      fluidRow(
                        column(6,
                               {
-                                 statList <- list(tags$span("Identity", style = "font-weight:bold; color:#0099e6"), tags$span("Count", style = "font-weight:bold; color:#0099e6"))
-                                 radioButtons(inputId = ns("barStat"), label = "Evaluate", choiceNames = statList, choiceValues = c("identity", "count"), selected = "identity", inline = FALSE)
-                               },
-                       bsTooltip(id = ns("barStat"), title = "Identity will use the Y-axis value.", placement = "top", trigger = "hover",
-                                 options = list(container = "body"))),
+                                statList <- list(tags$span("Identity", style = "font-weight:bold; color:#0099e6"), tags$span("Count", style = "font-weight:bold; color:#0099e6"))
+                                radioButtons(inputId = ns("barStat"), label = "Evaluate", choiceNames = statList, choiceValues = c("identity", "count"), selected = "identity", inline = FALSE)
+                              },
+                              bsTooltip(id = ns("barStat"), title = "Identity will use the Y-axis value.", placement = "top", trigger = "hover",
+                                        options = list(container = "body"))),
                        column(6, sliderInput(inputId = ns("barWidth"), label = "Bar width", min = 0, max = 1, value = 0.5))
                      ),
                      fluidRow(
@@ -256,7 +263,7 @@ sideGraphUi <- function(id,side = "X"){
                                 # radioButtons(inputId = ns("orientation"), label = "Orientation", choiceNames = oreint, choiceValues = c("default","x", "y"), inline = TRUE, selected = "default")
                               })
                      )
-                     ), 
+    ), 
     
     #box plot and violin 
     conditionalPanel(ns=ns, condition = " input.sideGraphType == 'box plot' || input.sideGraphType == 'violin plot'",
@@ -315,7 +322,7 @@ sideGraphUi <- function(id,side = "X"){
                      
     ),
     
-       
+    
     #theme applied to all type
     conditionalPanel(ns=ns, condition = "input.sideGraphType != 'none'",
                      fluidRow(
@@ -330,19 +337,20 @@ sideGraphUi <- function(id,side = "X"){
                                         options = list(container = "body"))),
                        column(6, 
                               tagList(
-                                     conditionalPanel(ns=ns,condition = "input.sideGraphType == 'scatter plot'",
-                                                      sliderInput(inputId = ns("pointAlpha"), label = "Transparency", min = 0, max = 1, value = 0.5)),
-                                     conditionalPanel(ns=ns, condition = "input.sideGraphType == 'density'",
-                                                      #transparency
-                                                      sliderInput(inputId = ns("alpha"), label = "Transparency", min = 0, max=1, value=0.5),
-                                                      bsTooltip(id = ns("alpha"), title = "Effects depend on the main graph", placement = "top", trigger = "hover",
-                                                                options = list(container = "body")))
-                                     )#end taglist
-                              )#end column 
+                                conditionalPanel(ns=ns,condition = "input.sideGraphType == 'scatter plot'",
+                                                 sliderInput(inputId = ns("pointAlpha"), label = "Transparency", min = 0, max = 1, value = 0.5)),
+                                conditionalPanel(ns=ns, condition = "input.sideGraphType == 'density'",
+                                                 #transparency
+                                                 sliderInput(inputId = ns("alpha"), label = "Transparency", min = 0, max=1, value=0.5),
+                                                 bsTooltip(id = ns("alpha"), title = "Effects depend on the main graph", placement = "top", trigger = "hover",
+                                                           options = list(container = "body")))
+                              )#end taglist
+                       )#end column 
                      )#end fludro
     )
     
-  )
+  ) 
+  
 }
 
 "
@@ -355,54 +363,110 @@ xyRequire = character vertor. type of graph that require both x and y-axis
 
 **note: it will return a list of two ggside objects
 " 
-sideGraphData <- function(id, side, mainGraph = "none", xyRequire = xyRequire, linetype = NULL, color = NULL, shape = NULL,
+sideGraphData <- function(id, side = "x", mainGraph = "none", xyRequire = xyRequire, linetype = NULL, 
+                          sideVar = "default", color = NULL, shape = NULL,
                           borderWidth = 1, borderColor = "grey", panelTheme = "default",
                           gridColor = "grey", gridlineWidth = 0.5, gridLineType = "dashed"){
   #variable of x axis must be a column of data
   # req(x %in% colnames(data))
   moduleServer(id, function(input, output, session){
-    # browser()
+    # browser() 
     #common ui between x and y
     # sideGraphCommonUi(id = "sideGraphCommonUi")
     
     # if(mainGraph %in% xyRequire && length(sideGraphList) == 5){
     # # Issue with this update method
     #   updateSelectInput(inputId = "sideGraphType", choices = c("none",sort(sideGraphList[which(sideGraphList !="frequency")])))
-    # }
-    
-    if(req(input$sideGraphType) != "none"){
+    # } 
+    # observe({
+    #   browser()
+    #   # req(input$sideGraphType != "none" & input$sideVariable == "default")# %in% colnames(sideVar))
+    #   # req(input$sideGraphType != "none" & (input$sideVariable != "default" & !input$sideVariable %in% sideVar) )# %in% colnames(sideVar))
+    #   req(input$sideGraphType, input$sideVariable)
+    #   sideG <- reactive(input$sideGraphType)
+    #   sideV <- reactive(input$sideVariable)
+    #   if(sideG() == "none" || sideV() == "default"){
+    #     #variable option for user
+    #     updateSelectInput(inputId = "sideVariable", choices = c("default", sort(sideVar)))
+    # 
+    #   }else if(sideV() != "default" && !sideV() %in% sideVar){
+    #     updateSelectInput(inputId = "sideVariable", choices = c("default", sort(sideVar)), selected = sideV())
+    #   }
+      # #variable option for user
+      # updateSelectInput(inputId = "sideVariable", choices = c("default", sort(sideVar)))
+      # if(input$sideGraphType != "none"){
+      #   
+      # }
+    # })
+      
+    if(req(input$sideGraphType) != "none" && (req(input$sideVariable) == "default" || req(input$sideVariable) %in% sideVar)){ 
      #graph
       graph1 <- list(NULL,NULL)  
-      
+       
+       
       if(tolower(side) == "x"){
-        #x side
-        if(req(input$sideGraphType) == "density"){
-          #inherit.aes = TRUE
-          graph1 <- geom_xsidedensity(position = req(input$densityPosition), alpha = req(input$alpha), orientation = req(input$densityOrientation))
-        }else if(req(input$sideGraphType) == "bar plot"){
-          # message(str(req(input$barStat)))
-          graph1 <- geom_xsidebar(aes(fill= color, linetype = linetype), 
-                                  stat = req(input$barStat), width = req(input$barWidth), #req(input$stat)
-                                  position = req(input$barPosition), orientation = req(input$barOrientation))
-        }else if(req(input$sideGraphType) == "box plot"){
-          graph1 <- geom_xsideboxplot(width = req(input$boxWidth),orientation = req(input$boxOrientation))
-        }else if(req(input$sideGraphType) == "violin plot"){
-          graph1 <- geom_xsideviolin(width = req(input$boxWidth),orientation = req(input$boxOrientation))
-        }else if(req(input$sideGraphType) == "scatter plot"){
-          if( !mainGraph %in% c("none", xyRequire)){
-            #plot for x-axis only
-            graph1 <- geom_xsidepoint(stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
-                                      size = req(input$pointSize), alpha = req(input$pointAlpha))
-          }else if(mainGraph %in% xyRequire){
-            graph1 <- geom_xsidepoint(stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
-                                      size = req(input$pointSize), alpha = req(input$pointAlpha))
+        message("neww-----------")
+        message( req(input$sideVariable))
+        
+        if( req(input$sideVariable) == "default"){ 
+          #with inherited default x (density) or y value
+          message("neww2-----------")
+          #x side
+          if(req(input$sideGraphType) == "density"){
+            #inherit.aes = TRUE
+            graph1 <- geom_xsidedensity(position = req(input$densityPosition), alpha = req(input$alpha), orientation = req(input$densityOrientation))
+          }else if(req(input$sideGraphType) == "bar plot"){
+            # message(str(req(input$barStat)))
+            graph1 <- geom_xsidebar(aes(fill= color, linetype = linetype), 
+                                    stat = req(input$barStat), width = req(input$barWidth), #req(input$stat)
+                                    position = req(input$barPosition), orientation = req(input$barOrientation))
+          }else if(req(input$sideGraphType) == "box plot"){
+            graph1 <- geom_xsideboxplot(width = req(input$boxWidth),orientation = req(input$boxOrientation))
+          }else if(req(input$sideGraphType) == "violin plot"){
+            graph1 <- geom_xsideviolin(width = req(input$boxWidth),orientation = req(input$boxOrientation))
+          }else if(req(input$sideGraphType) == "scatter plot"){
+            if( !mainGraph %in% c("none", xyRequire)){
+              #plot for x-axis only
+              graph1 <- geom_xsidepoint(stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
+                                        size = req(input$pointSize), alpha = req(input$pointAlpha))
+            }else if(mainGraph %in% xyRequire){
+              graph1 <- geom_xsidepoint(stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
+                                        size = req(input$pointSize), alpha = req(input$pointAlpha))
+            }
+          }else if(!mainGraph %in% c("none", xyRequire) && req(input$sideGraphType) == "frequency"){
+            graph1 <- geom_xsidefreqpoly(binwidth = req(input$binwidth))
           }
-        }else if(!mainGraph %in% c("none", xyRequire) && req(input$sideGraphType) == "frequency"){
-          graph1 <- geom_xsidefreqpoly(binwidth = req(input$binwidth))
-        }
-        #xyRequire
-        # sideGraphList 
-         
+          
+        }else if(req(input$sideVariable) != "default"){
+          #choosen side x or y variable
+          #x side
+          if(req(input$sideGraphType) == "density"){
+            #inherit.aes = TRUE
+            graph1 <- geom_xsidedensity(aes_string(x = input$sideVariable), position = req(input$densityPosition), alpha = req(input$alpha), orientation = req(input$densityOrientation))
+          }else if(req(input$sideGraphType) == "bar plot"){
+            # message(str(req(input$barStat)))
+            graph1 <- geom_xsidebar(aes(x = input$sideVariable, fill= color, linetype = linetype), 
+                                    stat = req(input$barStat), width = req(input$barWidth), #req(input$stat)
+                                    position = req(input$barPosition), orientation = req(input$barOrientation))
+          }else if(req(input$sideGraphType) == "box plot"){ 
+            graph1 <- geom_xsideboxplot(aes_string(y=input$sideVariable), width = req(input$boxWidth),orientation = req(input$boxOrientation))
+          }else if(req(input$sideGraphType) == "violin plot"){
+            graph1 <- geom_xsideviolin(aes_string(y=input$sideVariable), width = req(input$boxWidth),orientation = req(input$boxOrientation))
+          }else if(req(input$sideGraphType) == "scatter plot"){
+            if( !mainGraph %in% c("none", xyRequire)){
+              #plot with only x-axis
+              graph1 <- geom_xsidepoint(aes(x=input$sideVariable), stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
+                                        size = req(input$pointSize), alpha = req(input$pointAlpha))
+            }else if(mainGraph %in% xyRequire){
+              graph1 <- geom_xsidepoint(aes(y=input$sideVariable), stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
+                                        size = req(input$pointSize), alpha = req(input$pointAlpha))
+            }
+          }else if(!mainGraph %in% c("none", xyRequire) && req(input$sideGraphType) == "frequency"){
+            graph1 <- geom_xsidefreqpoly(aes(x=input$sideVariable), binwidth = req(input$binwidth))
+          }
+          
+        }#end of non-default x or y variable
+        
       }else if(tolower(side) == "y"){
         #y side 
         if(req(input$sideGraphType) == "density"){
