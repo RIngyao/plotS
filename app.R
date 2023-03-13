@@ -469,11 +469,16 @@ ui <- fluidPage(
                                                     selectInput(inputId = "densityKernel", label = "Kernel\ndensity", choices = sort(kde), selected = "gaussian")
                                                     }),
                                                   column(6, {
-                                                    computes <- c("density", "count", "scaled", "ndensity")
+                                                    computes <- c("density", "count", "scaled") #ndensity
                                                     selectInput(inputId = "densityStat", label = "Computed\n stat", choices = sort(computes), selected = "density")
                                                     })
                                                 ),
-                                                
+                                                conditionalPanel(condition = "input.densityStat == 'count'",
+                                                                 helpText("density * number of points", style = "margin-top:0; padding:0; text-align:center")
+                                                                 ),
+                                                conditionalPanel(condition = "input.densityStat == 'scaled'",
+                                                                 helpText("density estimate scaled to maximum of 1", style = "margin-top:0; padding:0; text-align:center")
+                                                ),
                                                 fluidRow(
                                                   column(6, {
                                                     binwd <- c("nrd0","nrd", "ucv","bcv","SJ-ste","SJ-dpi")
@@ -751,21 +756,34 @@ ui <- fluidPage(
                       #div for download
                       div(
                         #download button
-                        
+                        style = "margin:0px",
                         fluidRow(
-                          column(6,
-                                 radioButtons(inputId = "figDownloadFormat", label = NULL, choices = sort(c("PDF", "EPS", "PNG", "TIFF", "SVG")), selected = "PDF", inline = TRUE)
+                          column(5,
+                                 div(
+                                   style = "border-top:solid black; margin:0",
+                                   radioButtons(inputId = "figDownloadFormat", label = NULL, choices = sort(c("PDF", "EPS", "PNG", "TIFF", "SVG")), selected = "PDF", inline = TRUE),
+                                   bsTooltip(id = "figDownloadFormat", title = "Download format", placement = "top", trigger = "hover", options = list(container = "body"))
+                                 )
                           ),
                           
-                          column(6,
+                          column(7,
                                  fluidRow(
-                                   column(4, textInput(inputId = "figHeight", label = NULL, placeholder = "Height(in)")), #in inch 3.3 default for 1 coulmn wide (https://www.elsevier.com/__data/promis_misc/JBCDigitalArtGuidelines.pdf),
-                                   column(4, textInput(inputId = "figWidth", label = NULL, placeholder = "Width (in)")),
-                                   column(4, downloadButton("figDownload", label = NULL, class = "btn-info btn-l")),
+                                   column(3, textInput(inputId = "resolution", label = NULL, placeholder = "dpi"),
+                                          bsTooltip(id = "resolution", title = "Graph resolution. Must be numeric.", placement = "top", trigger = "hover",
+                                                    options = list(container = "body"))),
+                                   column(3, textInput(inputId = "figHeight", label = NULL, placeholder = "Height"),
+                                          bsTooltip(id = "figHeight", title = "Height in inch", placement = "top", trigger = "hover",
+                                                    options = list(container = "body"))), #in inch 3.3 default for 1 coulmn wide (https://www.elsevier.com/__data/promis_misc/JBCDigitalArtGuidelines.pdf),
+                                   column(3, textInput(inputId = "figWidth", label = NULL, placeholder = "Width"),
+                                          bsTooltip(id = "figWidth", title = "Width in inch", placement = "top", trigger = "hover",
+                                                    options = list(container = "body"))),
+                                   column(3, downloadButton("figDownload", label = NULL, class = "btn-info btn-l"),
+                                          bsTooltip(id = "figDownload", title = "Download the graph", placement = "top", trigger = "hover",
+                                                    options = list(container = "body"))),
                                  ) %>% tagAppendAttributes(class="figHWDFluidRow")
                           )
                         ),
-                        helpText("Image resolution is 400 dpi. Default dimension is 4 * 4 inches.", style = "font-style:italic; text-align:center; margin:0;")
+                        helpText("Default image resolution is 400 dpi and dimension is 4 * 4 inches.", style = "font-style:italic; text-align:center; margin:0;")
                       )%>% tagAppendAttributes(class="figDownloadDiv"),
                       #display figure
                       div(
@@ -860,7 +878,7 @@ ui <- fluidPage(
                                                                                                        # sliderInput(inputId = "insetExpandMarkedArea", label = "Expand the marked area", min = 1, max = 20, value = 3)
                                                                                                        
                                                                                       ), #end of condition parameter
-                                                                                      helpText( tags$p("** Does not support for two-way ANOVA"), style = "text-align:center"),
+                                                                                      helpText( tags$p("** Does not support for two-way ANOVA and when side graph is added"), style = "text-align:center"),
                                                                                       )
                                                                      ) #end inset dropdown
                                                                      )#end condition for inset
@@ -1053,7 +1071,8 @@ ui <- fluidPage(
                       column(2,
                              #download options : report, table or graph
                              
-                             selectInput(inputId = "statSumDownList", label = NULL, choices = list(Report = c("Report", ""), Table = c("Table",""), Figure = c("Figure","")), selected = "Report", width = "100px")
+                             selectInput(inputId = "statSumDownList", label = NULL, choices = list(Report = c("Report", ""), Table = c("Table",""), Figure = c("Figure","")), selected = "Report", width = "100px"),
+                             bsTooltip(id = "statSumDownList", title = "Downloadable list of statistic summary", placement = "top", trigger = "hover", options = list(container = "body"))
                              
                              # #download options : report, table or graph
                              # output$UiStatSumDownList <- renderUI({
@@ -3188,7 +3207,7 @@ server <- function(input, output){
     if(pltType() == "density"){
       kde <- c("gaussian", "epanechnikov", "rectangular", "triangular", "biweight", "cosine", "optcosine")
       updateSelectInput(inputId = "densityKernel", label = "Kernel\ndensity", choices = sort(kde), selected = "gaussian")
-      computes <- c("density", "count", "scaled", "ndensity")
+      computes <- c("density", "count", "scaled")
       updateSelectInput(inputId = "densityStat", label = "Computed\n stat", choices = sort(computes), selected = "density")
       binwd <- c("nrd0","nrd", "ucv","bcv","SJ-ste","SJ-dpi")
       updateSelectInput(inputId = "densityBandwidth", label = "Bandwidth (bw)", choices = sort(binwd), selected = "nrd0")
@@ -5360,28 +5379,28 @@ server <- function(input, output){
                #if user provides additional setting
                if(densityPos() == "default"){
                  geom_density(kernel = kernelDE(), aes(y = switch(densityStat(),
-                                                                  "count" = ..count..,
-                                                                  "density" = ..density..,
-                                                                  "scaled" = ..scaled..,
-                                                                  "ndensity" = ..ndensity..
+                                                                  "count" = after_stat(count), #..count..,
+                                                                  "density" = after_stat(density), #..density..,
+                                                                  "scaled" = after_stat(scaled) #..scaled..,
+                                                                  #"ndensity" = after_stat(ndensity) #..ndensity..
                  )), 
                  size = freqPolySize(), bw = densityBW(), adjust= densityAdj(), alpha = alpha())
                }else{
                  geom_density(kernel = kernelDE(), aes(y = switch(densityStat(),
-                                                                  "count" = ..count..,
-                                                                  "density" = ..density..,
-                                                                  "scaled" = ..scaled..,
-                                                                  "ndensity" = ..ndensity..
+                                                                  "count" = after_stat(count),#..count..,
+                                                                  "density" = after_stat(density),#..density..,
+                                                                  "scaled" = after_stat(scaled)#..scaled..,
+                                                                  #"ndensity" = after_stat(ndensity)#..ndensity..
                  )), 
                  size = freqPolySize(), bw = densityBW(), adjust= densityAdj(), position = densityPos(), alpha = alpha())
                }
              }else{
                #no extra settings
                geom_density(kernel = kernelDE(), aes(y = switch(densityStat(),
-                                                                "count" = ..count..,
-                                                                "density" = ..density..,
-                                                                "scaled" = ..scaled..,
-                                                                "ndensity" = ..ndensity..
+                                                                "count" = after_stat(count),#..count..,
+                                                                "density" = after_stat(density),#..density..,
+                                                                "scaled" = after_stat(scaled)#..scaled..,
+                                                                #"ndensity" = after_stat(ndensity),#..ndensity..
                )), 
                size = freqPolySize(), bw = densityBW(), adjust= densityAdj())
              },
@@ -6311,7 +6330,7 @@ server <- function(input, output){
       shape <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Shape"){ input$shapeSet}else{NULL}
       line <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Line type"){ input$lineSet}else{NULL}
       
-      sideGraphData(id="yside", side = "Y", xyRequire = xyRequire, mainGraph = req(input$plotType), color = color, linetype = line, shape = shape,
+      sideGraphData(id="yside", side = "Y", xyRequire = xyRequire, sideVar = colnames(ptable()), mainGraph = req(input$plotType), color = color, linetype = line, shape = shape,
                     borderWidth = req(input$panelBorderWidth), borderColor = req(input$panelBorderColor), panelTheme = req(input$panelBackground),
                     gridColor = req(input$panelGridColor), gridlineWidth = req(input$panelGridLineWidth), gridLineType = req(input$panelGridLineType))
     }
@@ -6656,12 +6675,18 @@ server <- function(input, output){
                        "PNG" = "png",
                        "SVG" = "svg",
                        "TIFF" = "tiff")
+        rdpi <- ifelse(isTruthy(input$resolution) && !str_detect(input$resolution, "[:alpha:]"), as.numeric(input$resolution), 400)
         heights <- ifelse(isTruthy(input$figHeight) && !str_detect(input$figHeight, "[:alpha:]"), as.numeric(input$figHeight), 4)
         widths <- ifelse(isTruthy(input$figWidth) && !str_detect(input$figWidth, "[:alpha:]"), as.numeric(input$figWidth), 4)
         plt <- if(!is.null(saveFigure())){
           saveFigure()
         }else{ NULL}
-        ggsave(file, plot = plt, device = pDev, height = heights, width = widths, dpi = 400, units = "in")
+        browser()
+        message(str(rdpi))
+        message(rdpi)
+        message(str(heights))
+        message(str(widths))
+        ggsave(file, plot = plt, device = pDev, height = heights, width = widths, dpi = rdpi, units = "in")
       }
     )
   })

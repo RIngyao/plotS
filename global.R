@@ -398,130 +398,170 @@ sideGraphData <- function(id, side = "x", mainGraph = "none", xyRequire = xyRequ
       #   
       # }
     # })
-      
-    if(req(input$sideGraphType) != "none" && (req(input$sideVariable) == "default" || req(input$sideVariable) %in% sideVar)){ 
-     #graph
-      graph1 <- list(NULL,NULL)  
-       
-       
-      if(tolower(side) == "x"){
-        message("neww-----------")
-        message( req(input$sideVariable))
+    tryCatch({
+      if(req(input$sideGraphType) != "none" && (req(input$sideVariable) == "default" || req(input$sideVariable) %in% sideVar)){ 
+        #graph
+        graph1 <- list(NULL,NULL)  
         
-        if( req(input$sideVariable) == "default"){ 
-          #with inherited default x (density) or y value
-          message("neww2-----------")
-          #x side
-          if(req(input$sideGraphType) == "density"){
-            #inherit.aes = TRUE
-            graph1 <- geom_xsidedensity(position = req(input$densityPosition), alpha = req(input$alpha), orientation = req(input$densityOrientation))
-          }else if(req(input$sideGraphType) == "bar plot"){
-            # message(str(req(input$barStat)))
-            graph1 <- geom_xsidebar(aes(fill= color, linetype = linetype), 
-                                    stat = req(input$barStat), width = req(input$barWidth), #req(input$stat)
-                                    position = req(input$barPosition), orientation = req(input$barOrientation))
-          }else if(req(input$sideGraphType) == "box plot"){
-            graph1 <- geom_xsideboxplot(width = req(input$boxWidth),orientation = req(input$boxOrientation))
-          }else if(req(input$sideGraphType) == "violin plot"){
-            graph1 <- geom_xsideviolin(width = req(input$boxWidth),orientation = req(input$boxOrientation))
-          }else if(req(input$sideGraphType) == "scatter plot"){
-            if( !mainGraph %in% c("none", xyRequire)){
-              #plot for x-axis only
-              graph1 <- geom_xsidepoint(stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
-                                        size = req(input$pointSize), alpha = req(input$pointAlpha))
-            }else if(mainGraph %in% xyRequire){
-              graph1 <- geom_xsidepoint(stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
-                                        size = req(input$pointSize), alpha = req(input$pointAlpha))
+        
+        if(tolower(side) == "x"){
+          message("neww-----------")
+          message( req(input$sideVariable))
+          
+          if( req(input$sideVariable) == "default"){ 
+            #with inherited default x (density) or y value
+            message("neww2-----------")
+            #x side
+            if(req(input$sideGraphType) == "density"){
+              #inherit.aes = TRUE
+              graph1 <- geom_xsidedensity(position = req(input$densityPosition), alpha = req(input$alpha), orientation = req(input$densityOrientation))
+            }else if(req(input$sideGraphType) == "bar plot"){
+              # message(str(req(input$barStat)))
+              graph1 <- geom_xsidebar(aes(fill= color, linetype = linetype), 
+                                      stat = req(input$barStat), width = req(input$barWidth), #req(input$stat)
+                                      position = req(input$barPosition), orientation = req(input$barOrientation))
+            }else if(req(input$sideGraphType) == "box plot"){
+              graph1 <- geom_xsideboxplot(width = req(input$boxWidth),orientation = req(input$boxOrientation))
+            }else if(req(input$sideGraphType) == "violin plot"){
+              graph1 <- geom_xsideviolin(width = req(input$boxWidth),orientation = req(input$boxOrientation))
+            }else if(req(input$sideGraphType) == "scatter plot"){
+              if( !mainGraph %in% c("none", xyRequire)){
+                #plot for x-axis only
+                graph1 <- geom_xsidepoint(stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
+                                          size = req(input$pointSize), alpha = req(input$pointAlpha))
+              }else if(mainGraph %in% xyRequire){
+                graph1 <- geom_xsidepoint(stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
+                                          size = req(input$pointSize), alpha = req(input$pointAlpha))
+              }
+            }else if(!mainGraph %in% c("none", xyRequire) && req(input$sideGraphType) == "frequency"){
+              graph1 <- geom_xsidefreqpoly(binwidth = req(input$binwidth))
             }
-          }else if(!mainGraph %in% c("none", xyRequire) && req(input$sideGraphType) == "frequency"){
-            graph1 <- geom_xsidefreqpoly(binwidth = req(input$binwidth))
+            
+          }else if(req(input$sideVariable) != "default"){
+            #choosen side x or y variable
+            #x side
+            if(req(input$sideGraphType) == "density"){
+              #inherit.aes = TRUE
+              graph1 <- geom_xsidedensity(aes_string(x = input$sideVariable), position = req(input$densityPosition), alpha = req(input$alpha), orientation = req(input$densityOrientation))
+            }else if(req(input$sideGraphType) == "bar plot"){
+              graph1 <- geom_xsidebar(aes_string(x = input$sideVariable, fill= color, linetype = linetype), 
+                                      stat = req(input$barStat), width = req(input$barWidth), #req(input$stat)
+                                      position = req(input$barPosition), orientation = req(input$barOrientation))
+            }else if(req(input$sideGraphType) == "box plot"){ 
+              graph1 <- geom_xsideboxplot(aes_string(y=input$sideVariable), width = req(input$boxWidth),orientation = req(input$boxOrientation))
+            }else if(req(input$sideGraphType) == "violin plot"){
+              graph1 <- geom_xsideviolin(aes_string(y=input$sideVariable), width = req(input$boxWidth),orientation = req(input$boxOrientation))
+            }else if(req(input$sideGraphType) == "scatter plot"){
+              if( !mainGraph %in% c("none", xyRequire)){
+                #plot with only x-axis 
+                graph1 <- geom_xsidepoint(aes_string(x=input$sideVariable), stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
+                                          size = req(input$pointSize), alpha = req(input$pointAlpha))
+              }else if(mainGraph %in% xyRequire){
+                graph1 <- geom_xsidepoint(aes_string(y=input$sideVariable), stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
+                                          size = req(input$pointSize), alpha = req(input$pointAlpha))
+              }
+            }else if(!mainGraph %in% c("none", xyRequire) && req(input$sideGraphType) == "frequency"){
+              graph1 <- geom_xsidefreqpoly(aes_string(x=input$sideVariable), binwidth = req(input$binwidth))
+            }
+            
+          }#end of non-default x or y variable
+          
+        }else if(tolower(side) == "y"){
+          #y side 
+          if( req(input$sideVariable) == "default"){ 
+            
+            
+            if(req(input$sideGraphType) == "density"){
+              #inherit.aes = TRUE
+              graph1 <- geom_ysidedensity(position = req(input$densityPosition), alpha = req(input$alpha), orientation = req(input$densityOrientation))
+            }else if(req(input$sideGraphType) == "bar plot"){
+              graph1 <- geom_ysidebar(aes(fill= color, linetype = linetype),
+                                      stat = req(input$barStat), width = req(input$barWidth), #req(input$stat)
+                                      position = req(input$barPosition), orientation = req(input$barOrientation))
+            }else if(req(input$sideGraphType) == "box plot"){
+              graph1 <- geom_ysideboxplot(width = req(input$boxWidth),orientation = req(input$boxOrientation))
+            }else if(req(input$sideGraphType) == "violin plot"){
+              graph1 <- geom_ysideviolin(width = req(input$boxWidth),orientation = req(input$boxOrientation))
+            }else if(req(input$sideGraphType) == "scatter plot"){
+              
+              if( !mainGraph %in% c("none", xyRequire)){
+                #plot for x-axis only
+                graph1 <- geom_ysidepoint(stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"},
+                                          size = req(input$pointSize), alpha = req(input$pointAlpha))
+              }else if(mainGraph %in% xyRequire){
+                graph1 <- geom_ysidepoint(stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"},
+                                          size = req(input$pointSize), alpha = req(input$pointAlpha))
+              }
+            }else if(!mainGraph %in% c("none", xyRequire) && req(input$sideGraphType) == "frequency"){
+              graph1 <- geom_xsidefreqpoly(binwidth = req(input$binwidth))
+            }
+            
+            
+          }else if( req(input$sideVariable) != "default"){ 
+            
+            
+            if(req(input$sideGraphType) == "density"){
+              #inherit.aes = TRUE
+              graph1 <- geom_ysidedensity(aes_string(x = input$sideVariable), position = req(input$densityPosition), alpha = req(input$alpha), orientation = req(input$densityOrientation))
+            }else if(req(input$sideGraphType) == "bar plot"){
+              graph1 <- geom_ysidebar(aes_string(x = input$sideVariable, fill= color, linetype = linetype),
+                                      stat = req(input$barStat), width = req(input$barWidth), #req(input$stat)
+                                      position = req(input$barPosition), orientation = req(input$barOrientation))
+            }else if(req(input$sideGraphType) == "box plot"){
+              graph1 <- geom_ysideboxplot(aes_string(y = input$sideVariable),  width = req(input$boxWidth), orientation = req(input$boxOrientation))
+            }else if(req(input$sideGraphType) == "violin plot"){
+              graph1 <- geom_ysideviolin(aes_string(y = input$sideVariable), width = req(input$boxWidth), orientation = req(input$boxOrientation))
+            }else if(req(input$sideGraphType) == "scatter plot"){
+              
+              if( !mainGraph %in% c("none", xyRequire)){
+                #plot for x-axis only
+                graph1 <- geom_ysidepoint(aes_string(x = input$sideVariable), stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"},
+                                          size = req(input$pointSize), alpha = req(input$pointAlpha))
+              }else if(mainGraph %in% xyRequire){
+                graph1 <- geom_ysidepoint(aes_string(y = input$sideVariable), stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"},
+                                          size = req(input$pointSize), alpha = req(input$pointAlpha))
+              }
+              
+            }else if(!mainGraph %in% c("none", xyRequire) && req(input$sideGraphType) == "frequency"){
+              graph1 <- geom_xsidefreqpoly(aes_string(x = input$sideVariable), binwidth = req(input$binwidth))
+            }
+            
+            
           }
           
-        }else if(req(input$sideVariable) != "default"){
-          #choosen side x or y variable
-          #x side
-          if(req(input$sideGraphType) == "density"){
-            #inherit.aes = TRUE
-            graph1 <- geom_xsidedensity(aes_string(x = input$sideVariable), position = req(input$densityPosition), alpha = req(input$alpha), orientation = req(input$densityOrientation))
-          }else if(req(input$sideGraphType) == "bar plot"){
-            # message(str(req(input$barStat)))
-            graph1 <- geom_xsidebar(aes(x = input$sideVariable, fill= color, linetype = linetype), 
-                                    stat = req(input$barStat), width = req(input$barWidth), #req(input$stat)
-                                    position = req(input$barPosition), orientation = req(input$barOrientation))
-          }else if(req(input$sideGraphType) == "box plot"){ 
-            graph1 <- geom_xsideboxplot(aes_string(y=input$sideVariable), width = req(input$boxWidth),orientation = req(input$boxOrientation))
-          }else if(req(input$sideGraphType) == "violin plot"){
-            graph1 <- geom_xsideviolin(aes_string(y=input$sideVariable), width = req(input$boxWidth),orientation = req(input$boxOrientation))
-          }else if(req(input$sideGraphType) == "scatter plot"){
-            if( !mainGraph %in% c("none", xyRequire)){
-              #plot with only x-axis
-              graph1 <- geom_xsidepoint(aes(x=input$sideVariable), stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
-                                        size = req(input$pointSize), alpha = req(input$pointAlpha))
-            }else if(mainGraph %in% xyRequire){
-              graph1 <- geom_xsidepoint(aes(y=input$sideVariable), stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
-                                        size = req(input$pointSize), alpha = req(input$pointAlpha))
-            }
-          }else if(!mainGraph %in% c("none", xyRequire) && req(input$sideGraphType) == "frequency"){
-            graph1 <- geom_xsidefreqpoly(aes(x=input$sideVariable), binwidth = req(input$binwidth))
-          }
-          
-        }#end of non-default x or y variable
+          #end y side
+        }#end of not none  
         
-      }else if(tolower(side) == "y"){
-        #y side 
-        if(req(input$sideGraphType) == "density"){
-          #inherit.aes = TRUE
-          graph1 <- geom_ysidedensity(position = req(input$densityPosition), alpha = req(input$alpha), orientation = req(input$densityOrientation))
-        }else if(req(input$sideGraphType) == "bar plot"){
-          graph1 <- geom_ysidebar(aes(fill= color, linetype = linetype),
-                                  stat = req(input$barStat), width = req(input$barWidth), #req(input$stat)
-                                  position = req(input$barPosition), orientation = req(input$barOrientation))
-        }else if(req(input$sideGraphType) == "box plot"){
-          graph1 <- geom_ysideboxplot(width = req(input$boxWidth),orientation = req(input$boxOrientation))
-        }else if(req(input$sideGraphType) == "violin plot"){
-          graph1 <- geom_ysideboxplot(width = req(input$boxWidth),orientation = req(input$boxOrientation))
-        }else if(req(input$sideGraphType) == "scatter plot"){
-
-          if( !mainGraph %in% c("none", xyRequire)){
-            #plot for x-axis only
-            graph1 <- geom_ysidepoint(stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"},
-                                      size = req(input$pointSize), alpha = req(input$pointAlpha))
-          }else if(mainGraph %in% xyRequire){
-            graph1 <- geom_ysidepoint(stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"},
-                                      size = req(input$pointSize), alpha = req(input$pointAlpha))
-          }
-        }else if(!mainGraph %in% c("none", xyRequire) && req(input$sideGraphType) == "frequency"){
-            graph1 <- geom_xsidefreqpoly(binwidth = req(input$binwidth))
+        #add theme to the graph
+        if(tolower(side) == "x"){
+          sideThemes <- theme(ggside.axis.text.y = element_text(face = "bold", size = req(input$panelTextSize)),
+                              ggside.panel.scale.x = req(input$panelScale),
+                              ggside.panel.spacing.y = unit(req(input$panelSpacing), "pt"),
+                              ggside.panel.background = if(panelTheme == "default"){element_rect()}else{element_blank()},
+                              ggside.panel.border = element_rect(fill = NA, color = borderColor, linewidth = borderWidth),
+                              ggside.panel.grid = element_line(color= gridColor, linewidth = gridlineWidth, linetype = gridLineType)
+          )
+          
+        }else if(tolower(side) == "y"){
+          sideThemes <- theme(ggside.axis.text.x = element_text(face = "bold", size = req(input$panelTextSize)),
+                              ggside.panel.scale.y = req(input$panelScale),
+                              ggside.panel.spacing.x = unit(req(input$panelSpacing), "pt"),
+                              ggside.panel.background = if(panelTheme == "default"){element_rect()}else{element_blank()},
+                              ggside.panel.border = element_rect(fill = NA, color = borderColor, linewidth = borderWidth),
+                              ggside.panel.grid = element_line(color= gridColor, linewidth = gridlineWidth, linetype = gridLineType)
+          ) 
         }
-        #end y side
-      }#end of not none  
-      
-      #add theme to the graph
-      if(tolower(side) == "x"){
-        sideThemes <- theme(ggside.axis.text.y = element_text(face = "bold", size = req(input$panelTextSize)),
-                       ggside.panel.scale.x = req(input$panelScale),
-                       ggside.panel.spacing.y = unit(req(input$panelSpacing), "pt"),
-                       ggside.panel.background = if(panelTheme == "default"){element_rect()}else{element_blank()},
-                       ggside.panel.border = element_rect(fill = NA, color = borderColor, linewidth = borderWidth),
-                       ggside.panel.grid = element_line(color= gridColor, linewidth = gridlineWidth, linetype = gridLineType)
-                       )
         
-      }else if(tolower(side) == "y"){
-        sideThemes <- theme(ggside.axis.text.x = element_text(face = "bold", size = req(input$panelTextSize)),
-                        ggside.panel.scale.y = req(input$panelScale),
-                        ggside.panel.spacing.x = unit(req(input$panelSpacing), "pt"),
-                        ggside.panel.background = if(panelTheme == "default"){element_rect()}else{element_blank()},
-                        ggside.panel.border = element_rect(fill = NA, color = borderColor, linewidth = borderWidth),
-                        ggside.panel.grid = element_line(color= gridColor, linewidth = gridlineWidth, linetype = gridLineType)
-                        ) 
+        
+        graph <- list(graph1, sideThemes)
+        
+      }else{
+        graph <- list(NULL,NULL)
       }
+    }, error= function(e){
+      print("Try resetting side graph")
+    })
     
-      
-      graph <- list(graph1, sideThemes)
-      
-    }else{
-      graph <- list(NULL,NULL)
-    }
     #return
     graph
     
