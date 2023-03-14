@@ -1,6 +1,66 @@
 
 source("global.R", local = TRUE)
 #link: https://plots-application.shinyapps.io/plots/
+#about---------
+instruction <- div(
+  HTML('
+                      <div class = "inst">
+                      
+                        <p>
+                        <b>PlotS</b> is a web-based application for data analysis and visualization. It is free and simple to use. 
+                        You can analyze your data in an engaging way by running statistical tests while plotting the graphs. We hope that it will be a useful tool for performing quick analysis.
+                        </p>
+                        
+                        <br></br>
+                        
+                        <p> 
+                        Go to <strong>Analyze & visualize</strong> section for data analysis. There are three sub-sections - <strong>Data</strong>, <strong>Graph</strong> and <strong>Summary</strong>. The <strong>Data</strong> section allows you to upload data, manage replicates or header, reshape and apply transformation. The <strong>Graph</strong> section is for plotting and statistical analysis. All statistical results will be displayed in the <strong>Summary</strong>, and you will be able to download them as a report or as individual tables and figures.
+                        </p>
+                        
+                        <p>
+                        Data can be either all numerical or a combination of numerical and categorical variables. For comparisons between variables, it is recommended that data be in a long format rather than a wide format. If it doesn\'t, use the reshape options to reshape it. More information can be found in the <strong>Help</strong> section.
+                        </p>
+                        
+                        <p>
+                        The list of graphs currently available for plotting:
+                        <ul>
+                          <li>Bar plot</li>
+                          <li>Box plot</li>
+                          <li>Density plot</li>
+                          <li>Frequency polygon</li>
+                          <li>Histogram</li>
+                          <li>Line plot</li>
+                          <li>Scatter plot</li>
+                          <li>Violin plot</li>
+                        </ul>
+                        </p>
+                        
+                        <p>
+                        For statistical analysis, we have included the most commonly used parametric and non-parametric methods:
+                        <ul>
+                          <li><b>Parametric test</b></li>
+                          <ul>
+                            <li>T-test</li>
+                            <li>ANOVA (One-way and Two-way)</li>
+                         </ul>
+                         <li><b>Non-parametric test</b></li>
+                         <ul>
+                          <li>Wilcoxon test</li>
+                          <li>Kruskal-Wallis test</li>
+                         </ul>
+                        </p>
+                        
+                        <br></br>
+                        
+                        <p>
+                        This application is developed using <a href="https://www.r-project.org/">R  programming language</a>. Refer the Help section for R packages used in the application.
+                        </p>
+                      </div>'
+  )
+)
+#end of about---------------------
+#ui
+
 ui <- fluidPage(
   #link to CSS----------------
   includeCSS("www/uiStyle.css"),
@@ -19,26 +79,70 @@ ui <- fluidPage(
         });     
       });     
     });
-  '),
   
+    
+      '),
   #30
   #140
+  #router
+  # $(".item").on("click", function () {
+  #   $(".item").removeClass("active");
+  #   $(this).addClass("active");
+  # });
+  
   #header-------------
   # Application title
-  div(class="header",
-      div(
-        class="projectLogo",
-        tags$h1("PlotS")
-      )
-  ), 
+  # div()
+  div(
+    style="position:sticky; display:block; overflow:hidden; z-index: 99999; top: 0;
+          border-bottom:solid grey 1px;",
+    
+    #here------------ 
+    div(class="header",
+        # style = "display: flex;", #justify-content: space-evenly; ",
+        # style = "margin-top:0; padding:0; background-image:radial-gradient(rgba(12, 191, 227, 1), white, white);",
+        div(
+          class="projectLogo",
+          tags$h1("PlotS")
+        ),
+        
+       div(
+         style = "display:flex; justify-content:space-evenly; left:50%; right:50%; margin-top:-2%",
+         div(
+           a(class = "item", href = route_link("/"), "About")
+         ),
+         div(
+           a(class = "item", href = route_link("/vizAna"), "Analyze & visualize")
+         ),
+         div(
+           a(class = "item", href = route_link("/help"), "Help")
+         )
+       )
+        # div(
+        #   a(class = "item", href = route_link("/news"), "news")
+        # )
+
+    )#end header
+    #here----------
+  ),
+  # div(class="header",
+  #     div(
+  #       class="projectLogo",
+  #       tags$h1("PlotS")
+  #     )
+  # ), 
   #main content------------
   div(
     class="mainContent",
     div(class = "column column1"
     ),
     div(class = "column column2",
+        router_ui(
+          route("/", instruction)
+          # route("vizAna", mainContent)
+        ),
         #all content will be put here
-        
+        # style="left:50%; right:50%",
         tabsetPanel(
           id = "plotTabset",
           
@@ -47,62 +151,62 @@ ui <- fluidPage(
             title = "About", 
             # includeHTML("www/plotS_about.html"),
             # includeMarkdown("www/plotS_about.Rmd"),
-            # HTML instruction---------------
-            HTML('
-                    <div class = "inst">
-                    
-                      <p>
-                      <b>PlotS</b> is a web-based application for data analysis and visualization. It is free and simple to use. 
-                      You can analyze your data in an engaging way by running statistical tests while plotting the graphs. We hope that it will be a useful tool for performing quick analysis.
-                      </p>
-                      
-                      <br></br>
-                      
-                      <p> 
-                      Go to <strong>Analyze & visualize</strong> section for data analysis. There are three sub-sections - <strong>Data</strong>, <strong>Graph</strong> and <strong>Summary</strong>. The <strong>Data</strong> section allows you to upload data, manage replicates or header, reshape and apply transformation. The <strong>Graph</strong> section is for plotting and statistical analysis. All statistical results will be displayed in the <strong>Summary</strong>, and you will be able to download them as a report or as individual tables and figures.
-                      </p>
-                      
-                      <p>
-                      Data can be either all numerical or a combination of numerical and categorical variables. For comparisons between variables, it is recommended that data be in a long format rather than a wide format. If it doesn\'t, use the reshape options to reshape it. More information can be found in the <strong>Help</strong> section.
-                      </p>
-                      
-                      <p>
-                      The list of graphs currently available for plotting:
-                      <ul>
-                        <li>Bar plot</li>
-                        <li>Box plot</li>
-                        <li>Density plot</li>
-                        <li>Frequency polygon</li>
-                        <li>Histogram</li>
-                        <li>Line plot</li>
-                        <li>Scatter plot</li>
-                        <li>Violin plot</li>
-                      </ul>
-                      </p>
-                      
-                      <p>
-                      For statistical analysis, we have included the most commonly used parametric and non-parametric methods:
-                      <ul>
-                        <li><b>Parametric test</b></li>
-                        <ul>
-                          <li>T-test</li>
-                          <li>ANOVA (One-way and Two-way)</li>
-                       </ul>
-                       <li><b>Non-parametric test</b></li>
-                       <ul>
-                        <li>Wilcoxon test</li>
-                        <li>Kruskal-Wallis test</li>
-                       </ul>
-                      </p>
-                      
-                      <br></br>
-                      
-                      <p>
-                      This application is developed using <a href="https://www.r-project.org/">R  programming language</a>. Refer the Help section for R packages used in the application.
-                      </p>
-                    </div>'
-          )#end HTML
-            
+          #   # HTML instruction---------------
+          #   HTML('
+          #           <div class = "inst">
+          #           
+          #             <p>
+          #             <b>PlotS</b> is a web-based application for data analysis and visualization. It is free and simple to use. 
+          #             You can analyze your data in an engaging way by running statistical tests while plotting the graphs. We hope that it will be a useful tool for performing quick analysis.
+          #             </p>
+          #             
+          #             <br></br>
+          #             
+          #             <p> 
+          #             Go to <strong>Analyze & visualize</strong> section for data analysis. There are three sub-sections - <strong>Data</strong>, <strong>Graph</strong> and <strong>Summary</strong>. The <strong>Data</strong> section allows you to upload data, manage replicates or header, reshape and apply transformation. The <strong>Graph</strong> section is for plotting and statistical analysis. All statistical results will be displayed in the <strong>Summary</strong>, and you will be able to download them as a report or as individual tables and figures.
+          #             </p>
+          #             
+          #             <p>
+          #             Data can be either all numerical or a combination of numerical and categorical variables. For comparisons between variables, it is recommended that data be in a long format rather than a wide format. If it doesn\'t, use the reshape options to reshape it. More information can be found in the <strong>Help</strong> section.
+          #             </p>
+          #             
+          #             <p>
+          #             The list of graphs currently available for plotting:
+          #             <ul>
+          #               <li>Bar plot</li>
+          #               <li>Box plot</li>
+          #               <li>Density plot</li>
+          #               <li>Frequency polygon</li>
+          #               <li>Histogram</li>
+          #               <li>Line plot</li>
+          #               <li>Scatter plot</li>
+          #               <li>Violin plot</li>
+          #             </ul>
+          #             </p>
+          #             
+          #             <p>
+          #             For statistical analysis, we have included the most commonly used parametric and non-parametric methods:
+          #             <ul>
+          #               <li><b>Parametric test</b></li>
+          #               <ul>
+          #                 <li>T-test</li>
+          #                 <li>ANOVA (One-way and Two-way)</li>
+          #              </ul>
+          #              <li><b>Non-parametric test</b></li>
+          #              <ul>
+          #               <li>Wilcoxon test</li>
+          #               <li>Kruskal-Wallis test</li>
+          #              </ul>
+          #             </p>
+          #             
+          #             <br></br>
+          #             
+          #             <p>
+          #             This application is developed using <a href="https://www.r-project.org/">R  programming language</a>. Refer the Help section for R packages used in the application.
+          #             </p>
+          #           </div>'
+          # )#end HTML
+          #   
             
           ) %>% tagAppendAttributes(class="instructionPanel"),#end instruction tab
           
@@ -110,7 +214,7 @@ ui <- fluidPage(
           tabPanel(
             #This panel will be shown as interactive when the figure is ready
             title = "Analyze & visualize", value = "chart", icon = icon("area-chart"),
-            
+            #start of chart tab---------
             div(
               id="chartBox",
               #box for containing all the display tab: table, figure and summary
@@ -1061,6 +1165,7 @@ ui <- fluidPage(
                   # icon=icon("list-alt"),
                   div(
                     class = "statSummaryDownload",
+                    
                     fluidRow(
                       column(7,
                              #Ui for download format
@@ -1173,7 +1278,7 @@ ui <- fluidPage(
               )
               
             ) %>% tagAppendAttributes(class="analyzeTabBox") #end of tabBox
-            
+            #end of chart tab---------
           ) %>% tagAppendAttributes(class="chartPanel"), #end Analyze & visualize
           
           #help panel----------------
@@ -1202,9 +1307,9 @@ ui <- fluidPage(
 
 
 #server------------------------
-server <- function(input, output){
+server <- function(input, output, session){
   
-  
+  router_server()
   #side graph----------------
   observe({
     req(ptable(), input$plotType != "none")

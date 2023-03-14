@@ -10,6 +10,7 @@ options(shiny.maxRequestSize = 50*1024^2) # too large: use 50
 # lapply(libraries, library, character.only = TRUE)
 # 
 # install.packages("ggside", dependencies = TRUE)
+library(shiny.router)
 library(scales)
 library(ggpp)
 library(ggside)
