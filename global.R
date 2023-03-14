@@ -370,34 +370,10 @@ sideGraphData <- function(id, side = "x", mainGraph = "none", xyRequire = xyRequ
   #variable of x axis must be a column of data
   # req(x %in% colnames(data))
   moduleServer(id, function(input, output, session){
-    # browser() 
-    #common ui between x and y
-    # sideGraphCommonUi(id = "sideGraphCommonUi")
+    # browser()
     
-    # if(mainGraph %in% xyRequire && length(sideGraphList) == 5){
-    # # Issue with this update method
-    #   updateSelectInput(inputId = "sideGraphType", choices = c("none",sort(sideGraphList[which(sideGraphList !="frequency")])))
-    # } 
-    # observe({
-    #   browser()
-    #   # req(input$sideGraphType != "none" & input$sideVariable == "default")# %in% colnames(sideVar))
-    #   # req(input$sideGraphType != "none" & (input$sideVariable != "default" & !input$sideVariable %in% sideVar) )# %in% colnames(sideVar))
-    #   req(input$sideGraphType, input$sideVariable)
-    #   sideG <- reactive(input$sideGraphType)
-    #   sideV <- reactive(input$sideVariable)
-    #   if(sideG() == "none" || sideV() == "default"){
-    #     #variable option for user
-    #     updateSelectInput(inputId = "sideVariable", choices = c("default", sort(sideVar)))
-    # 
-    #   }else if(sideV() != "default" && !sideV() %in% sideVar){
-    #     updateSelectInput(inputId = "sideVariable", choices = c("default", sort(sideVar)), selected = sideV())
-    #   }
-      # #variable option for user
-      # updateSelectInput(inputId = "sideVariable", choices = c("default", sort(sideVar)))
-      # if(input$sideGraphType != "none"){
-      #   
-      # }
-    # })
+    graph <- list(NULL, NULL)
+    #trycatch use here is for log file to debug: not really necessary for other purpose
     tryCatch({
       if(req(input$sideGraphType) != "none" && (req(input$sideVariable) == "default" || req(input$sideVariable) %in% sideVar)){ 
         #graph
@@ -558,7 +534,10 @@ sideGraphData <- function(id, side = "x", mainGraph = "none", xyRequire = xyRequ
       }else{
         graph <- list(NULL,NULL)
       }
+      
+      
     }, error= function(e){
+      
       print("Try resetting side graph")
     })
     

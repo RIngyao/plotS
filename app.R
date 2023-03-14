@@ -188,9 +188,10 @@ ui <- fluidPage(
                       )},
                       
                       conditionalPanel(condition = "input.replicatePresent == 'yes'",
-                                       helpText("Manage the replicates. Data must have at least one header.", style = "margin-top:5px; margin-bottom: 10px;"),
+                                       helpText("Manage the replicates. Data must have at least one header.", style = "margin-top:5px; margin-bottom: 10px; text-align:center"),
                                        div(
-                                         style = "border-top:dotted 1px; border-bottom:dotted 1px; margin-bottom:10px; padding:5px 0 5px 0; text-align:center",
+                                         style = "border-top:dotted 1px; border-bottom:dotted 1px; margin-bottom:10px; padding:5px 0 5px 0; text-align:center; 
+                                         overflow-y:auto; max-height: 500px; background-image:linear-gradient(rgba(206,247,250, 0.3), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5)",
                                          #Ui for number of header in the table
                                          # helpText("Provide correct number of header!", style = "margin-top:10px; margin-bottom:0;color:#F49F3A"), 
                                          helpText("Provide number of header row and group/variable of replicates.", style = "margin-top:20px; margin-bottom:7px;font-weight:bold; color:#F4763A"), 
@@ -565,7 +566,7 @@ ui <- fluidPage(
                                                 div(
                                                   # style= "border-top:dotted 1px; border-bottom:dotted 1px; margin-bottom:20px; padding:7px;
                                                   style= "border-top:dotted 1px; border-bottom:dotted 1px; margin-bottom:20px; margin-right:0; 
-                                            background-image:linear-gradient(rgba(206,247,250, 0.3), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5)) ", #F2F0EF ##C3F6FB, #F2F0EF, #C3F6FB
+                                                  background-image:linear-gradient(rgba(206,247,250, 0.3), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5)) ", #F2F0EF ##C3F6FB, #F2F0EF, #C3F6FB
                                                   #add help text for krukal test
                                                   conditionalPanel(condition = "input.stat == 'kruskal-wallis'",
                                                                    helpText("Dunn's test used for post-hoc analysis", style ="margin-top:10px; font-weight:bold;")
@@ -806,7 +807,7 @@ ui <- fluidPage(
                                                       dropdownButton(inputId = "filterData", label = tags$b("Filter", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Filter the input data", placement = "bottom"), icon = icon("sliders"),
                                                                      div(
                                                                        class = "filterDataDiv",
-                                                                       style = "text-align:center",
+                                                                       style = "text-align:center; overflow-y:auto; min-height:200px; max-height: 300px",
                                                                        h4("Apply filter", align = "center", style = "color:green; margin-bottom:5px"),
                                                                        #UI option for variable selection
                                                                        # uiOutput("UiVarFilterOpts"),
@@ -842,7 +843,7 @@ ui <- fluidPage(
                                                                      dropdownButton(inputId = "insetDropdownButton", width="450px", label = tags$b("Inset", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Add or remove inset",placement = "bottom"), icon = icon("sliders"),
                                                                                     div(
                                                                                       class = "insetDoprdownDiv",
-                                                                                      
+                                                                                      style = "overflow-y:auto; max-height: 300px",
                                                                                       h4("Inset parameters", align = "center", style = "color:green; margin-bottom:5px"),
                                                                                       
                                                                                       helpText( tags$p("To add an inset, select more than one data point in the graph. Click and drag the mouse across the graph's data points of interest."), style = "text-align:center"),
@@ -888,7 +889,7 @@ ui <- fluidPage(
                                                                      dropdownButton( inputId = "sideDropdownButton", right = TRUE, width="600px", label = tags$b("Side graph", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Add or remove side graph", placement = "bottom"), icon = icon("sliders"),
                                                                        div(
                                                                          class = "sideDropdownDiv",
-                                                                         style = "text-align:center",
+                                                                         style = "text-align:center; overflow-y:auto; max-height: 300px",
                                                                          h4("Add graph on the x- and y-sides of the main graph.", align = "center", style = "color:green; margin-bottom:20px"),
                                                                          # helpText( tags$p("Some functions will apply on both the sides"), style = "text-align:center; margin-bottom: 7px"),
                                                                          #option to add side graph
@@ -6277,6 +6278,7 @@ server <- function(input, output){
         # #end of inset------------
         # browser()
         #currently unable to combine side and inset together
+        #validate any error on the side graph
         #add side graph and inset 
         finalPlt <- finalPlt + sideGraphx()[[1]] + sideGraphx()[[2]] +
           #y side
@@ -6305,6 +6307,8 @@ server <- function(input, output){
     
   })#end of advance plot
   #end plot figures--------------------------------
+  #error msg for side graph
+  # sideError <- reactiveVal(0)
   #side graph
   sideGraphx <- reactive({
     # browser()
@@ -6314,7 +6318,7 @@ server <- function(input, output){
       color <- if(req(input$colorSet) != "none"){ input$colorSet }else{ NULL }
       shape <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Shape"){ input$shapeSet}else{NULL}
       line <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Line type"){ input$lineSet}else{NULL}
-      
+        
       sideGraphData(id="xside", side = "x", xyRequire = xyRequire, sideVar = colnames(ptable()), mainGraph = req(input$plotType), color = color, linetype = line, shape = shape,
                     borderWidth = req(input$panelBorderWidth), borderColor = req(input$panelBorderColor), panelTheme = req(input$panelBackground),
                     gridColor = req(input$panelGridColor), gridlineWidth = req(input$panelGridLineWidth), gridLineType = req(input$panelGridLineType))
@@ -6329,10 +6333,16 @@ server <- function(input, output){
       color <- if(req(input$colorSet) != "none"){ input$colorSet }else{ NULL }
       shape <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Shape"){ input$shapeSet}else{NULL}
       line <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Line type"){ input$lineSet}else{NULL}
-      
+      # tryCatch({
       sideGraphData(id="yside", side = "Y", xyRequire = xyRequire, sideVar = colnames(ptable()), mainGraph = req(input$plotType), color = color, linetype = line, shape = shape,
                     borderWidth = req(input$panelBorderWidth), borderColor = req(input$panelBorderColor), panelTheme = req(input$panelBackground),
                     gridColor = req(input$panelGridColor), gridlineWidth = req(input$panelGridLineWidth), gridLineType = req(input$panelGridLineType))
+      #   sideError(0)
+      #   #return
+      #   sdgy
+      # }, error = function(e){
+      #   sideError(1)
+      # })
     }
     
   })
