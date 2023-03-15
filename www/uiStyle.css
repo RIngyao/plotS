@@ -24,13 +24,20 @@ body{
       .item:active { 
   	  color: green;
   	  font-weight:bold;
-  	  
 	  }
-
+	  .item:focus{
+	  color:green;
+	  font-weight:bold;
+	  }
+	  .item:focus-within{
+	  color:green; 
+	  font-weight:bold;
+	  }
 	  /* mouse over link */
 	  .item:hover { 
   	  color: hotpink;
 	  }
+	  
 	  
       /*#shiny-notification-panel {
       position:fixed;

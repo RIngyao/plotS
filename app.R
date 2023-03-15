@@ -79,12 +79,19 @@ ui <- fluidPage(
         });     
       });     
     });
-  
     
       '),
   #30
   #140
   #router
+  # tags$script('
+  # $(document).ready(function(){
+  #      $(".item").on("click", function() {
+  #       $(".item").removeClass("active");
+  #       $(this).addClass("active");
+  #       });
+  # });
+  #             '),
   # $(".item").on("click", function () {
   #   $(".item").removeClass("active");
   #   $(this).addClass("active");
@@ -101,23 +108,57 @@ ui <- fluidPage(
     div(class="header",
         # style = "display: flex;", #justify-content: space-evenly; ",
         # style = "margin-top:0; padding:0; background-image:radial-gradient(rgba(12, 191, 227, 1), white, white);",
+        # div(
+        #   class="projectLogo",
+        #   tags$h1("PlotS")
+        # ),
         div(
           class="projectLogo",
+          style="position:relative; padding-bottom:7px;",
           tags$h1("PlotS")
         ),
-        
-       div(
-         style = "display:flex; justify-content:space-evenly; left:50%; right:50%; margin-top:-2%",
-         div(
-           a(class = "item", href = route_link("/"), "About")
-         ),
-         div(
-           a(class = "item", href = route_link("/vizAna"), "Analyze & visualize")
-         ),
-         div(
-           a(class = "item", href = route_link("/help"), "Help")
-         )
-       )
+        tags$nav(
+          style = "display:inline-block; vertical-align:top;
+                  padding-top:0px; padding-left:20px; padding-right:20px;
+                  zoom:1; vertical-align: baseline; touch-action:pan-y;
+                  white-space:nowrap;
+          ",
+          class = "nav-list",
+          
+          tags$ul(class = "sf-menu",
+                  style = "list-style:none; vertical-align:baseline; box-sizing: border-box",
+                  # text-align:left; vertical-align: baseline;box-sizing: border-box;
+                  # ",
+                  tags$li(style = "display:inline-block;padding:0px 10px 0px 10px; float:left; 
+                          transition: background 300ms, color 300ms, border-color 300ms, padding 200ms;
+    -moz-transition: background 300ms, color 300ms, border-color 300ms, padding 200ms;
+    -o-transition: background 300ms, color 300ms, border-color 300ms, padding 200ms;
+    -webkit-transition: background 300ms, color 300ms, border-color 300ms, padding 200ms;", a(class = "item", href = route_link("/"), "About")),
+                  tags$li(style = "display:inline-block;padding:0px 10px 0px 10px; float:left; color:#ccc; -moz-transition:all 0.2s; transition:all 0.2s", a(class = "item", href = route_link("/vizAna"), "Analyze & visualize")),
+                  tags$li(style = "display:inline-block;padding:0px 10px 0px 10px; float:left; color:#ccc; -moz-transition:all 0.2s; transition:all 0.2s", a(class = "item", href = route_link("/help"), "Help"))
+                  )
+          
+        )
+       # div(
+       #   style = "display:flex; justify-content:space-evenly; left:50%; right:50%; margin-top:-1%; 
+       #   ",
+       #   div(),
+       #   div(),
+       #   div(),
+       #   div(
+       #     a(class = "item", href = route_link("/"), "About")
+       #   ),
+       #   div(
+       #     a(class = "item", href = route_link("/vizAna"), "Analyze & visualize")
+       #   ),
+       #   div(
+       #     a(class = "item", href = route_link("/help"), "Help")
+       #   ),
+       #   div(),
+       #   div(),
+       #   div()
+       # ),
+       
         # div(
         #   a(class = "item", href = route_link("/news"), "news")
         # )
