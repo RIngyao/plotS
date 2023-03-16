@@ -114,6 +114,7 @@ body{
       text-shadow:-7px 7px 1px #45D7FA, 2px 0 10px white;
       }
       
+    
       /*Main body: it has 3 sections (column1, column2 and column3)*/
       .column{
       float: left;
