@@ -76,6 +76,8 @@ mainSection <- div(
         #require sidebar (Input panel) and main panel (display panel)
         sidebarLayout(
           sidebarPanel(
+            useShinyjs(),
+            
             width=3,
             
             #panel for input parameters of table
@@ -252,15 +254,15 @@ mainSection <- div(
           
           mainPanel(
             title="Table",
-            # style= "margin-left:2%",
+            style= "margin-top:3px",
+            actionBttn(inputId = "hideShowRawTable", label = "hide/show", size = "xs"),
+            bsTooltip(id = "hideShowRawTable", title = "Hide/show the input table", placement = "bottom", trigger = "hover", options = list(container = "body")),
             box(
-              # class = "rawTable",
+              id = "rawTableId", title = "Input table",
               width = 12,
               # height = '500px',
-              title = "Input table",
               status = "primary",
               #show text
-              # textOutput("textInputTable"),
               #show table here when input data is choosen
               dataTableOutput("pShowTable"),
               uiOutput("UiDataStructure")
@@ -299,9 +301,11 @@ mainSection <- div(
         #layout for input and display panel
         sidebarLayout(
           fluid = FALSE,
+          # jqui_resizable(div(
           sidebarPanel(
             width = 5,
             style="margin:0; background-image:linear-gradient(to right, #F2F0EF, #FEFEFE)",
+            
             h3("", br(), align = "center", style = "color:green"),
             #two column
             fluidRow(
@@ -699,8 +703,9 @@ mainSection <- div(
                      )
               ) #end of 2nd column
             )
-          ) %>% tagAppendAttributes(class="figureSidebarPanel"), #end of figure sidebar panel
           
+          ) %>% tagAppendAttributes(class="figureSidebarPanel"), #end of figure sidebar panel
+          # )),#end sidebarpanel resizable jqui_resizable(div(
           # end of sidbar---------------
           mainPanel(
             width = 7,
@@ -743,48 +748,52 @@ mainSection <- div(
               width = 12,
               # style= "position:fixed;width:inherit",
               height = '400px',
-              plotOutput(outputId = "figurePlot", 
+              jqui_resizable(
+                plotOutput(outputId = "figurePlot", 
                          hover = hoverOpts(id = "hover_info", delay = 0, nullOutside = FALSE), 
                          click = clickOpts(id = "click_info"), 
-                         brush = brushOpts(id = "brush_info", delay = 100, resetOnNew = FALSE, fill= "rgba(190, 237, 253)", stroke = "rgba(60, 186, 249)")),
+                         brush = brushOpts(id = "brush_info", delay = 100, resetOnNew = FALSE, fill= "rgba(190, 237, 253)", stroke = "rgba(60, 186, 249)"))
+               ),
               
               conditionalPanel(condition = "input.plotType != 'none'",
                                div(
                                  class = "preViewDiv", 
-                                 style = "border-top:solid #9cd4fc;  padding:10px; background-image:linear-gradient(rgba(56, 168, 249, 0.15), white 17%);
-                                                    ",
+                                 style = "border-top:solid #9cd4fc;  padding:10px; background-image:linear-gradient(rgba(56, 168, 249, 0.15), white 17%);",
                                  fluidRow(
                                    column(3, 
                                           fluidRow(
                                             dropdownButton(inputId = "filterData", label = tags$b("Filter", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Filter the input data", placement = "bottom"), icon = icon("sliders"),
-                                                           div(
-                                                             class = "filterDataDiv",
-                                                             style = "text-align:center; overflow-y:auto; min-height:200px; max-height: 300px",
-                                                             h4("Apply filter", align = "center", style = "color:green; margin-bottom:5px"),
-                                                             #UI option for variable selection
-                                                             # uiOutput("UiVarFilterOpts"),
-                                                             selectInput(inputId = "varFilterOpts", label = "Choose variable(s)", choices = c(" ","none"), multiple = TRUE),
-                                                             fluidRow(
-                                                               column(4, #ui to add condition
-                                                                      uiOutput("UiFilterCondition")),
-                                                               column(6, #ui filter value
-                                                                      uiOutput("UiFilterValue")),
-                                                               column(2, uiOutput("UiFilterAndOr"))
-                                                             ),
-                                                             #Filter instruction
-                                                             # uiOutput("UiFilterMsgGeneral"),
-                                                             conditionalPanel(condition = "input.varFilterOpts != ''",
-                                                                              helpText(list(tags$p("Note:", style = "font-style:italic; font-weigth:bold;"), tags$p("1. Numeric variable: provide only one numeric value. To filter 'between', enter two values separated by colon - e.g., 10:34"),
-                                                                                            tags$p('2. Non-numeric variable: allow multiple values separated by comma. Use double quotes (""), if space or comma is included in the value')), style = "text-align:left")
-                                                             ),
-                                                             
-                                                             # actionBttn(inputId = "applyFilter", label = "Apply filter", block = TRUE, size = "md")
-                                                             fluidRow(
-                                                               column(6, uiOutput("UiApplyFilter")),
-                                                               column(6, uiOutput("UiClearAllFilter"))
-                                                             ),
-                                                             uiOutput("UiFilterMsg")
-                                                           )
+                                                           jqui_draggable(
+                                                             div(
+                                                               class = "filterDataDiv",
+                                                               style = "text-align:center; overflow-y:auto; min-height:200px; max-height: 300px",
+                                                               h4("Apply filter", align = "center", style = "color:green; margin-bottom:5px"),
+                                                               #UI option for variable selection
+                                                               # uiOutput("UiVarFilterOpts"),
+                                                               selectInput(inputId = "varFilterOpts", label = "Choose variable(s)", choices = c(" ","none"), multiple = TRUE),
+                                                               fluidRow(
+                                                                 column(4, #ui to add condition
+                                                                        uiOutput("UiFilterCondition")),
+                                                                 column(6, #ui filter value
+                                                                        uiOutput("UiFilterValue")),
+                                                                 column(2, uiOutput("UiFilterAndOr"))
+                                                               ),
+                                                               #Filter instruction
+                                                               # uiOutput("UiFilterMsgGeneral"),
+                                                               conditionalPanel(condition = "input.varFilterOpts != ''",
+                                                                                helpText(list(tags$p("Note:", style = "font-style:italic; font-weigth:bold;"), tags$p("1. Numeric variable: provide only one numeric value. To filter 'between', enter two values separated by colon - e.g., 10:34"),
+                                                                                              tags$p('2. Non-numeric variable: allow multiple values separated by comma. Use double quotes (""), if space or comma is included in the value')), style = "text-align:left")
+                                                               ),
+                                                               
+                                                               # actionBttn(inputId = "applyFilter", label = "Apply filter", block = TRUE, size = "md")
+                                                               fluidRow(
+                                                                 column(6, uiOutput("UiApplyFilter")),
+                                                                 column(6, uiOutput("UiClearAllFilter"))
+                                                               ),
+                                                               uiOutput("UiFilterMsg")
+                                                             )#end filter data div
+                                                           )#end draggable
+                                                           
                                             ),#end of dropdownbutton
                                             
                                             uiOutput("UiAppliedFilterInfo")
@@ -793,91 +802,95 @@ mainSection <- div(
                                    column(3, 
                                           conditionalPanel(condition = "input.pairedData !== 'two'",
                                                            dropdownButton(inputId = "insetDropdownButton", width="450px", label = tags$b("Inset", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Add or remove inset",placement = "bottom"), icon = icon("sliders"),
-                                                                          div(
-                                                                            class = "insetDoprdownDiv",
-                                                                            style = "overflow-y:auto; max-height: 300px",
-                                                                            h4("Inset parameters", align = "center", style = "color:green; margin-bottom:5px"),
-                                                                            
-                                                                            helpText( tags$p("To add an inset, select more than one data point in the graph. Click and drag the mouse across the graph's data points of interest."), style = "text-align:center"),
-                                                                            
-                                                                            {
-                                                                              #apply inset?
-                                                                              insetChoice <- list(tags$span("Yes", style = "font-weight:bold; color:#0099e6"), tags$span("No", style = "font-weight:bold; color:#0099e6"))
-                                                                              radioButtons(inputId = "inset", label = "Add inset", choiceNames = insetChoice, choiceValues = c("yes", "no"), selected = "yes", inline = TRUE)
-                                                                            },
-                                                                            
-                                                                            conditionalPanel(condition = "input.plotType != 'none' && input.inset == 'yes'",
-                                                                                             fluidRow(
-                                                                                               #plot type and theme
-                                                                                               column(6, selectInput(inputId = "insetPlotType", label = "type", choices = c("box plot","violin plot", "scatter plot", "line"))),
-                                                                                               column(6, selectInput(inputId = "insetTheme", label = "theme", choices = sort(c("dark", "white", "white with grid lines","blank", "theme5")), selected = "theme5"))
-                                                                                             ),
-                                                                                             fluidRow(
-                                                                                               #x and y position
-                                                                                               column(6, sliderInput(inputId = "insetXPosition", label = "horizontal position", min = 0, max = 1, value = 0.98)),
-                                                                                               column(6, sliderInput(inputId = "insetYPosition", label = "vertical position", min = 0, max = 1, value = 0.98))
-                                                                                             ),
-                                                                                             fluidRow(
-                                                                                               column(6, sliderInput(inputId = "insetWidth", label = "inset width", min = 0, max = 1, value = 0.2)),
-                                                                                               column(6, sliderInput(inputId = "insetHeight", label = "inset height", min = 0, max = 1, value = 0.2))
-                                                                                             ),
-                                                                                             fluidRow(
-                                                                                               #x and y text size
-                                                                                               column(6, #plot specific paramters: update this based on plot type
-                                                                                                      sliderInput(inputId = "barPointLineSize", label = "box width", min = 0.001, max = 2, value = 0.2)
+                                                                          jqui_draggable(
+                                                                            div(
+                                                                              class = "insetDoprdownDiv",
+                                                                              style = "overflow-y:auto; max-height: 300px",
+                                                                              h4("Inset parameters", align = "center", style = "color:green; margin-bottom:5px"),
+                                                                              
+                                                                              helpText( tags$p("To add an inset, select more than one data point in the graph. Click and drag the mouse across the graph's data points of interest."), style = "text-align:center"),
+                                                                              
+                                                                              {
+                                                                                #apply inset?
+                                                                                insetChoice <- list(tags$span("Yes", style = "font-weight:bold; color:#0099e6"), tags$span("No", style = "font-weight:bold; color:#0099e6"))
+                                                                                radioButtons(inputId = "inset", label = "Add inset", choiceNames = insetChoice, choiceValues = c("yes", "no"), selected = "yes", inline = TRUE)
+                                                                              },
+                                                                              
+                                                                              conditionalPanel(condition = "input.plotType != 'none' && input.inset == 'yes'",
+                                                                                               fluidRow(
+                                                                                                 #plot type and theme
+                                                                                                 column(6, selectInput(inputId = "insetPlotType", label = "type", choices = c("box plot","violin plot", "scatter plot", "line"))),
+                                                                                                 column(6, selectInput(inputId = "insetTheme", label = "theme", choices = sort(c("dark", "white", "white with grid lines","blank", "theme5")), selected = "theme5"))
                                                                                                ),
-                                                                                               column(6, sliderInput(inputId = "insetTextSize", label = "Axis text size", min = 1, max = 30, value = 15))
-                                                                                             )
-                                                                                             # sliderInput(inputId = "insetExpandMarkedArea", label = "Expand the marked area", min = 1, max = 20, value = 3)
-                                                                                             
-                                                                            ), #end of condition parameter
-                                                                            helpText( tags$p("** Does not support for two-way ANOVA and when side graph is added"), style = "text-align:center"),
-                                                                          )
+                                                                                               fluidRow(
+                                                                                                 #x and y position
+                                                                                                 column(6, sliderInput(inputId = "insetXPosition", label = "horizontal position", min = 0, max = 1, value = 0.98)),
+                                                                                                 column(6, sliderInput(inputId = "insetYPosition", label = "vertical position", min = 0, max = 1, value = 0.98))
+                                                                                               ),
+                                                                                               fluidRow(
+                                                                                                 column(6, sliderInput(inputId = "insetWidth", label = "inset width", min = 0, max = 1, value = 0.2)),
+                                                                                                 column(6, sliderInput(inputId = "insetHeight", label = "inset height", min = 0, max = 1, value = 0.2))
+                                                                                               ),
+                                                                                               fluidRow(
+                                                                                                 #x and y text size
+                                                                                                 column(6, #plot specific paramters: update this based on plot type
+                                                                                                        sliderInput(inputId = "barPointLineSize", label = "box width", min = 0.001, max = 2, value = 0.2)
+                                                                                                 ),
+                                                                                                 column(6, sliderInput(inputId = "insetTextSize", label = "Axis text size", min = 1, max = 30, value = 15))
+                                                                                               )
+                                                                                               # sliderInput(inputId = "insetExpandMarkedArea", label = "Expand the marked area", min = 1, max = 20, value = 3)
+                                                                                               
+                                                                              ), #end of condition parameter
+                                                                              helpText( tags$p("** Does not support for two-way ANOVA and when side graph is added"), style = "text-align:center"),
+                                                                            )#end of inset
+                                                                          )#end of draggable inset
+                                                                          
                                                            ) #end inset dropdown
                                           )#end condition for inset
                                    ), #end column for inset
                                    column(3,
                                           conditionalPanel(condition = "input.pairedData !== 'two'",
                                                            dropdownButton( inputId = "sideDropdownButton", right = TRUE, width="600px", label = tags$b("Side graph", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Add or remove side graph", placement = "bottom"), icon = icon("sliders"),
-                                                                           div(
-                                                                             class = "sideDropdownDiv",
-                                                                             style = "text-align:center; overflow-y:auto; max-height: 300px",
-                                                                             h4("Add graph on the x- and y-sides of the main graph.", align = "center", style = "color:green; margin-bottom:20px"),
-                                                                             # helpText( tags$p("Some functions will apply on both the sides"), style = "text-align:center; margin-bottom: 7px"),
-                                                                             #option to add side graph
-                                                                             #updating from module create issue so condition applied outside module
-                                                                             #x side
-                                                                             fluidRow(
-                                                                               column(6, div(
-                                                                                 style ="border-right:dotted; padding-right: 2px; margin-right:2px;",
-                                                                                 # sideGraphUi(id = "xside", side = "X")
-                                                                                 uiOutput("UiXside")
-                                                                               )),
-                                                                               #y side
-                                                                               # column(6, sideGraphUi(id = "yside", side = "Y")) #sideGraphUi(id = "xside", side = "X")
-                                                                               column(6, uiOutput("UiYside")) 
-                                                                             ),
+                                                                           jqui_draggable(
                                                                              div(
-                                                                               style = "border-top:dotted 1px;",
-                                                                               h5("Common to both x- and y-graphs. Works only when side graph is not none.", align = "center", style = "color:cornflowerblue; margin-bottom:5px"),
+                                                                               class = "sideDropdownDiv",
+                                                                               style = "text-align:center; overflow-y:auto; max-height: 300px",
+                                                                               h4("Add graph on the x- and y-sides of the main graph.", align = "center", style = "color:green; margin-bottom:20px"),
+                                                                               # helpText( tags$p("Some functions will apply on both the sides"), style = "text-align:center; margin-bottom: 7px"),
+                                                                               #option to add side graph
+                                                                               #updating from module create issue so condition applied outside module
+                                                                               #x side
                                                                                fluidRow(
-                                                                                 column(6, sliderInput(inputId = "panelBorderWidth", label = "Border width", min= 0, max = 5, value = 1)),
-                                                                                 column(6, selectInput(inputId = "panelBorderColor", label = "Border color", choices = sort(colorOpt), selected = "grey"))
+                                                                                 column(6, div(
+                                                                                   style ="border-right:dotted; padding-right: 2px; margin-right:2px;",
+                                                                                   # sideGraphUi(id = "xside", side = "X")
+                                                                                   uiOutput("UiXside")
+                                                                                 )),
+                                                                                 #y side
+                                                                                 # column(6, sideGraphUi(id = "yside", side = "Y")) #sideGraphUi(id = "xside", side = "X")
+                                                                                 column(6, uiOutput("UiYside")) 
                                                                                ),
-                                                                               
-                                                                               fluidRow(
-                                                                                 column(6, selectInput(inputId = "panelBackground", label = "Background theme", choices = c("default", "blank"))),
-                                                                                 column(6, selectInput(inputId = "panelGridColor", label = "Grid color", choices = sort(colorOpt), selected = "grey"))
-                                                                               ),
-                                                                               
-                                                                               fluidRow(
-                                                                                 column(6, sliderInput(inputId = "panelGridLineWidth", label = "Grid line width", min=0, max= 1, value=0.1)),
-                                                                                 column(6, selectInput(inputId = "panelGridLineType", label = "Grid line type", choices = sort(c("solid","dotted","dashed"))))
+                                                                               div(
+                                                                                 style = "border-top:dotted 1px;",
+                                                                                 h5("Common to both x- and y-graphs. Works only when side graph is not none.", align = "center", style = "color:cornflowerblue; margin-bottom:5px"),
+                                                                                 fluidRow(
+                                                                                   column(6, sliderInput(inputId = "panelBorderWidth", label = "Border width", min= 0, max = 5, value = 1)),
+                                                                                   column(6, selectInput(inputId = "panelBorderColor", label = "Border color", choices = sort(colorOpt), selected = "grey"))
+                                                                                 ),
+                                                                                 
+                                                                                 fluidRow(
+                                                                                   column(6, selectInput(inputId = "panelBackground", label = "Background theme", choices = c("default", "blank"))),
+                                                                                   column(6, selectInput(inputId = "panelGridColor", label = "Grid color", choices = sort(colorOpt), selected = "grey"))
+                                                                                 ),
+                                                                                 
+                                                                                 fluidRow(
+                                                                                   column(6, sliderInput(inputId = "panelGridLineWidth", label = "Grid line width", min=0, max= 1, value=0.1)),
+                                                                                   column(6, selectInput(inputId = "panelGridLineType", label = "Grid line type", choices = sort(c("solid","dotted","dashed"))))
+                                                                                 )
+                                                                                 
                                                                                )
-                                                                               
-                                                                             )
-                                                                           )#end of side div
-                                                                           
+                                                                             )#end of side div
+                                                                           )#draggable
                                                            )#end of side dropdown button
                                                            
                                           )#end of side condition
@@ -904,19 +917,23 @@ mainSection <- div(
               )
             ) %>% tagAppendAttributes(class = "figurePlotBox"),
             #box for figure settings:theme  
+            conditionalPanel(condition = "input.plotType != 'none' ",
+                             actionBttn(inputId = "figureThemeHideShow", label = "+", size = "xs"),
+                             bsTooltip(id = "figureThemeHideShow", title = "Hide/show the below panel", placement = "top", trigger = "hover", options = list(container = "body"))
+                             ),
             box(
-              
+              id = "figureThemeId",
               width = 12,
               
               #text label for x-axis
-              conditionalPanel(condition = "input.plotType != 'none'",
+              conditionalPanel(condition = "input.plotType != 'none' ",
                                div(
                                  style= "border-top:dotted 1px;margin:0; text-align:center;
                                                       background-image:linear-gradient(rgba(206,247,250, 0.2), rgba(206,247,250, 0.1), white)", #rgba(206,247,250, 0.2), rgba(254, 254, 254, 0.1), rgba(206,247,250, 0.5)
                                  h4("Change variable name of x-axis", align = "center", style = "color:green; margin-bottom:7px"),
                                  fluidRow(
                                    # column(4, uiOutput("uiXAxisTextLabelChoice")),
-                                   column(4, selectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = "none", multiple = TRUE)),
+                                   column(4,selectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = "none", multiple = TRUE)),
                                    column(8, uiOutput("uiXAxisTextLabel"))#manage in server logic
                                  )
                                )
@@ -2479,7 +2496,14 @@ server <- function(input, output, session){
     ptable(cleanData())
   })
   
-  
+  #hide or show------------------
+  #close the raw table box
+  observeEvent(input$hideShowRawTable,{
+    shinyjs::toggle(id="rawTableId")
+  })
+  observeEvent(input$figureThemeHideShow,{
+    shinyjs::toggle(id = "figureThemeId")
+  })
   #end of data processing---------------
   
   #create switch:
@@ -2608,6 +2632,7 @@ server <- function(input, output, session){
       
     }
   })
+  
   
   #display data schema
   output$UiDataStructure <- renderPrint({
@@ -2883,7 +2908,7 @@ server <- function(input, output, session){
     # })
     #update option
     updateSelectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = c(All="All", cVar), selected = "ALL")
-    
+    addTooltip(session, id = "xTextLabelChoice", title = "Applicable only when the x-axis is non-numeric",  trigger = "hover", options = list(container = "body"))
     output$uiXAxisTextLabel <- renderUI({
       if( req(input$plotType) != "none" ){
         # browser()

@@ -6,10 +6,13 @@ options(shiny.maxRequestSize = 50*1024^2) # too large: use 50
 #                "MASS", "skimr", "coin", "DT", "data.table", 
 #                "readxl", "markdown", "shinydashboard","ggpubr","multcompView",
 #                "rstatix", "shiny", "tidyverse", "reactable", "ggside", "ggforce",
-#                 "scales")
+#                 "scales", "jqui_resizable")
 # lapply(libraries, library, character.only = TRUE)
 # 
 # install.packages("ggside", dependencies = TRUE)
+# install.packages("shinyjqui", dependencies = TRUE)
+library(shinyjs)
+library(shinyjqui)
 library(shiny.router)
 library(scales)
 library(ggpp)
@@ -2138,8 +2141,14 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
   
   message(xTextLabels)
   #change variable name of x-axis
-  plt <<- plt
-  plt + scale_x_discrete(labels = xTextLabels ) 
+  
+  # if(types %in% c("line", "frequency polygon", "scatter plot")){
+  if(is.numeric(data[,xl])){ 
+    plt  
+  }else{
+    plt + scale_x_discrete(labels = xTextLabels ) 
+  }
+  
 }#end
 
 
