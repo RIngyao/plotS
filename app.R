@@ -2420,7 +2420,7 @@ server <- function(input, output, session){
       #transformed given numeric variable
       message("inside ns and table")
       tryCatch({
-        browser()
+        
         ns_df <- ns_func(data = bf_ptable(), ns_method = ns_input(), x = cVar, y = nVar)
         
         transformationError(0)
@@ -5412,7 +5412,7 @@ server <- function(input, output, session){
     
     geomType <- reactive({
       switch(figType(),
-             "box plot" = geom_boxplot(width = freqPolySize()),
+             "box plot" = geom_boxplot(width = freqPolySize(), outlier.alpha = 0.1),
              "violin plot" = geom_violin(width = freqPolySize()),
              "histogram" = if( xVarType()[1] %in% c("character", "factor") ){ 
                
@@ -6354,7 +6354,7 @@ server <- function(input, output, session){
         #add side graph and inset 
         finalPlt <- finalPlt + sideGraphx()[[1]] + sideGraphx()[[2]] +
           #y side
-          sideGraphy()[[1]] + sideGraphy()[[2]] +
+          sideGraphy()[[1]] + sideGraphy()[[2]] +ggside(scales = "free",  draw_y_on = "main", draw_x_on = "main")+
           #insed
           insetPlt()[[1]] + insetPlt()[[2]]
         
@@ -6592,7 +6592,7 @@ server <- function(input, output, session){
       insetGeomType({
         switch(input$insetPlotType,
                
-               "box plot" = geom_boxplot(width = req(input$barPointLineSize)), #width = freqPolySize()
+               "box plot" = geom_boxplot(width = req(input$barPointLineSize), outlier.alpha = 0.1), #width = freqPolySize()
                "violin plot" = geom_violin(width = req(input$barPointLineSize)), #width = freqPolySize()
                "line" = if(xVarType()[1] %in% c("integer", "numeric", "double")){
                    #group for numeric type

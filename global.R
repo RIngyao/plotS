@@ -394,24 +394,24 @@ sideGraphData <- function(id, side = "x", mainGraph = "none", xyRequire = xyRequ
               graph1 <- geom_xsidedensity(position = req(input$densityPosition), alpha = req(input$alpha), orientation = req(input$densityOrientation))
             }else if(req(input$sideGraphType) == "bar plot"){
               # message(str(req(input$barStat)))
-              graph1 <- geom_xsidebar(aes(fill= color, linetype = linetype), 
+              graph1 <- geom_xsidebar(aes_string(fill= color, linetype = linetype), 
                                       stat = req(input$barStat), width = req(input$barWidth), #req(input$stat)
                                       position = req(input$barPosition), orientation = req(input$barOrientation))
             }else if(req(input$sideGraphType) == "box plot"){
-              graph1 <- geom_xsideboxplot(width = req(input$boxWidth),orientation = req(input$boxOrientation))
+              graph1 <- geom_xsideboxplot(aes_string(fill = color), outlier.alpha = 0.1, width = req(input$boxWidth),orientation = req(input$boxOrientation))
             }else if(req(input$sideGraphType) == "violin plot"){
-              graph1 <- geom_xsideviolin(width = req(input$boxWidth),orientation = req(input$boxOrientation))
+              graph1 <- geom_xsideviolin(aes_string(fill = color), width = req(input$boxWidth),orientation = req(input$boxOrientation))
             }else if(req(input$sideGraphType) == "scatter plot"){
               if( !mainGraph %in% c("none", xyRequire)){
                 #plot for x-axis only
-                graph1 <- geom_xsidepoint(stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
+                graph1 <- geom_xsidepoint(aes_string(color = color), stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
                                           size = req(input$pointSize), alpha = req(input$pointAlpha))
               }else if(mainGraph %in% xyRequire){
-                graph1 <- geom_xsidepoint(stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
+                graph1 <- geom_xsidepoint(aes_string(color = color), stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
                                           size = req(input$pointSize), alpha = req(input$pointAlpha))
               }
             }else if(!mainGraph %in% c("none", xyRequire) && req(input$sideGraphType) == "frequency"){
-              graph1 <- geom_xsidefreqpoly(binwidth = req(input$binwidth))
+              graph1 <- geom_xsidefreqpoly(aes_string(color = color), binwidth = req(input$binwidth))
             }
             
           }else if(req(input$sideVariable) != "default"){
@@ -425,20 +425,20 @@ sideGraphData <- function(id, side = "x", mainGraph = "none", xyRequire = xyRequ
                                       stat = req(input$barStat), width = req(input$barWidth), #req(input$stat)
                                       position = req(input$barPosition), orientation = req(input$barOrientation))
             }else if(req(input$sideGraphType) == "box plot"){ 
-              graph1 <- geom_xsideboxplot(aes_string(y=input$sideVariable), width = req(input$boxWidth),orientation = req(input$boxOrientation))
+              graph1 <- geom_xsideboxplot(aes_string(y=input$sideVariable, fill = color),outlier.alpha = 0.1, width = req(input$boxWidth),orientation = req(input$boxOrientation))
             }else if(req(input$sideGraphType) == "violin plot"){
-              graph1 <- geom_xsideviolin(aes_string(y=input$sideVariable), width = req(input$boxWidth),orientation = req(input$boxOrientation))
+              graph1 <- geom_xsideviolin(aes_string(y=input$sideVariable, fill = color), width = req(input$boxWidth),orientation = req(input$boxOrientation))
             }else if(req(input$sideGraphType) == "scatter plot"){
               if( !mainGraph %in% c("none", xyRequire)){
                 #plot with only x-axis 
-                graph1 <- geom_xsidepoint(aes_string(x=input$sideVariable), stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
+                graph1 <- geom_xsidepoint(aes_string(x=input$sideVariable, color = color), stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
                                           size = req(input$pointSize), alpha = req(input$pointAlpha))
               }else if(mainGraph %in% xyRequire){
-                graph1 <- geom_xsidepoint(aes_string(y=input$sideVariable), stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
+                graph1 <- geom_xsidepoint(aes_string(y=input$sideVariable, color = color), stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
                                           size = req(input$pointSize), alpha = req(input$pointAlpha))
               }
             }else if(!mainGraph %in% c("none", xyRequire) && req(input$sideGraphType) == "frequency"){
-              graph1 <- geom_xsidefreqpoly(aes_string(x=input$sideVariable), binwidth = req(input$binwidth))
+              graph1 <- geom_xsidefreqpoly(aes_string(x=input$sideVariable, color = color), binwidth = req(input$binwidth))
             }
             
           }#end of non-default x or y variable
@@ -452,25 +452,25 @@ sideGraphData <- function(id, side = "x", mainGraph = "none", xyRequire = xyRequ
               #inherit.aes = TRUE
               graph1 <- geom_ysidedensity(position = req(input$densityPosition), alpha = req(input$alpha), orientation = req(input$densityOrientation))
             }else if(req(input$sideGraphType) == "bar plot"){
-              graph1 <- geom_ysidebar(aes(fill= color, linetype = linetype),
+              graph1 <- geom_ysidebar(aes_string(fill= color, linetype = linetype),
                                       stat = req(input$barStat), width = req(input$barWidth), #req(input$stat)
                                       position = req(input$barPosition), orientation = req(input$barOrientation))
             }else if(req(input$sideGraphType) == "box plot"){
-              graph1 <- geom_ysideboxplot(width = req(input$boxWidth),orientation = req(input$boxOrientation))
+              graph1 <- geom_ysideboxplot(aes_string(fill = color), outlier.alpha = 0.1, width = req(input$boxWidth),orientation = req(input$boxOrientation))
             }else if(req(input$sideGraphType) == "violin plot"){
-              graph1 <- geom_ysideviolin(width = req(input$boxWidth),orientation = req(input$boxOrientation))
+              graph1 <- geom_ysideviolin(aes_string(fill = color), width = req(input$boxWidth),orientation = req(input$boxOrientation))
             }else if(req(input$sideGraphType) == "scatter plot"){
               
               if( !mainGraph %in% c("none", xyRequire)){
                 #plot for x-axis only
-                graph1 <- geom_ysidepoint(stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"},
+                graph1 <- geom_ysidepoint(aes_string(color = color), stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"},
                                           size = req(input$pointSize), alpha = req(input$pointAlpha))
               }else if(mainGraph %in% xyRequire){
-                graph1 <- geom_ysidepoint(stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"},
+                graph1 <- geom_ysidepoint(aes_string(color = color), stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"},
                                           size = req(input$pointSize), alpha = req(input$pointAlpha))
               }
             }else if(!mainGraph %in% c("none", xyRequire) && req(input$sideGraphType) == "frequency"){
-              graph1 <- geom_xsidefreqpoly(binwidth = req(input$binwidth))
+              graph1 <- geom_xsidefreqpoly(aes_string(color = color), binwidth = req(input$binwidth))
             }
             
             
@@ -485,22 +485,22 @@ sideGraphData <- function(id, side = "x", mainGraph = "none", xyRequire = xyRequ
                                       stat = req(input$barStat), width = req(input$barWidth), #req(input$stat)
                                       position = req(input$barPosition), orientation = req(input$barOrientation))
             }else if(req(input$sideGraphType) == "box plot"){
-              graph1 <- geom_ysideboxplot(aes_string(y = input$sideVariable),  width = req(input$boxWidth), orientation = req(input$boxOrientation))
+              graph1 <- geom_ysideboxplot(aes_string(y = input$sideVariable, fill = color), outlier.alpha = 0.1, width = req(input$boxWidth), orientation = req(input$boxOrientation))
             }else if(req(input$sideGraphType) == "violin plot"){
-              graph1 <- geom_ysideviolin(aes_string(y = input$sideVariable), width = req(input$boxWidth), orientation = req(input$boxOrientation))
+              graph1 <- geom_ysideviolin(aes_string(y = input$sideVariable, fill = color), width = req(input$boxWidth), orientation = req(input$boxOrientation))
             }else if(req(input$sideGraphType) == "scatter plot"){
               
               if( !mainGraph %in% c("none", xyRequire)){
                 #plot for x-axis only
-                graph1 <- geom_ysidepoint(aes_string(x = input$sideVariable), stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"},
+                graph1 <- geom_ysidepoint(aes_string(x = input$sideVariable, color = color), stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"},
                                           size = req(input$pointSize), alpha = req(input$pointAlpha))
               }else if(mainGraph %in% xyRequire){
-                graph1 <- geom_ysidepoint(aes_string(y = input$sideVariable), stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"},
+                graph1 <- geom_ysidepoint(aes_string(y = input$sideVariable, color = color), stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"},
                                           size = req(input$pointSize), alpha = req(input$pointAlpha))
               }
               
             }else if(!mainGraph %in% c("none", xyRequire) && req(input$sideGraphType) == "frequency"){
-              graph1 <- geom_xsidefreqpoly(aes_string(x = input$sideVariable), binwidth = req(input$binwidth))
+              graph1 <- geom_xsidefreqpoly(aes_string(x = input$sideVariable, color = color), binwidth = req(input$binwidth))
             }
             
             
@@ -928,7 +928,7 @@ y = chharacter. variable of y-axis.
 "
 ns_func <- function(data, ns_method, x=NULL, y){
   #remove na: this was supposed to have been taken care in the beginning, if not ,removed it 
-  browser()
+  # browser()
   data <- na.omit(data)
   #if data has 0 than add +1
   if(any(data[, y] == 0)){
