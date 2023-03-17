@@ -928,6 +928,7 @@ y = chharacter. variable of y-axis.
 "
 ns_func <- function(data, ns_method, x=NULL, y){
   #remove na: this was supposed to have been taken care in the beginning, if not ,removed it 
+  browser()
   data <- na.omit(data)
   #if data has 0 than add +1
   if(any(data[, y] == 0)){

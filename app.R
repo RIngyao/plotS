@@ -1,6 +1,7 @@
 
 source("global.R", local = TRUE)
 #link: https://plots-application.shinyapps.io/plots/
+
 #about---------
 aboutSection <- div(
   HTML('
@@ -2419,9 +2420,9 @@ server <- function(input, output, session){
       #transformed given numeric variable
       message("inside ns and table")
       tryCatch({
-        
+        browser()
         ns_df <- ns_func(data = bf_ptable(), ns_method = ns_input(), x = cVar, y = nVar)
-        message(ns_df)
+        
         transformationError(0)
       }, error = function(e){
         transformationError(1)
@@ -6762,7 +6763,7 @@ server <- function(input, output, session){
         plt <- if(!is.null(saveFigure())){
           saveFigure()
         }else{ NULL}
-        browser()
+        
         message(str(rdpi))
         message(rdpi)
         message(str(heights))
