@@ -11,6 +11,15 @@ options(shiny.maxRequestSize = 50*1024^2) # too large: use 50
 # 
 # install.packages("ggside", dependencies = TRUE)
 # install.packages("shinyjqui", dependencies = TRUE)
+lib <- c("shinyjs","shinyjqui","shiny.router","scales",
+         "ggpp","ggside","ggforce","shinyBS","rlang",
+         "memoise", "effectsize","vroom","car","glue",
+         "flextable","openxlsx","svglite","MASS","skimr",
+         "coin","DT","data.table","readxl","markdown","shinydashboard",
+         "ggpubr","multcompView","rstatix","shiny","tidyverse",
+         "reactable","shinyWidgets")
+sort(lib)
+
 library(shinyjs)
 library(shinyjqui)
 library(shiny.router)
@@ -19,6 +28,7 @@ library(ggpp)
 library(ggside)
 library(ggforce)
 library(shinyBS)
+library(rlang)
 library(memoise)
 library(effectsize)
 library(vroom)
@@ -1434,7 +1444,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
                        ttestMethod = FALSE, ssType="I", 
                        model = "model", cmpGrpList = NULL, rfGrpList=NULL,
                        pAdjust = TRUE, pAdjustMethod='none'){ #switchGrpList = 0,
-  
+  # browser()
   message("entering computFunc()------------")
   message("catVar---------")
   message(catVar)
@@ -1486,9 +1496,11 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     # browser()
     # message(str(data))
     # print(data)
-    # message(forml)
-    # message(ttestMethod)
-    
+    message(forml)
+    message(ttestMethod)
+    message(pAdjustMethod) 
+    message(pairedD)
+    message(cmp)
     test <- rstatix::t_test(data, formula = forml,
            ref.group = unlist(ref), 
            comparisons = cmp, p.adjust.method = pAdjustMethod,

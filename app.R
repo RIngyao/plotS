@@ -8,18 +8,18 @@ aboutSection <- div(
                       <div class = "inst">
                       
                         <p>
-                        <b>PlotS</b> is a web-based application for data analysis and visualization. It is free and simple to use. 
-                        You can analyze your data in an engaging way by running statistical tests while plotting the graphs. We hope that it will be a useful tool for performing quick analysis.
+                        <b>PlotS</b> is a web-based application for data visualization and analysis. It is free and simple to use. 
+                        You can analyze your data in an engaging way by running statistical tests while plotting the graphs. We hope that it will be a useful tool for data analysis.
                         </p>
                         
                         <br></br>
                         
                         <p> 
-                        Go to <strong>Analyze & visualize</strong> section for data analysis. There are three sub-sections - <strong>Data</strong>, <strong>Graph</strong> and <strong>Summary</strong>. The <strong>Data</strong> section allows you to upload data, manage replicates or header, reshape and apply transformation. The <strong>Graph</strong> section is for plotting and statistical analysis. All statistical results will be displayed in the <strong>Summary</strong>, and you will be able to download them as a report or as individual tables and figures.
+                        Go to <strong>Visualize & analyze</strong> section for data analysis. There are three sub-sections - <strong>Data</strong>, <strong>Graph</strong> and <strong>Summary</strong>. The <strong>Data</strong> section allows you to upload data, manage replicates or header, reshape and apply transformation. The <strong>Graph</strong> section is for plotting and statistical analysis. All statistical results will be displayed in the <strong>Summary</strong>, and you will be able to download them as a report or as individual tables and figures.
                         </p>
                         
                         <p>
-                        Data can be either all numerical or a combination of numerical and categorical variables. For comparisons between variables, it is recommended that data be in a long format rather than a wide format. If it doesn\'t, use the reshape options to reshape it. More information can be found in the <strong>Help</strong> section.
+                        Data can be either all numerical or a combination of numerical and categorical variables. For comparisons between variables, it is recommended that data be in a long format rather than a wide format. If it doesn\'t, use the reshape option to reshape it. More information can be found in the <strong>Help</strong> section.
                         </p>
                         
                         <p>
@@ -529,7 +529,12 @@ mainSection <- div(
                                         ),
                                         #Ui for selecting test method of statistics
                                         conditionalPanel(condition = "input.stat == 't.test'",
-                                                         uiOutput("UiTtestMethod")
+                                                         # uiOutput("UiTtestMethod")
+                                                         {
+                                                           choices <- list(tags$span("Welch's test", style = "font-weight:bold; color:#0099e6"), 
+                                                                           tags$span("Student's test", style = "font-weight:bold; color:#0099e6"))
+                                                           radioButtons(inputId = "ttestMethod", label = "Test method", choiceNames = choices, choiceValues = c("welch", "student"), inline = FALSE)
+                                                         }
                                                          # radioButtons(inputId = "ttestMethod", label = "Test method", choiceNames = choices, choiceValues = c(FALSE, TRUE), inline = TRUE)}
                                                          # helpText("Refer the summary and change the method, if necessary.")
                                         ),
@@ -595,7 +600,7 @@ mainSection <- div(
                                           # column(5, uiOutput("UiChooseSignif")),
                                           column(5, 
                                                  conditionalPanel(condition = "input.stat != 'none' && input.stat != 'anova'",
-                                                                  checkboxInput(inputId = "choosePFormat", label = tags$span("p.adjust", style = "font-weight:bolder; color:red"), value = FALSE)
+                                                                  checkboxInput(inputId = "choosePFormat", label = tags$span("p.adjust", style = "font-weight:bolder; color:red"), value = TRUE)
                                                  )
                                           ),
                                           
@@ -3704,16 +3709,20 @@ server <- function(input, output, session){
     }
   })
   
-  #t-test method-----------------------
-  output$UiTtestMethod <- renderUI({
-    req(input$stat == "t.test")
-    choices <- list(tags$span("Welch's test", style = "font-weight:bold; color:#0099e6"), 
-                    tags$span("Student's test", style = "font-weight:bold; color:#0099e6"))
-    if(input$stat == "t.test"){
-      radioButtons(inputId = "ttestMethod", label = "Test method", choiceNames = choices, choiceValues = c("welch", "student"), inline = FALSE)
-    }
-    
+  #update t-test method-----------------------
+  observe({
+    req(input$stat)
+    updateRadioButtons(inputId = "ttestMethod", label = "Test method", choiceNames = choices, choiceValues = c("welch", "student"))
   })
+  # output$UiTtestMethod <- renderUI({
+  #   req(input$stat == "t.test")
+  #   choices <- list(tags$span("Welch's test", style = "font-weight:bold; color:#0099e6"), 
+  #                   tags$span("Student's test", style = "font-weight:bold; color:#0099e6"))
+  #   if(input$stat == "t.test"){
+  #     radioButtons(inputId = "ttestMethod", label = "Test method", choiceNames = choices, choiceValues = c("welch", "student"), inline = FALSE)
+  #   }
+  #   
+  # })
   #data (paired or unpaired) and ANOVA type (one-way or two-way)
   unpaired_stopTest <- reactiveVal("no") #no means data is unpaired, but user used as paired. So stop executing the t-test
   observe({
@@ -3766,6 +3775,12 @@ server <- function(input, output, session){
       }
     })
     
+  })
+  
+  #update additive and non-additive
+  observe({
+    req(input$plotType, input$stat, input$pairedData)
+    updateRadioButtons(inputId = "anovaModel", label = "Model", choiceNames = models, choiceValues = c("additive", "non-additive"))
   })
   
   
@@ -3968,7 +3983,7 @@ server <- function(input, output, session){
   #update pvalue: p value related parameters
   observe({
     req(!input$stat %in% c("none", "anova"))
-    updateCheckboxInput(inputId = "choosePFormat", label = NULL,value = TRUE)
+    updateCheckboxInput(inputId = "choosePFormat", label = NULL)
     req(isTruthy(input$choosePFormat))
     updateSelectInput(inputId = "signifMethod", label = NULL, choices = sort(pMethod), selected = "bonferroni")
   })
@@ -4977,6 +4992,7 @@ server <- function(input, output, session){
         
       }
     })
+    # addTooltip(session = session, id = "effectSizeMethod", title = "Change the setting")
   })
   
   #error msg
@@ -5339,8 +5355,8 @@ server <- function(input, output, session){
         input$xAxis,
         input$xAxis %in% colnames(ptable()),
         input$plotType != "none",
-        input$normalizeStandardize,
-        computeFuncError() #this is require for anova: it will reset between non-additive and additive.
+        input$normalizeStandardize
+        #computeFuncError() #taken care ---this is require for anova: it will reset between non-additive and additive.
     )
   },{
     
@@ -5348,7 +5364,7 @@ server <- function(input, output, session){
     #show notification
     computeMsg <- showNotification("Computing.. Please wait.....", duration = NULL, closeButton = FALSE,
                                    type ="message", id = "computeMsg")
-    on.exit(removeNotification(computeMsg), add = TRUE)
+    on.exit(removeNotification(computeMsg), add = TRUE, after = TRUE)
     #required parameters
     figType <- reactive(req(input$plotType))
     
@@ -5379,7 +5395,7 @@ server <- function(input, output, session){
     
     #stat method
     methodSt <- reactive(req(input$stat))
-    ttestMethod <- reactive(ifelse(methodSt() == "t.test"&& req(input$ttestMethod) == "student", TRUE, FALSE)) #welch = false, student=TRUE
+    ttestMethod <- reactive(ifelse(methodSt() == "t.test" && req(input$ttestMethod) == "student", TRUE, FALSE)) #welch = false, student=TRUE
     pairedData <- reactive(ifelse(methodSt() %in% c("t.test", "wilcoxon.test") && req(input$pairedData) == "no", FALSE, TRUE)) #either 'no' or 'yes': no means unpaired
     anovaType <- reactive( ifelse(req(input$stat) == "anova", req(input$pairedData), "no anova"))
     model <- reactive(if(anovaType() == "two") input$anovaModel)
@@ -5916,10 +5932,10 @@ server <- function(input, output, session){
       #Reason for adding all the codes in this reactive is to properly display error msg for the computation.
       
       # #show notification
-      # computeMsg <- showNotification("Computing.. Please wait.....", duration = NULL, closeButton = FALSE,
-      #                                type ="message", id = "computeMsg")
-      # on.exit(removeNotification(computeMsg), add = TRUE)
-      
+      computeMsg <- showNotification("Please wait.....", duration = NULL, closeButton = FALSE,
+                                     type ="message", id = "computeMsg")
+      on.exit(removeNotification(computeMsg), after = FALSE)
+
       #resolution for the plot
       res=400
       
@@ -5988,8 +6004,6 @@ server <- function(input, output, session){
       #new version---------------
       tryCatch({ 
         
-        
-        
         #data need to be changed based on the type of plots
         if(isFALSE(lineParam()[[1]])){
           #no change in data from ptable()
@@ -6006,7 +6020,7 @@ server <- function(input, output, session){
         
         #convert the x-axis into factor: this is necessary especially if user provide numerical variables for x-axis
         #this conversion will take place only for certain figType(), not for all: add based on requirement
-        if(figType() %in% c("box plot","violin plot", "line")){
+        if(figType() %in% c("box plot","violin plot")){ #"line"
           message("-------------1. Reminder: check the factor of x and y axis---------------------")
           # data <- as.data.frame(data)
           message(glue::glue("xy1[1:{xyAxis()}"))
@@ -6178,7 +6192,6 @@ server <- function(input, output, session){
         }
         #end of statistic computation
         
-        #append end-----------------------
         
         #get more parameters for graph
         #shape, linetype taken care in basic plot
@@ -6191,7 +6204,7 @@ server <- function(input, output, session){
           if(methodSt() != "none"){
             if(methodSt() != "anova" || (methodSt() == "anova" && anovaType() == "one")){
               message("one and other ====================way=======")
-              message(statData()) #require! don't know why
+              # message(statData()) #require! don't know why
               statistic_df(statData())
               
             }else if(methodSt() == "anova" && anovaType() == "two"){
@@ -6206,7 +6219,7 @@ server <- function(input, output, session){
               anovaFigure <- reactive(req(input$anovaFigure))
               #based on the figure, not on the model, process the figure separately
               if(anovaFigure() == "Interaction"){
-                message(statData()) #require! don't know why
+                # message(statData()) #require! don't know why
                 statistic_df(statData())
                 
               }else if(anovaFigure() != "Interaction"){
@@ -6529,17 +6542,6 @@ server <- function(input, output, session){
     value
     #end of inset------------
   })
-  
-  
-  
-  # observe({
-  #   sideGraph(sideGraphData(id="xside", layer = input$sideGraph))
-  # })
-  
-  
-  #for stat
-
-  
   
   #hover info for the plot
   observe({
