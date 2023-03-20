@@ -1186,9 +1186,7 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
   #select only the specified columns
   x2 <- x[, colNo, drop = FALSE] 
   #remove the header 
-  message(headerNo)
-  message(head(x2))
-  message(str(x2))
+  
   x2 <- x2[-c(headerNo),] %>% as.data.frame() 
   
   message("replicate selection")
@@ -1196,7 +1194,7 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
   onlyNumeric <- x2 %>% as.data.frame() %>% mutate_if(is.character, as.numeric)  #%>% as_tibble()
   #validate whether the replicate data is in numeric, if not, than the column
   # cannot be used as replicates. It is a categorical variable(s).
-  message(str(onlyNumeric)) 
+ 
   validate(
     need(
         #must not contain any alphabets in the column: added here just to avoid repeated writing (not recommended)
@@ -1253,7 +1251,7 @@ getMeanMedian <- function(x, df, stat='none', grp = NULL, varNum = NULL, repNum 
     message(varNum)
     #add unique id to each sample to be used in group by
     df2$newId <- rep(1:varNum, each = repNum)
-    message(df2)
+    
     message(str(df2))
     #group by based on the ID
     if(stat == "mean"){
@@ -1810,7 +1808,7 @@ efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, meth
   if(stat == "t.test"){
     
     dt2 <- dt %>% filter(.data[[v]] %in%  x) %>% as.data.frame()
-    message(dt2)
+    
     message(colnames(dt2)) 
   }
   # fs <- reformulate(response = y, termlabels = v) #replace fs with proper format

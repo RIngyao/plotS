@@ -2215,7 +2215,6 @@ server <- function(input, output, session){
     # req(pInputTable$data, input$transform, input$variables, isTruthy(input$enterName))
     req(pInputTable$data, input$transform, input$variables, input$enterName)
     
-    message(str(pInputTable$data))
     if(input$replicatePresent == "yes" && isTruthy(input$replicateActionButton)){
       #if replicate is manage than check this
       validate(
@@ -5095,7 +5094,6 @@ server <- function(input, output, session){
         }
         
         #run the function to determine effect size
-        message(cbn)
         efs_list <- lapply(cbn, efS, dt = ptable(), v = indpVar(), y = input$yAxis, method = req(input$effectSizeMethod), 
                            stat = input$stat, welchs = ifelse(req(input$ttestMethod) == "welch", TRUE, FALSE), fa = forml, paired = ifelse(input$pairedData == "no", FALSE, TRUE))
         #convert the list to data frame
@@ -5717,8 +5715,6 @@ server <- function(input, output, session){
               
               #computing
               message("computed sd--------------")
-              
-              message(newData)
               message(colnames(newData))
               
               
@@ -5752,7 +5748,6 @@ server <- function(input, output, session){
             newData <- sdFunc(x = ptable(), oName = anovaFigure(), yName = colnm, lineGrp = lineConnectPath())
             message("tow-done2")
             message(colnames(newData))
-            message(newData)
           }#end of two-way anova
           
           
@@ -6705,8 +6700,6 @@ server <- function(input, output, session){
       message(str(input$click_info))
       df <- brushedPoints(df = ptable(), brush = input$brush_info, xvar = input$xAxis, yvar = input$yAxis)
     }else{ df <- data.frame(matrix(nrow = 0, ncol = 0)) }
-    
-    message(df)
     
     clickBrush_df(df)#save it for download
     #table to display
