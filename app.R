@@ -6498,6 +6498,7 @@ server <- function(input, output, session){
           need(req(input$xAxis) %in% colnames(clickBrush_df()), "")
         )
         #get necessary parameters
+        insetPltTypes <- reactive(if(req(input$insetPlotType) != "histogram"){ input$insetPlotType }else{ "inset-histogram" })
         shapeLine <- reactive(ifelse(isTruthy(input$shapeLine), input$shapeLine, "none"))
         shapeSet <- reactive(if(shapeLine() == "Shape") {req(input$shapeSet)}else{NULL})
         lineSet <- reactive(if(shapeLine() == "Line type") {req(input$lineSet)}else{NULL})
@@ -6535,15 +6536,17 @@ server <- function(input, output, session){
         
         #reactive value: insetXTextLabels() - in insetPlt & insetColor() - to be used in inset_df
         #generate inset graph
+        # browser()
+        
         if(!req(input$insetPlotType) %in% c("line", "scatter plot")){
-          insetPlt <- plotFig(data = req(clickBrush_df()), types = req(input$insetPlotType), geom_type = insetGeomType(),
+          insetPlt <- plotFig(data = req(clickBrush_df()), types = insetPltTypes(), geom_type = insetGeomType(),
                               xTextLabels = insetXTextLabels(),
                               xl = xl(), yl = yl(), shapes = shapeSet(),
                               linetypes = lineSet(), fills = req(input$colorSet), varSet = req(input$colorSet),
                               lineParam = FALSE, autoCust = autoCust(), colorTxt = colorTxt()
           )
         }else{
-          insetPlt <- plotFig(data = req(clickBrush_df()), types = req(input$insetPlotType), geom_type = insetGeomType(),
+          insetPlt <- plotFig(data = req(clickBrush_df()), types = insetPltTypes(), geom_type = insetGeomType(),
                               xTextLabels = insetXTextLabels(),
                               xl = xl(), yl = yl(), shapes = shapeSet(),
                               linetypes = lineSet(), colr = req(input$colorSet), varSet = req(input$colorSet),
@@ -6554,14 +6557,28 @@ server <- function(input, output, session){
         #generate table for the inset
         yMin <- min(clickBrush_df()[[ req(input$yAxis) ]])
         
-        inset_df <- tibble(x= req(input$insetXPosition), y = input$insetYPosition,
-                           plot = list( insetPlt + labs(x=NULL, y = NULL) +
-                                          coord_cartesian(ylim = c(min(clickBrush_df()[[ req(input$yAxis) ]]), max(clickBrush_df()[[ req(input$yAxis) ]]))) +
-                                          themeF(thme = req(input$insetTheme))+
-                                          theme(legend.position = "none", axis.text = element_text(face = "bold", size = req(input$insetTextSize)))+ scale_fill_manual(values = insetColor())
-                                        # if(!input$insetPlotType %in% c("line", "scatter plot")){scale_fill_manual(values = origColor)}else{scale_color_manual(values = origColor)}
-                           )
-        )
+        if(req(input$insetPlotType) != "histogram"){
+          #limit y-axis for other graphs
+          inset_df <- tibble(x= req(input$insetXPosition), y = input$insetYPosition,
+                             plot = list( insetPlt + labs(x=NULL, y = NULL) +
+                                            coord_cartesian(ylim = c(min(clickBrush_df()[[ req(input$yAxis) ]]), max(clickBrush_df()[[ req(input$yAxis) ]]))) +
+                                            themeF(thme = req(input$insetTheme))+
+                                            theme(legend.position = "none", axis.text = element_text(face = "bold", size = req(input$insetTextSize)))+ scale_fill_manual(values = insetColor())
+                                          # if(!input$insetPlotType %in% c("line", "scatter plot")){scale_fill_manual(values = origColor)}else{scale_color_manual(values = origColor)}
+                             )
+          )
+        }else{
+          #no fixed y-axis
+          inset_df <- tibble(x= req(input$insetXPosition), y = input$insetYPosition,
+                             plot = list( insetPlt + labs(x=NULL, y = NULL) +
+                                            # coord_cartesian(ylim = c(min(clickBrush_df()[[ req(input$yAxis) ]]), max(clickBrush_df()[[ req(input$yAxis) ]]))) +
+                                            themeF(thme = req(input$insetTheme))+
+                                            theme(legend.position = "none", axis.text = element_text(face = "bold", size = req(input$insetTextSize)))+ scale_fill_manual(values = insetColor())
+                                          # if(!input$insetPlotType %in% c("line", "scatter plot")){scale_fill_manual(values = origColor)}else{scale_color_manual(values = origColor)}
+                             )
+          )
+        }
+        
         
         #color: dependening on the data add fill or color and scale_*_manual
         finalInsetPlt <- geom_plot_npc(data = inset_df, aes(npcx =x, npcy = y, label = plot), vp.width = req(input$insetWidth), vp.height = req(input$insetHeight))
@@ -6674,13 +6691,13 @@ server <- function(input, output, session){
     
     #get details for inset graph
     if(req(input$plotType) != "none" && input$inset == "yes"){
-      #check y variables - bar must always be default
+      #check y variables - histogram must always be default
       yValue <- reactive({
         if(req(input$insetPlotType) != "histogram"){
           if(req(input$insetYAxis) == "default"){
             "default"
           }else{ input$insetYAxis }
-        }else{ "default" }#for bar plot
+        }else{ "default" }#for histogram
       }) 
       #get geomtype
       insetGeomType({
@@ -6699,8 +6716,8 @@ server <- function(input, output, session){
                  },
                  "scatter plot" = geom_point(size = req(input$barPointLineSize)),
                  "density" = geom_density(aes(y = after_stat(density) )),
-                 "bar plot" = geom_bar(stat= "count", width = req(input$barPointLineSize)),
-                 "histogram" = stat_count(stat= "count", width = req(input$barPointLineSize), position = req(input$insetStackDodge))
+                 "bar plot" = geom_bar(stat = "identity", width = req(input$barPointLineSize), position = "dodge"),
+                 "histogram" = stat_count(geom= "bar", width = req(input$barPointLineSize), position = req(input$insetStackDodge))
           ) #end switch
           
          }else if(req(input$insetXAxis) != "default" && yValue() == "default"){
@@ -6721,8 +6738,8 @@ server <- function(input, output, session){
                  },
                  "scatter plot" = geom_point(aes_string(x = input$insetXAxis), size = req(input$barPointLineSize)),
                  "density" = geom_density(aes(y = after_stat(density))),
-                 "bar plot" = geom_bar(aes_string(x = input$insetXAxis), stat= "count", width = req(input$barPointLineSize)),
-                 "histogram" = stat_count(stat= "count", width = req(input$barPointLineSize), position = req(input$insetStackDodge))
+                 "bar plot" = geom_bar(stat = "identity", aes_string(x = input$insetXAxis), width = req(input$barPointLineSize), position = "dodge"),
+                 "histogram" = stat_count(geom= "bar", width = req(input$barPointLineSize), position = req(input$insetStackDodge))
           ) #end switch
 
         }else if(req(input$insetXAxis) == "default" && yValue() != "default"){
@@ -6743,8 +6760,8 @@ server <- function(input, output, session){
                  "scatter plot" = geom_point(aes_string(y = input$insetYAxis), size = req(input$barPointLineSize)),
                  "density" = geom_density(aes(y = after_stat(density))),
                  #bar will remain unchange
-                 "bar plot" = geom_bar(stat= "count", width = req(input$barPointLineSize)),
-                 "histogram" = stat_count(stat= "count", width = req(input$barPointLineSize), position = req(input$insetStackDodge))
+                 "bar plot" = geom_bar(aes_string(y = input$insetYAxis), stat = "identity", width = req(input$barPointLineSize), position = "dodge"),
+                 "histogram" = stat_count(geom= "bar", width = req(input$barPointLineSize), position = req(input$insetStackDodge))
           ) #end switch
 
         }else if(req(input$insetXAxis) != "default" && req(input$insetYAxis) != "default"){
@@ -6766,8 +6783,8 @@ server <- function(input, output, session){
                  },
                  "scatter plot" = geom_point(aes_string(x = input$insetXAxis, y = input$insetYAxis), size = req(input$barPointLineSize)),
                  "density" = geom_density(aes(y = after_stat(density))),
-                 "bar plot" = geom_bar(aes_string(x = input$insetXAxis), stat= "count", position = "stack", width = req(input$barPointLineSize)),
-                 "histogram" = stat_count(stat= "count", width = req(input$barPointLineSize), position = req(input$insetStackDodge))
+                 "bar plot" = geom_bar(aes_string(x = input$insetXAxis, y = input$insetYAxis), stat = "identity", position = "dodge", width = req(input$barPointLineSize)),
+                 "histogram" = stat_count(geom= "bar", width = req(input$barPointLineSize), position = req(input$insetStackDodge))
           ) #end switch
 
         }

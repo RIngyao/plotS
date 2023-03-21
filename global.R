@@ -2060,10 +2060,11 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
                     #, ...
 ){ #if y axis is required specifically mention in function parameter
   
-  # browser()
+  # browser() 
+  message(types)
   if(types == "none"){
     break
-  }else if(!types %in% c("frequency polygon", "histogram")){
+  }else if(!types %in% c("frequency polygon", "histogram", "inset-histogram")){
     #aesthetics will be filled based on requirement
     gp <- ggplot(data = data, 
                  
