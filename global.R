@@ -80,7 +80,7 @@ planPlotList <- c("none", "box plot","bar plot", "histogram", "scatter plot",
                   "violin","jitter","area", "pie chart", "venn", "upset", "tile")
 plotList <- c("box plot","violin plot", "density", "frequency polygon", "histogram","line", "scatter plot", "bar plot")
 #list of graph allow for inset
-insetList <- c( "box plot","violin plot", "line", "scatter plot", "bar plot")
+insetList <- c( "box plot","violin plot", "line", "scatter plot", "density", "histogram", "bar plot")
 
 #plot that require x and y-axis
 xyRequire <- c(  "box plot", "bar plot", "line", "scatter plot", "violin plot") 
@@ -572,6 +572,7 @@ insetColor <- reactiveVal(NULL)
   inDf = data frame. data for inset
   oriDf = data frame. original data 
   orix = character. original variable of x axis
+  insx = character. variable selected for x-axis for the inset. 'default' indicates similar with orix
   oriTextLabel =  character. vector of variable names for labeling x-axis (original graph)
   finalPlt = ggplot object. to get the color use in the graph
   color = character. variable for which to apply color
@@ -581,12 +582,18 @@ insetColor <- reactiveVal(NULL)
   
   Note: the function will return empty value. necessary output will be saved in the reactive objects
 "
-insetParamFunc <- function(inDf, oriDf, orix, oriTextLabel, finalPlt, color = "none", shape=NULL, line=NULL){
-  # for name: depend only only on x-axis
+insetParamFunc <- function(inDf, oriDf, orix, insx = "default", oriTextLabel, finalPlt, color = "none", shape=NULL, line=NULL){
+  # for name: depend only on x-axis
+  # browser()
   #get original variables of x-axis from the original data
   xVarName <- unique(as.data.frame(oriDf)[,orix]) %>% as.vector() %>% sort()
   #get variable name of the inset
-  insetXVarName <- unique(as.data.frame(inDf)[,orix]) %>% as.vector() %>% sort()
+  if(insx == "default"){
+    insetXVarName <- unique(as.data.frame(inDf)[,orix]) %>% as.vector() %>% sort()
+  }else{
+    insetXVarName <- unique(as.data.frame(inDf)[,insx]) %>% as.vector() %>% sort()
+  }
+  
   #filter only the variables  present in inset data and saved as reactive object
   insetXTextLabels( oriTextLabel[which(xVarName %in% insetXVarName)] )
   
@@ -620,6 +627,43 @@ insetParamFunc <- function(inDf, oriDf, orix, oriTextLabel, finalPlt, color = "n
 }
 
 #old version--------------
+# insetParamFunc <- function(inDf, oriDf, orix, oriTextLabel, finalPlt, color = "none", shape=NULL, line=NULL){
+#   # for name: depend only on x-axis
+#   #get original variables of x-axis from the original data
+#   xVarName <- unique(as.data.frame(oriDf)[,orix]) %>% as.vector() %>% sort()
+#   #get variable name of the inset
+#   insetXVarName <- unique(as.data.frame(inDf)[,orix]) %>% as.vector() %>% sort()
+#   #filter only the variables  present in inset data and saved as reactive object
+#   insetXTextLabels( oriTextLabel[which(xVarName %in% insetXVarName)] )
+#   
+#   
+#   #for color: depend on aesthetic
+#   if(color != "none"){# && (is.null(shape) && is.null(line))){
+#     #get original variables of x-axis from the original data
+#     xVarName <- unique(as.data.frame(oriDf)[,color]) %>% as.vector() %>% sort()
+#     #get variable name of the inset
+#     insetXVarName <- unique(as.data.frame(inDf)[,color]) %>% as.vector() %>% sort()
+#   }else if(color == "none" && !is.null(shape)){
+#     #get original variables of x-axis from the original data
+#     xVarName <- unique(as.data.frame(oriDf)[,shape]) %>% as.vector() %>% sort()
+#     #get variable name of the inset
+#     insetXVarName <- unique(as.data.frame(inDf)[,shape]) %>% as.vector() %>% sort()
+#     
+#   }else if(color == "none" && !is.null(line)){
+#     #get original variables of x-axis from the original data
+#     xVarName <- unique(as.data.frame(oriDf)[,line]) %>% as.vector() %>% sort()
+#     #get variable name of the inset
+#     insetXVarName <- unique(as.data.frame(inDf)[,line]) %>% as.vector() %>% sort() 
+#   }
+#   
+#   #get color from the original graph (variables of x axis)
+#   origColor <- hue_pal()(length(xVarName))
+#   # origColor <- unique(ggplot_build(finalPlt)$data[[1]][,1]) %>% as.vector()
+#   #filter only the color for the inset variables and save as reactive object
+#   insetColor(origColor[which(xVarName %in% insetXVarName)])
+#   #return empty
+#   return("")
+# }
 # insetParamFunc <- function(inDf, oriDf, orix, oriTextLabel, finalPlt, color = "none", shape=NULL, line=NULL){
 #   # for name: depend only only on x-axis
 #   #get original variables of x-axis from the original data
@@ -1207,6 +1251,7 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
   message("converted to numeric")
   #generate and add column names
   nn <- ncol(onlyNumeric)
+  
   colnames(onlyNumeric) <- paste0("Replicate_",1:nn)
   message("merge")
   #merge the noNumeric (character column) and onlyNumeric (replicate column)
@@ -2108,7 +2153,7 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
       plt
     }else if(autoCust == "customize"){
       #this will execute only if the customize option is selected
-      message(glue::glue("colorTxt : {colorTxt}"))
+      message(glue::glue("colorTxt : colorTxt"))
       #get number of variables
       countVar <- length(unique(data[[varSet]]))
       
@@ -2149,7 +2194,7 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
     }#end of customizing color
   }#end for color setting
   
-  message(xTextLabels)
+  # message(xTextLabels)
   #change variable name of x-axis
   
   # if(types %in% c("line", "frequency polygon", "scatter plot")){

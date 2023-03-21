@@ -771,6 +771,7 @@ mainSection <- div(
                                                            jqui_draggable(
                                                              div(
                                                                class = "filterDataDiv",
+                                                               id = "filterDataDivID",
                                                                style = "text-align:center; overflow-y:auto; min-height:200px; max-height: 300px",
                                                                h4("Apply filter", align = "center", style = "color:green; margin-bottom:5px"),
                                                                #UI option for variable selection
@@ -797,7 +798,9 @@ mainSection <- div(
                                                                ),
                                                                uiOutput("UiFilterMsg")
                                                              )#end filter data div
-                                                           )#end draggable
+                                                           ),#end draggable
+                                                           
+                                                           bsTooltip(id= "filterDataDivID", title = "This panel can be clicked and drag around the page", placement = "top")
                                                            
                                             ),#end of dropdownbutton
                                             
@@ -810,6 +813,7 @@ mainSection <- div(
                                                                           jqui_draggable(
                                                                             div(
                                                                               class = "insetDoprdownDiv",
+                                                                              id = "insetDoprdownDivID",
                                                                               style = "overflow-y:auto; max-height: 300px",
                                                                               h4("Inset parameters", align = "center", style = "color:green; margin-bottom:5px"),
                                                                               
@@ -824,8 +828,26 @@ mainSection <- div(
                                                                               conditionalPanel(condition = "input.plotType != 'none' && input.inset == 'yes'",
                                                                                                fluidRow(
                                                                                                  #plot type and theme
-                                                                                                 column(6, selectInput(inputId = "insetPlotType", label = "type", choices = c("box plot","violin plot", "scatter plot", "line"))),
+                                                                                                 column(6, selectInput(inputId = "insetPlotType", label = "type", choices = sort(insetList))),
                                                                                                  column(6, selectInput(inputId = "insetTheme", label = "theme", choices = sort(c("dark", "white", "white with grid lines","blank", "theme5")), selected = "theme5"))
+                                                                                               ),
+                                                                                               fluidRow(
+                                                                                                 column(6, selectInput(inputId = "insetXAxis", label = "X-axis", choices = "default")),
+                                                                                                 column(6, 
+                                                                                                        conditionalPanel(condition = "input.insetPlotType == 'histogram'",
+                                                                                                                         {
+                                                                                                                           stdg <- list(tags$span("Stack", style = "font-weight:bold; color:#0099e6"), tags$span("Dodge", style = "font-weight:bold; color:#0099e6"))
+                                                                                                                           radioButtons(inputId = "insetStackDodge", label = "Position", choiceNames = stdg, choiceValues = c("stack", "dodge"), inline = TRUE)
+                                                                                                                         }
+                                                                                                                         ),
+                                                                                                        
+                                                                                                        conditionalPanel(condition = "input.insetPlotType != 'histogram'",
+                                                                                                                         selectInput(inputId = "insetYAxis", label = "Y-axis", choices = "default")
+                                                                                                                         )
+                                                                                                        )
+                                                                                                        
+                                                                                                 
+                                                                                                 # column(6, selectInput(inputId = "insetYAxis", label = "Y-axis", choices = "default"))
                                                                                                ),
                                                                                                fluidRow(
                                                                                                  #x and y position
@@ -848,8 +870,8 @@ mainSection <- div(
                                                                               ), #end of condition parameter
                                                                               helpText( tags$p("** Does not support for two-way ANOVA and when side graph is added"), style = "text-align:center"),
                                                                             )#end of inset
-                                                                          )#end of draggable inset
-                                                                          
+                                                                          ),#end of draggable inset
+                                                                          bsTooltip(id= "insetDoprdownDivID", title = "This panel can be clicked and drag around the page", placement = "top")
                                                            ) #end inset dropdown
                                           )#end condition for inset
                                    ), #end column for inset
@@ -859,6 +881,7 @@ mainSection <- div(
                                                                            jqui_draggable(
                                                                              div(
                                                                                class = "sideDropdownDiv",
+                                                                               id= "sideDropdownDivID",
                                                                                style = "text-align:center; overflow-y:auto; max-height: 300px",
                                                                                h4("Add graph on the x- and y-sides of the main graph.", align = "center", style = "color:green; margin-bottom:20px"),
                                                                                # helpText( tags$p("Some functions will apply on both the sides"), style = "text-align:center; margin-bottom: 7px"),
@@ -895,7 +918,8 @@ mainSection <- div(
                                                                                  
                                                                                )
                                                                              )#end of side div
-                                                                           )#draggable
+                                                                           ),#draggable
+                                                                           bsTooltip(id= "sideDropdownDivID", title = "This panel can be clicked and drag around the page", placement = "top")
                                                            )#end of side dropdown button
                                                            
                                           )#end of side condition
@@ -1457,7 +1481,7 @@ server <- function(input, output, session){
       }
     }
     
-    message(str(pData))
+    #-message(str(pData))
     pInputTable_orig(pData) 
   })
   
@@ -1822,7 +1846,7 @@ server <- function(input, output, session){
         }else if(nrow(data) > 1){
           #check for logical and provide different data
 
-          message(i)
+          #-message(i)
           if( eval( str2expression(paste0("input$filterLogical", i-1)) ) == "AND" ){
             data <- filterData(df = data, col = df_coln[i], filterType = flTy, val = flVal)
           }else{
@@ -1856,7 +1880,7 @@ server <- function(input, output, session){
       filterMsg(0)
     }
     #null row name
-    message(str(data))
+    #-message(str(data))
     rownames(data) <- NULL
     ptable(data)
   })
@@ -1937,7 +1961,7 @@ server <- function(input, output, session){
     if(input$replicateStat != "none"){
       req(input$replicateStatGroup)
       
-      message(input$replicateStatGroup)
+      #-message(input$replicateStatGroup)
       #for future
       if(length(input$replicateStatGroup) > 1){
         validate(
@@ -2082,13 +2106,13 @@ server <- function(input, output, session){
         }
         
         # browser()
-        message(str(mergeData))
+        #-message(str(mergeData))
         #get the name of the columns for which variables to determine mean or median
         other_col <- colnames( mergeData[, 1:which(colnames(mergeData) == "replicates")-1, drop = FALSE] )
         
         #check that the col must be numeric (other than other_col)
         numericCheck_df <- mergeData %>% select(-all_of(other_col), -replicates)
-        message(str(numericCheck_df))
+        #-message(str(numericCheck_df))
         #get only the names of the necessary columns to process futher
         mm_col <- mergeData %>% select(-all_of(other_col), -replicates) %>% colnames()
         
@@ -2100,7 +2124,7 @@ server <- function(input, output, session){
         }else{
           forVarNum <- nrow(pInputTable_orig())
         }
-        message(forVarNum)
+        #-message(forVarNum)
         #determine mean or median for each variables
         mm_list <- lapply(mm_col, getMeanMedian, df = mergeData, stat = req(input$replicateStat), grp = all_of(gb_col), varNum = forVarNum, repNum = length(req(input$Variable1R)))
         #convert to data frame
@@ -3589,7 +3613,7 @@ server <- function(input, output, session){
       }else if(pltType() == "bar plot"){
         #update line
         #for line plot, it will be taken care by connect line path
-        message("update lineSet2")
+        #-message("update lineSet2")
         # updateSelectInput(inputId = "lineSet", label = "Variable for line type2", choices = c(colnames(xVar()), input$colorSet), selected= input$colorSet)
         selectInputParam(update = TRUE, pltType = input$plotType, data = ptable(), label = "Variable for line type", 
                          newId = "lineSet", firstChoice = NULL, choice = c(colnames(xVar()), input$colorSet), selected= input$colorSet )
@@ -6018,7 +6042,7 @@ server <- function(input, output, session){
         if(figType() %in% c("box plot","violin plot")){ #"line"
           message("-------------1. Reminder: check the factor of x and y axis---------------------")
           # data <- as.data.frame(data)
-          message(glue::glue("xy1[1:{xyAxis()}"))
+          message(glue::glue("xy1[1:xyAxis()"))
           data[[xyAxis()[[1]]]] <- as.factor(data[[xyAxis()[[1]]]])
         }else{ #if(figType %in% c("line", "scatter plot")){
           message("-------------2. Reminder: check the factor of x and y axis---------------------")
@@ -6480,10 +6504,29 @@ server <- function(input, output, session){
         
         autoCust <- reactive(ifelse(req(input$colorSet) != "none", req(input$autoCustome), "none"))
         colorTxt <- reactive(ifelse(autoCust() == "customize" && isTruthy(input$colorAdd), input$colorAdd, "noneProvided"))
-        
+        # browser()
         xTextLabels <- reactive({
           req(input$plotType != 'none', input$xAxis %in% colnames(ptable()))
           xTextLabel()
+        })
+        
+        xl <- reactive({
+          if(req(input$insetXAxis) == "default"){
+            input$xAxis
+          }else {
+            input$insetXAxis
+          }
+        })
+          
+        yl <- reactive({
+          if(req(input$insetPlotType) != "histogram"){
+            if(req(input$insetYAxis) == "default"){
+              input$yAxis
+            }else{
+              input$insetYAxis
+            }
+          }else if(req(input$insetPlotType) == "histogram"){ NULL}
+          
         })
         # insetParamFunc(inDf, oriDf, orix, oriTextLabel, finalPlt, color = "none", shape=NULL, line=NULL)
         # browser()
@@ -6495,18 +6538,18 @@ server <- function(input, output, session){
         if(!req(input$insetPlotType) %in% c("line", "scatter plot")){
           insetPlt <- plotFig(data = req(clickBrush_df()), types = req(input$insetPlotType), geom_type = insetGeomType(),
                               xTextLabels = insetXTextLabels(),
-                              xl = req(input$xAxis), yl = req(input$yAxis), shapes = shapeSet(),
+                              xl = xl(), yl = yl(), shapes = shapeSet(),
                               linetypes = lineSet(), fills = req(input$colorSet), varSet = req(input$colorSet),
                               lineParam = FALSE, autoCust = autoCust(), colorTxt = colorTxt()
           )
         }else{
           insetPlt <- plotFig(data = req(clickBrush_df()), types = req(input$insetPlotType), geom_type = insetGeomType(),
                               xTextLabels = insetXTextLabels(),
-                              xl = req(input$xAxis), yl = req(input$yAxis), shapes = shapeSet(),
+                              xl = xl(), yl = yl(), shapes = shapeSet(),
                               linetypes = lineSet(), colr = req(input$colorSet), varSet = req(input$colorSet),
                               lineParam = FALSE, autoCust = autoCust(), colorTxt = colorTxt())
         }
-        # browser()
+        
         
         #generate table for the inset
         yMin <- min(clickBrush_df()[[ req(input$yAxis) ]])
@@ -6590,10 +6633,26 @@ server <- function(input, output, session){
   observe({
     req(input$inset == "no")
     # browser()
-    updateSelectInput(inputId = "insetPlotType", choices = c("box plot","violin plot", "scatter plot", "line"))
+    updateSelectInput(inputId = "insetPlotType", choices = sort(insetList))
     # updateSliderInput(inputId = "insetXPosition", min = 0, max = 1, value = 0)
     # updateSliderInput(inputId = "insetYPosition", min = 0, max = 1, value = 0)
   })
+  
+  #update variable for x and y-axis of inset
+  observe({
+    req(ptable(), input$plotType)
+    updateSelectInput(inputId = "insetXAxis", choices = c("default", colnames(ptable())))
+    updateSelectInput(inputId = "insetYAxis", choices = c("default", colnames(ptable())))
+  })
+  #update y-axis based on x-axis
+  observe({
+    req(input$insetXAxis != "default")
+    # browser()
+    sel <- if(req(input$insetYAxis) == input$insetXAxis){"default"}else input$insetYAxis
+    allCol <- colnames(ptable())
+    updateSelectInput(inputId = "insetYAxis", choices = c("default", allCol[which(allCol != input$insetXAxis)]), selected = sel)
+  })
+  
   observe({
     
     req(input$insetPlotType)
@@ -6603,32 +6662,119 @@ server <- function(input, output, session){
       updateSliderInput(inputId = "barPointLineSize", label = "Point size", min = 0.1, max = 5, value = 0.2)
     }else if(input$insetPlotType == "line"){
       updateSliderInput(inputId = "barPointLineSize", label = "Line size", min = 0.1, max = 10, value = 0.2)
+    }else if(input$insetPlotType == "bar plot"){
+      updateSliderInput(inputId = "barPointLineSize", label = "bar size", min = 0.1, max = 1, value = 0.2)
     }
   })
+  
   #use the data to provide inset
   observe({
     req(input$plotType, input$brush_info, input$inset)
+    # browser()
+    
     #get details for inset graph
     if(req(input$plotType) != "none" && input$inset == "yes"){
+      #check y variables - bar must always be default
+      yValue <- reactive({
+        if(req(input$insetPlotType) != "histogram"){
+          if(req(input$insetYAxis) == "default"){
+            "default"
+          }else{ input$insetYAxis }
+        }else{ "default" }#for bar plot
+      }) 
       #get geomtype
       insetGeomType({
-        switch(input$insetPlotType,
-               
-               "box plot" = geom_boxplot(width = req(input$barPointLineSize), outlier.alpha = 0.1), #width = freqPolySize()
-               "violin plot" = geom_violin(width = req(input$barPointLineSize)), #width = freqPolySize()
-               "line" = if(xVarType()[1] %in% c("integer", "numeric", "double")){
+        if(req(input$insetXAxis) == "default" && yValue() == "default"){
+          
+          switch(input$insetPlotType,
+                 
+                 "box plot" = geom_boxplot(width = req(input$barPointLineSize), outlier.alpha = 0.1), #width = freqPolySize()
+                 "violin plot" = geom_violin(width = req(input$barPointLineSize)), #width = freqPolySize()
+                 "line" = if(xVarType()[1] %in% c("integer", "numeric", "double")){
                    #group for numeric type
                    geom_line(group =1, size = req(input$barPointLineSize))
                  }else{
                    #no need to group for character type
                    geom_line(size = req(input$barPointLineSize))
                  },
-               "scatter plot" = geom_point(size = req(input$barPointLineSize)),
-               "density" = geom_density(aes(y = ..density..))
-        ) #end switch
+                 "scatter plot" = geom_point(size = req(input$barPointLineSize)),
+                 "density" = geom_density(aes(y = after_stat(density) )),
+                 "bar plot" = geom_bar(stat= "count", width = req(input$barPointLineSize)),
+                 "histogram" = stat_count(stat= "count", width = req(input$barPointLineSize), position = req(input$insetStackDodge))
+          ) #end switch
+          
+         }else if(req(input$insetXAxis) != "default" && yValue() == "default"){
+           req(input$insetXAxis %in% colnames(ptable()))
+          #get inset x-axis class
+          col <- as.data.frame(ptable())[,input$insetXAxis]
+          xcl <- class(col)
+          switch(input$insetPlotType,
+
+                 "box plot" = geom_boxplot(aes_string(x = input$insetXAxis), width = req(input$barPointLineSize), outlier.alpha = 0.1), #width = freqPolySize()
+                 "violin plot" = geom_violin(aes_string(x = input$insetXAxis), width = req(input$barPointLineSize)), #width = freqPolySize()
+                 "line" = if(xcl %in% c("integer", "numeric", "double")){
+                   #group for numeric type
+                   geom_line(aes_string(x = input$insetXAxis), group =1, size = req(input$barPointLineSize))
+                 }else{
+                   #no need to group for character type
+                   geom_line(aes_string(x = input$insetXAxis), size = req(input$barPointLineSize))
+                 },
+                 "scatter plot" = geom_point(aes_string(x = input$insetXAxis), size = req(input$barPointLineSize)),
+                 "density" = geom_density(aes(y = after_stat(density))),
+                 "bar plot" = geom_bar(aes_string(x = input$insetXAxis), stat= "count", width = req(input$barPointLineSize)),
+                 "histogram" = stat_count(stat= "count", width = req(input$barPointLineSize), position = req(input$insetStackDodge))
+          ) #end switch
+
+        }else if(req(input$insetXAxis) == "default" && yValue() != "default"){
+          
+          req(input$insetYAxis %in% colnames(ptable()))
+          
+          switch(input$insetPlotType,
+
+                 "box plot" = geom_boxplot(aes_string(Y = input$insetYAxis), width = req(input$barPointLineSize), outlier.alpha = 0.1), #width = freqPolySize()
+                 "violin plot" = geom_violin(aes_string(Y = input$insetYAxis), width = req(input$barPointLineSize)), #width = freqPolySize()
+                 "line" = if(xVarType()[1]  %in% c("integer", "numeric", "double")){
+                   #group for numeric type
+                   geom_line(aes_string(y = input$insetYAxis), group =1, size = req(input$barPointLineSize))
+                 }else{
+                   #no need to group for character type
+                   geom_line(aes_string(y = input$insetYAxis), size = req(input$barPointLineSize))
+                 },
+                 "scatter plot" = geom_point(aes_string(y = input$insetYAxis), size = req(input$barPointLineSize)),
+                 "density" = geom_density(aes(y = after_stat(density))),
+                 #bar will remain unchange
+                 "bar plot" = geom_bar(stat= "count", width = req(input$barPointLineSize)),
+                 "histogram" = stat_count(stat= "count", width = req(input$barPointLineSize), position = req(input$insetStackDodge))
+          ) #end switch
+
+        }else if(req(input$insetXAxis) != "default" && req(input$insetYAxis) != "default"){
+          
+          req(c(input$insetXAxis, input$insetYAxis) %in% colnames(ptable()))
+          #get inset x-axis class
+          col <- as.data.frame(ptable())[,input$insetXAxis]
+          xcl <- class(col)
+          switch(input$insetPlotType,
+
+                 "box plot" = geom_boxplot(aes_string(x = input$insetXAxis, y = input$insetYAxis), width = req(input$barPointLineSize), outlier.alpha = 0.1), #width = freqPolySize()
+                 "violin plot" = geom_violin(aes_string(x = input$insetXAxis, y = input$insetYAxis), width = req(input$barPointLineSize)), #width = freqPolySize()
+                 "line" = if(xcl %in% c("integer", "numeric", "double")){
+                   #group for numeric type
+                   geom_line(aes_string(x = input$insetXAxis, y = input$insetYAxis), group =1, size = req(input$barPointLineSize))
+                 }else{
+                   #no need to group for character type
+                   geom_line(aes_string(x = input$insetXAxis, y = input$insetYAxis), size = req(input$barPointLineSize))
+                 },
+                 "scatter plot" = geom_point(aes_string(x = input$insetXAxis, y = input$insetYAxis), size = req(input$barPointLineSize)),
+                 "density" = geom_density(aes(y = after_stat(density))),
+                 "bar plot" = geom_bar(aes_string(x = input$insetXAxis), stat= "count", position = "stack", width = req(input$barPointLineSize)),
+                 "histogram" = stat_count(stat= "count", width = req(input$barPointLineSize), position = req(input$insetStackDodge))
+          ) #end switch
+
+        }
+        
       })#end geomtype
       
-    }
+    }#end of inset ON
     
   })
   
