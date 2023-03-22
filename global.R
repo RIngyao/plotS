@@ -590,12 +590,16 @@ insetParamFunc <- function(inDf, oriDf, orix, insx = "default", oriTextLabel, fi
   #get variable name of the inset
   if(insx == "default"){
     insetXVarName <- unique(as.data.frame(inDf)[,orix]) %>% as.vector() %>% sort()
+    #filter only the variables  present in inset data and saved as reactive object
+    insetXTextLabels( oriTextLabel[which(xVarName %in% insetXVarName)] )
   }else{
+    message(insx)
     insetXVarName <- unique(as.data.frame(inDf)[,insx]) %>% as.vector() %>% sort()
+    #saved as reactive object 
+    insetXTextLabels(insetXVarName)
   }
   
-  #filter only the variables  present in inset data and saved as reactive object
-  insetXTextLabels( oriTextLabel[which(xVarName %in% insetXVarName)] )
+  
   
   
   #for color: depend on aesthetic
@@ -2114,16 +2118,16 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
   }
   
   
-  #add layer
-  if(layer != "none"){
-    cal <- ifelse(types %in% c("box plot", "violin plot"), "median", "mean")
-    plt <- switch(layer,
-                  "line" = plt + stat_summary(fun = cal, geom = 'line', aes(group = 1), size = layerSize),
-                  "smooth" = plt + geom_smooth(size = layerSize),
-                  "point" = plt + geom_point(size = layerSize, alpha = layerAlpha),
-                  "jitter" = plt + geom_jitter(size = layerSize, alpha = layerAlpha)
-    )
-  }
+  # #add layer
+  # if(layer != "none"){
+  #   cal <- ifelse(types %in% c("box plot", "violin plot"), "median", "mean")
+  #   plt <- switch(layer,
+  #                 "line" = plt + stat_summary(fun = cal, geom = 'line', aes(group = 1), size = layerSize),
+  #                 "smooth" = plt + geom_smooth(size = layerSize),
+  #                 "point" = plt + geom_point(size = layerSize, alpha = layerAlpha),
+  #                 "jitter" = plt + geom_jitter(size = layerSize, alpha = layerAlpha)
+  #   )
+  # }
   #facet
   if(isTRUE(facet)){
     if(facetType == "grid"){

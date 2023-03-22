@@ -705,7 +705,12 @@ mainSection <- div(
                      
                      conditionalPanel(condition = "input.addLayer == 'point' | input.addLayer == 'jitter'",
                                       sliderInput(inputId = "layerAlpha", label = "Transparency",min = 0, max = 1, value = 0.5)
-                     )
+                     ),
+                     conditionalPanel(condition = "input.addLayer == 'smooth'",
+                                      checkboxInput(inputId = "addLayerCI", label = "Confidence interval", value = TRUE),
+                                      selectizeInput(inputId = "smoothMethod", label = "Method", choices = list(`Linear regression model (LM)` = "lm",`Generalized LM` = "glm", `Generalized additive model` = "gam", `LOESS` = "loess")),
+                                      selectizeInput(inputId = "addLayerColor", label = "Line color", choices = sort(c("blue","red","black", "brown")), selected = "blue")
+                                      )
               ) #end of 2nd column
             )
           
@@ -800,7 +805,7 @@ mainSection <- div(
                                                              )#end filter data div
                                                            ),#end draggable
                                                            
-                                                           bsTooltip(id= "filterDataDivID", title = "This panel can be clicked and drag around the page", placement = "top")
+                                                           bsTooltip(id= "filterDataDivID", title = "Click and drag the panel", placement = "top")
                                                            
                                             ),#end of dropdownbutton
                                             
@@ -871,7 +876,7 @@ mainSection <- div(
                                                                               helpText( tags$p("** Does not support for two-way ANOVA and when side graph is added"), style = "text-align:center"),
                                                                             )#end of inset
                                                                           ),#end of draggable inset
-                                                                          bsTooltip(id= "insetDoprdownDivID", title = "This panel can be clicked and drag around the page", placement = "top")
+                                                                          bsTooltip(id= "insetDoprdownDivID", title = "Click and drag the panel", placement = "top")
                                                            ) #end inset dropdown
                                           )#end condition for inset
                                    ), #end column for inset
@@ -919,7 +924,7 @@ mainSection <- div(
                                                                                )
                                                                              )#end of side div
                                                                            ),#draggable
-                                                                           bsTooltip(id= "sideDropdownDivID", title = "This panel can be clicked and drag around the page", placement = "top")
+                                                                           bsTooltip(id= "sideDropdownDivID", title = "Click and drag the panel", placement = "top")
                                                            )#end of side dropdown button
                                                            
                                           )#end of side condition
@@ -3603,7 +3608,7 @@ server <- function(input, output, session){
   observe({
     req( pltType() %in% c("scatter plot", "bar plot"), isTruthy(input$lineErrorBar), xVar() )
     if( isTruthy(input$lineErrorBar) && !input$colorSet %in% c("none", colnames(xVar())) ){
-      browser()
+      
       if(pltType() == "scatter plot"){
         #update shape
         selectInputParam(update = TRUE, pltType = input$plotType, data = ptable(), label = "Variable for shape", 
@@ -6285,6 +6290,19 @@ server <- function(input, output, session){
           finalPlt_1 <- firstPlot
         }
         
+        #additional layer
+        if(req(input$addLayer) != "none"){
+          # browser()
+          cal <- ifelse(figType() %in% c("box plot", "violin plot"), "median", "mean")
+          finalPlt_1 <- switch(req(input$addLayer),
+                        "line" = finalPlt_1 + stat_summary(fun = cal, geom = 'line', aes(group = 1), size = input$layerSize),
+                        "smooth" = finalPlt_1 + geom_smooth(size = input$layerSize, se = ifelse(isTruthy(input$addLayerCI), TRUE, FALSE), color = req(input$addLayerColor),
+                                                     method = req(input$smoothMethod)),
+                        "point" = finalPlt_1 + geom_point(size = input$layerSize, alpha = input$layerAlpha),
+                        "jitter" = finalPlt_1 + geom_jitter(size = input$layerSize, alpha = input$layerAlpha)
+          )
+        }
+        # selectizeInput(inputId = "smoothMethod", label = "Method", choices = sort(c("lm","glm","gam", "loess")))
         #Theme for the graph
         otherTheme <- if(isTRUE(legendTitle())){
           if(isTRUE(stripBackground())){
@@ -6532,7 +6550,7 @@ server <- function(input, output, session){
         # insetParamFunc(inDf, oriDf, orix, oriTextLabel, finalPlt, color = "none", shape=NULL, line=NULL)
         # browser()
         # insetParamFunc(inDf= clickBrush_df(), oriDf = ptable(), orix = xyAxis()[[1]], oriTextLabel = xTextLabels(), finalPlt = finalPlt, color = varSet(), shape=shapeSet(), line=lineSet())
-        insetParamFunc(inDf= clickBrush_df(), oriDf = ptable(), orix = req(input$xAxis), oriTextLabel = xTextLabels(), color = req(input$colorSet), shape=shapeSet(), line=lineSet())
+        insetParamFunc(inDf= clickBrush_df(), oriDf = ptable(), orix = req(input$xAxis), insx = req(input$insetXAxis), oriTextLabel = xTextLabels(), color = req(input$colorSet), shape=shapeSet(), line=lineSet())
         
         #reactive value: insetXTextLabels() - in insetPlt & insetColor() - to be used in inset_df
         #generate inset graph
