@@ -60,7 +60,9 @@ aboutSection <- div(
   )
 )
 #end of about---------------------
-#start of visualize and analyze
+
+
+#visualize and analyze-------------
 mainSection <- div(
   #start of chart tab---------
   div(
@@ -1180,15 +1182,18 @@ mainSection <- div(
   #end of chart tab---------
 )#end of vizAna
 
+
 #help----
 helpSection <- div(includeHTML("www/plotS_help.html"))
 #help-----
-#ui
 
+
+#ui-------------------
 ui <- fluidPage(
   #link to CSS----------------
   includeCSS("www/uiStyle.css"),
   #link: https://stackoverflow.com/questions/27965931/tooltip-when-you-mouseover-a-ggplot-on-shiny
+  #small script for displaying info when mouse hover in the graph
   tags$script('
     $(document).ready(function(){
       $("#figurePlot").mousemove(function(e){ 
@@ -1205,58 +1210,40 @@ ui <- fluidPage(
     });
     
       '),
-  tags$script(HTML("
-                    let firstBtn = document.getElementById('bt1');
-                    let secondBtn = document.getElementById('bt2');
-                    
-                    firstBtn.addEventListener('click', () => {
-                        firstBtn.classList.add('highlight');
-                        secondBtn.classList.remove('highlight');
-                    });
-                    
-                    secondBtn.addEventListener('click', () => {
-                        secondBtn.classList.add('highlight');
-                        firstBtn.classList.remove('highlight');
-                    });
-                   
-                   ")),
+  
+  #not in use:---
+  # tags$script(HTML("
+  #                   let firstBtn = document.getElementById('bt1');
+  #                   let secondBtn = document.getElementById('bt2');
+  #                   
+  #                   firstBtn.addEventListener('click', () => {
+  #                       firstBtn.classList.add('highlight');
+  #                       secondBtn.classList.remove('highlight');
+  #                   });
+  #                   
+  #                   secondBtn.addEventListener('click', () => {
+  #                       secondBtn.classList.add('highlight');
+  #                       firstBtn.classList.remove('highlight');
+  #                   });
+  #                  
+  #                  ")),
   #30
   #140
   #router
-  # tags$script('
-  # $(document).ready(function(){
-  #      $(".item").on("click", function() {
-  #       $(".item").removeClass("active");
-  #       $(this).addClass("active");
-  #       });
-  # });
-  #             '),
-  # $(".item").on("click", function () {
-  #   $(".item").removeClass("active");
-  #   $(this).addClass("active");
-  # });
   
-  #header-------------
+  
+  
+  #header section-------------
   # Application title
-  # div()
   div(
     style="position:sticky; display:block; overflow:hidden; z-index: 99999; top: 0;
           border-bottom:solid #e6f2ff 2px;",
-    
-    #here------------ 
     div(class="header",
-        # style = "display: flex;", #justify-content: space-evenly; ",
-        # style = "margin-top:0; padding:0; background-image:radial-gradient(rgba(12, 191, 227, 1), white, white);",
-        # div(
-        #   class="projectLogo",
-        #   tags$h1("PlotS")
-        # ),
         style = "display:inline-block; vertical-align:top;
                   padding-top:0px;
                   zoom:1; touch-action:pan-y;
                   white-space:nowrap; margin-top:auto; width:100%;
-                  background-image:radial-gradient(white, white, white);;
-          ",
+                  background-image:radial-gradient(white, white, white);;",
         div(
           class="projectLogo",
           style="display:inline-block; float:left; margin-left:0; padding-left:0",
@@ -1272,11 +1259,8 @@ ui <- fluidPage(
           
           tags$ul(class = "sf-menu",
                   style = "list-style:none; vertical-align:top; box-sizing: border-box",
-                  # text-align:left; vertical-align: baseline;box-sizing: border-box;
-                  # ",
                   tags$li(style = "display:inline-block;padding:0px 20px 0px 0px; float:left; ",
                           tags$a(id="bt1", class="highlight", href = route_link("/"), tags$strong("About"))),
-                  # tags$button("Analyze & visualize"),
                   tags$li(style = "display:inline-block;padding:0px 20px 0px 20px; float:left;", 
                           tags$a(id="bt2",  href = route_link("vizAna"), tags$strong("Visualize & analyze"))),
                   tags$li(style = "display:inline-block;padding:0px 50px 0px 20px; float:left; color:#ccc; -moz-transition:all 0.2s; transition:all 0.2s", 
@@ -1286,14 +1270,11 @@ ui <- fluidPage(
         )
 
     )#end header
-    #here----------
+    
   ),
-  # div(class="header",
-  #     div(
-  #       class="projectLogo",
-  #       tags$h1("PlotS")
-  #     )
-  # ), 
+  #end of header section----------
+  
+  
   #main content------------
   div(
     class="mainContent",
@@ -1310,6 +1291,7 @@ ui <- fluidPage(
     div(class = "column column3")
     
   ),
+  #end of main content------------
   
   #add footer note
   tags$footer(
@@ -1324,11 +1306,17 @@ ui <- fluidPage(
 )# end of fluidPage for UI
 
 
+
+
 #server------------------------
 server <- function(input, output, session){
   
+  #router
   router_server()
+  
+  
   #side graph----------------
+  #applied module
   observe({
     req(ptable(), input$plotType != "none")
     output$UiXside <- renderUI({
@@ -1337,6 +1325,8 @@ server <- function(input, output, session){
     output$UiYside <- renderUI(sideGraphUi(id = "yside", side = "Y", sideVar= colnames(ptable())))
     #
   })
+  
+  
   #refresh/trigger button for different parameters to none: need rework-------------
   refresh_1 <- reactive({if(isTruthy(input$pInput) | isTruthy(input$transform) | isTruthy(input$pFile)) TRUE})
   refresh_2 <- reactive({
@@ -1349,24 +1339,16 @@ server <- function(input, output, session){
   refresh_afterColor <- reactive({if(isTruthy(input$colorSet)) TRUE})
   refresh_afterStat <- reactive({if(isTruthy(input$stat)) TRUE})
   
-  #manage missing values and then upload
+  #data upload related----------------------------------------------
+  #Parameters to manage missing values and then upload
   observe({
     req(input$pInput)
-    
     
     output$UiSelectNA <- renderUI({
       if(input$pInput == "upload data"){
         textInput(inputId = "selectNA", label = "Specify missing values", placeholder = "comma separated only!!")
       }
     })
-    
-    # output$UiRemRepNA <- renderUI({
-    #   if(input$pInput == "upload data"){
-    #     naOpt <- list(tags$span("Remove NA", style = "font-weight:bold; color:#0099e6"), 
-    #                   tags$span("Replace with 0", style = "font-weight:bold; color:#0099e6"))
-    #     radioButtons(inputId = "remRepNa", label = NULL, choiceNames = naOpt, choiceValues = c("remove", "replace"), inline = TRUE) 
-    #   }
-    # })
     
     output$pUpload <- renderUI(
       if(input$pInput == "upload data"){
@@ -1380,26 +1362,13 @@ server <- function(input, output, session){
     
   })
   
-  
-  #description of example
-  # observe({
-  #   req(input$pInput, input$pFile)
-  #   output$UiExampleDes <- renderUI({
-  #     if(input$pInput == "example" && input$pFile %in% c("long format", "wide format")){
-  #       helpText("Data for 'long' and 'wide' formats are the same. Wide format data need reshape to compare between variables - ctrl, tr1, tr2.",
-  #                style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
-  #     }else if(input$pInput == "example" && input$pFile == "replicate"){
-  #       helpText("It has two header rows and two replicates (R1 and R2) each for two groups/variables - control and treatment.",
-  #                style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
-  #     }
-  #   })
-  #   
-  # })
   #Get the input data for the plot
   #user's file path: reactive value so that user can change the file
   upPath <- reactive({
     if(req(input$pInput) == "upload data" && req(!input$pFile %in% c("replicate", "long format", "wide format"))) req(input$pFile)
   })
+  
+  
   
   #First point to collect the data based on user's input--------------------------
   #I've use reactiveValues, just in case if required to convert the data to Null
@@ -1425,7 +1394,6 @@ server <- function(input, output, session){
       shiny::validate(
         need(ext %in% c("csv","tsv","xlsx", "xls","rds", "txt"), "Please upload a valid file: csv/tsv/txt/xlsx/xls/rds")
       )
-      
       
       
       # #manage missing values
@@ -1454,9 +1422,8 @@ server <- function(input, output, session){
           pData1 <- up_df %>% mutate_all(., ~replace(., is.na(.), 0)) %>% as.data.frame()#mutate_if(is.numeric, ~ replace(., is.na(.), 0)) %>% as.data.frame()
         }
         
-        # #search and convert to numeric: there is no need to convert to numeric.
-        # numericCol <- lapply(colnames(pData1), function(x) if(any(str_detect(pData1[,x], "[:alpha:]", negate = TRUE))) return(x) ) %>% unlist()
-        pData <- pData1 #%>% mutate(across(numericCol, ~ as.numeric(.)))
+        #search and convert to numeric: there is no need to convert to numeric.
+        pData <- pData1 
         pData
         
       }, error = function(e){
@@ -1540,16 +1507,7 @@ server <- function(input, output, session){
   
  
   
-  #managing replicates----------------
-  # output$UiReplicatePresent <- renderUI({
-  #   req(input$pInput)
-  #   opts <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
-  #                tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
-  #   radioButtons(inputId = "replicatePresent", label = "Data with replicates/multiple headers", 
-  #                choiceNames = opts, choiceValues = c("no", "yes"), selected = "no", inline = TRUE
-  #   )
-  # })
-  
+  #managing replicates related process----------------
   observe({
     req(dataChanged())
     if(isTRUE(dataChanged())){ #!is.null(oldData$df) && 
@@ -1565,18 +1523,9 @@ server <- function(input, output, session){
   
   observe({
     req(pInputTable_orig(), input$replicatePresent == "yes")
-    #putting it in the Ui directly may crash
-    # output$UiHeaderNumber <- renderUI({
-    #   if(isTruthy(input$pInput) &&  input$replicatePresent == "yes"){
-    #     selectInput(inputId = "headerNumber", label = "Header row", choices = 1:5, selected = 1)
-    #     #Number of table's header
-    #   }
-    # })
-    
     
     output$UiDataVariables <- renderUI({
-      # req(input$headerNumber)
-      # browser()
+      
       if(input$replicatePresent == "yes" && req(as.numeric(input$headerNumber)) != 0){
         
         data <- pInputTable$data %>% as.data.frame()
@@ -1610,15 +1559,6 @@ server <- function(input, output, session){
       column(7, selectInput(inputId = paste0(.x,"R"), label = "Replicate columns", choices = seq_len(ncol(pInputTable$data)), multiple = TRUE))
     ))
   })
-  #User choice for mean or median of replicates
-  # output$UiReplicateStat <- renderUI({
-  #   if(input$replicatePresent == "yes"){
-  #     lst <- list(tags$span("None", style = "font-weight:bold; color:#0099e6"),
-  #                 tags$span("Mean", style = "font-weight:bold; color:#0099e6"),
-  #                 tags$span("Median", style = "font-weight:bold; color:#0099e6"))
-  #     radioButtons(inputId = "replicateStat", label = "Compute (for the replicates)", choiceNames = lst, choiceValues = c("none", "mean", "median"), inline = TRUE) 
-  #   }
-  # })
   
   #action button to run the replicate parameters
   output$UiReplicateActionButton <- renderUI({
@@ -1713,8 +1653,6 @@ server <- function(input, output, session){
     })
     
   })
-  # helpText( list(tags$p("Specify one or more column index to group by and determine mean or median"),
-  #                tags$p("Note: only replicate mean and, if applied, variables used for grouping will be remained.")), style= "margin-bottom:20px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")
   
   #notify the user to reshape the data after managing replicates
   observe({
@@ -1730,15 +1668,15 @@ server <- function(input, output, session){
     })
   })
   
-  #filter data-----------------------------
+  
+  
+  #filter data related process-----------------------------
   #list of variable for filtering: use the cleanData
   observe({
     req(cleanData())
     updateSelectInput(inputId = "varFilterOpts", label = "Choose variable(s)", choices = colnames(cleanData()))
   })
-  # output$UiVarFilterOpts <- renderUI({
-  #   selectInput(inputId = "varFilterOpts", label = "Choose variable(s)", choices = colnames(cleanData()), multiple = TRUE)
-  # })
+  
 
   #filter type and value
   observe({
@@ -1773,13 +1711,6 @@ server <- function(input, output, session){
       )#map end
 
     })
-
-    #tooltip for numeric: so that user don't confuse: doesn't work
-    # map(
-    #   input$varFilterOpts, ~ fluidRow({
-    #     if(is.numeric(df[,.x]) || is.double(df[,.x])) addTooltip(session = session, id = paste0("filterVal_", .x), title = "Must be numeric")
-    #   })
-    # )
 
     #logical condition: AND or OR
     output$UiFilterAndOr <- renderUI({
@@ -1900,12 +1831,7 @@ server <- function(input, output, session){
       }
     })
   })
-  # #Filter message
-  # output$UiFilterMsgGeneral <- renderUI({
-  #   req(input$varFilterOpts)
-  #   helpText(list(tags$p("Note:", style = "font-style:italic; font-weigth:bold;"), tags$p("1. Numeric variable: provide only one numeric value. To filter 'between', enter two values separated by colon - e.g., 10:34"),
-  #                 tags$p('2. Non-numeric variable: allow multiple values separated by comma. Use double quotes (""), if space or comma is included in the value')), style = "text-align:left")
-  # })
+  
   output$UiFilterMsg <- renderUI({
     if( !is.null(req(filterMsg())) ){
       if(filterMsg() == 0){
@@ -1929,11 +1855,6 @@ server <- function(input, output, session){
     ptable(cleanData())
   })
   
-  # #update the data if user clear all the filter
-  # observeEvent(req(isTruthy(input$clearAllFilter)),{
-  #   ptable(cleanData())
-  # })
-  #end of filter data-------------------------
   
   #error setting-------------------------------------------
   #Message to display for various type of errors
@@ -1954,7 +1875,8 @@ server <- function(input, output, session){
   #end of error setting------------------------------------
   
   
-  #get the tidied data of replicates for each group------
+  #Furthr processing of data with replicates--------------------------
+  #get the tidied data of replicates for each group
   replicateData <- reactiveValues(df=NULL)
   unequalReplicateError <- reactiveVal(0)
   #execute the below code every time user press action button
@@ -2188,7 +2110,6 @@ server <- function(input, output, session){
   })
   
   
-  #plot input table----------------------------
   output$textInputTable <- renderText({
     req(pInputTable$data)
     if(isTruthy(input$pInput)){
@@ -2203,7 +2124,11 @@ server <- function(input, output, session){
   })
   
   
-  #update Reshape----------
+  
+  
+  
+  #Reshaping and transforming of data related process--------------------------------------
+  #update Reshape
   observe({
     # req(isTRUE(dataChanged()))
     if( isTRUE(dataChanged()) || (req(input$replicatePresent) == "yes" && isTruthy(input$replicateActionButton)) ){
@@ -2225,18 +2150,7 @@ server <- function(input, output, session){
     
   }
   )
-  # #variable message for reshape
-  # output$trNameMsg <- renderUI({
-  #   req(input$variables)
-  #   helpText("Choosen variables will be the independent variable. The values associated with the variables will be the dependent variable and will be placed in a separate column named 'value'.", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")
-  # })
-  # #Name to be used as column name for the reshaped
-  # output$trValue <- renderUI({
-  #   req(pInputTable$data, input$transform == "Yes")
-  #   message("trValue")
-  #   #this should be compulsory, so that user understand the transformation
-  #   if(input$transform == "Yes") textInput(inputId = "enterName", label = "Enter a name for the reshaped column")
-  # })
+  
   
   #Action for transforming the data
   observe({
@@ -2266,7 +2180,10 @@ server <- function(input, output, session){
   tidy_tb <- reactiveValues(df=NULL)
   #reshape error message:not in use
   reshapeErrorMsg <- reactiveVal(NULL)
-  #reshape the data-----------------
+  
+  
+  
+  #reshape the data
   #include the table from replicates in the final reshaped table, if data has replicates
   observeEvent(req(isTruthy(input$goAction)),{
     
@@ -2414,7 +2331,7 @@ server <- function(input, output, session){
   })
   
   
-  
+  #Data for display and downstream analysis---------------------------
   #data before transformation------------------
   bf_ptable <- reactive({
     
@@ -2529,7 +2446,7 @@ server <- function(input, output, session){
     ptable(cleanData())
   })
   
-  #hide or show------------------
+  #hide or show input table
   #close the raw table box
   observeEvent(input$hideShowRawTable,{
     shinyjs::toggle(id="rawTableId")
@@ -2537,7 +2454,6 @@ server <- function(input, output, session){
   observeEvent(input$figureThemeHideShow,{
     shinyjs::toggle(id = "figureThemeId")
   })
-  #end of data processing---------------
   
   #create switch:
   # This will be used to display as table (below)
@@ -3568,36 +3484,6 @@ server <- function(input, output, session){
     })
   })
   
-  # observeEvent(req(input$shapeLine),{
-  #   req(is.data.frame(ptable()), input$plotType != "none")
-  #   # browser()
-  #   #This will be updated later based on ANOVA, if required
-  #   #variables to choose
-  #   var <- selectedVar(data = ptable())
-  #   if(is.data.frame(ptable())){
-  #     allVar <- colnames(ptable())
-  #     choiceVar <- allVar[allVar != colnames(yVar())]
-  #   }else{
-  #     choiceVar <- ""
-  #   }
-  #   #update shape
-  #   req(input$shapeLine)
-  #   
-  #   if(input$shapeLine == "Shape"){
-  #     req(input$plotType != 'bar plot')
-  #     #use the function
-  #     selectInputParam(update = TRUE, pltType = input$plotType, data = ptable(),
-  #                label = "Variable for shape", newId = "shapeSet",
-  #                firstChoice = NULL, choice = choiceVar, selected = var)
-  #   }else if(input$shapeLine == "Line type"){
-  #     if(req(input$plotType) == "line" && req(input$lineConnectPath) != "none"){
-  #       updateSelectInput(inputId = "lineSet", label = "Variable for line type", choices = input$lineConnectPath, selected = input$lineConnectPath)
-  #     }else{
-  #       updateSelectInput(inputId = "lineSet", label = "Variable for line type", choices = choiceVar, selected = var)
-  #     }
-  #   }
-  # })
-  
   
   #update aesthetic, if add error bar for line, scatter plot is active, then choice for shapeSet and lineSet
   # case 1: color not choosen. option will remain as it is and calculation will take care 
@@ -3619,7 +3505,6 @@ server <- function(input, output, session){
         #update line
         #for line plot, it will be taken care by connect line path
         #-message("update lineSet2")
-        # updateSelectInput(inputId = "lineSet", label = "Variable for line type2", choices = c(colnames(xVar()), input$colorSet), selected= input$colorSet)
         selectInputParam(update = TRUE, pltType = input$plotType, data = ptable(), label = "Variable for line type", 
                          newId = "lineSet", firstChoice = NULL, choice = c(colnames(xVar()), input$colorSet), selected= input$colorSet )
         # displayAes(update = "yes", transform = transformation(), action = action(), pltType = pltType(),
@@ -3637,16 +3522,6 @@ server <- function(input, output, session){
     req(ptable(), input$plotType)
     updateSelectInput(inputId = "legendPosition", label = "Legend position", choices = c("none","bottom","left","right","top"), selected = "right")
   })
-  # observe({
-  #   req(input$plotType, input$xAxis, input$colorSet)
-  #   shl <- reactive({
-  #     ifelse(isTruthy(input$shapeLine), input$shapeLine, "none")
-  #   })
-  #   output$UiLegendPosition <- renderUI({if(input$plotType != "none" && (input$colorSet != "none" | shl() %in% c("Shape", "Line type"))) selectInput(inputId = "legendPosition", label = "Legend position", choices = c("none","bottom","left","right","top"), selected = "right")})
-  #   output$UiLegendDirection <- renderUI({if(input$plotType != "none" && (input$colorSet != "none" | shl() %in% c("Shape", "Line type")) && req(input$legendPosition) != "none") selectInput(inputId = "legendDirection", label = "Legend direction", choices = c("horizontal","vertical"), selected = "vertical")})
-  #   output$UiLegendSize <- renderUI({if(input$plotType != "none" && (input$colorSet != "none" | shl() %in% c("Shape", "Line type")) && req(input$legendPosition) != "none") sliderInput(inputId = "legendSize", label = "Legend size", min = 10, max = 50, value = 15)})
-  #   output$UiLegendTitle <- renderUI({if(input$plotType != "none" && (input$colorSet != "none" | shl() %in% c("Shape", "Line type")) && req(input$legendPosition) != "none") checkboxInput(inputId = "legendTitle", label = span("Remove legend title", style = "font-weight:bold; color:cornflowerblue"))})
-  # })
   
   #update p label size
   observe({
@@ -4088,16 +3963,7 @@ server <- function(input, output, session){
     }
   })
   
-  # #add group action
-  # output$UiAddGroupAction <- renderUI({
-  #   req(refresh_2(), ptable(), input$stat %in% c("t.test","wilcoxon.test"), input$compareOrReference != "none")
-  #   if(input$stat %in% c("t.test","wilcoxon.test") && input$compareOrReference != "none") actionButton(inputId = "addGroupAction", label = span("Add", style = "color:white; font-weight:bold"), class = "btn-success", width = '100%')
-  # })
-  # #delete group action
-  # output$UiDeleteGroupAction <- renderUI({
-  #   req(refresh_2(), ptable(), input$stat %in% c("t.test","wilcoxon.test"), input$compareOrReference != "none")
-  #   if(input$stat %in% c("t.test","wilcoxon.test") && input$compareOrReference != "none") actionButton(inputId = "deleteGroupAction", label = span("Delete", style = "color:white; font-weight:bold"), class = "btn-danger", width = '100%')
-  # })
+  
   #steps to add or delete groups for comparisons
   #get the users provided list
   givenGrp <- reactive(req(input$listGroup))
@@ -4197,30 +4063,6 @@ server <- function(input, output, session){
     
   })
   
-  # observe({
-  #   req(refresh_2(), pltType(), input$stat)
-  # 
-  #   output$UiFacet_1 <- renderUI({
-  #     # selectInput(inputId = "facet", label = "Facet type", choices = c("none","grid","wrap"), selected = "none")
-  # 
-  #     if(req(input$stat) == 'none'){
-  #       selectInput(inputId = "facet", label = "Facet type", choices = c("none","grid","wrap"), selected = "none")
-  #     }else if(input$stat != "anova" || (input$stat == "anova" && req(input$pairedData) == "one")){
-  #       #off facet when user apply statistic, except for anova, else it is difficult to analyse.
-  #       selectInput(inputId = "facet", label = "Facet type", choices = "none")
-  #     }else{
-  #       #for two-way anova, it require more parameters to apply facet
-  #       req(input$pairedData == "two", input$anovaFigure)
-  #       if(input$anovaFigure != "Interaction"){
-  #         #no facet for other figure
-  #         selectInput(inputId = "facet", label = "Facet type", choices = "none")
-  #       }else{
-  #         selectInput(inputId = "facet", label = "Facet type", choices = c("none","grid","wrap"), selected = "none")
-  #       }
-  #     }
-  # 
-  #   })
-  # })
   
   #Variables for both grid and wrap
   col <- eventReactive(
@@ -5389,7 +5231,7 @@ server <- function(input, output, session){
     
     # browser()
     #show notification
-    computeMsg <- showNotification("Computing.. Please wait.....", duration = NULL, closeButton = FALSE,
+    computeMsg <- showNotification("Computing....", duration = NULL, closeButton = FALSE,
                                    type ="message", id = "computeMsg")
     on.exit(removeNotification(computeMsg), add = TRUE, after = TRUE)
     #required parameters
