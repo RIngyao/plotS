@@ -964,15 +964,20 @@ mainSection <- div(
               #text label for x-axis
               conditionalPanel(condition = "input.plotType != 'none' ",
                                div(
+                                 id = "changeNameDiv",
                                  style= "border-top:dotted 1px;margin:0; text-align:center;
                                                       background-image:linear-gradient(rgba(206,247,250, 0.2), rgba(206,247,250, 0.1), white)", #rgba(206,247,250, 0.2), rgba(254, 254, 254, 0.1), rgba(206,247,250, 0.5)
                                  h4("Change variable name of x-axis", align = "center", style = "color:green; margin-bottom:7px"),
                                  fluidRow(
                                    # column(4, uiOutput("uiXAxisTextLabelChoice")),
-                                   column(4,selectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = "none", multiple = TRUE)),
-                                   column(8, uiOutput("uiXAxisTextLabel"))#manage in server logic
+                                   column(4, selectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = "none", multiple = TRUE)),
+                                   column(8, 
+                                          uiOutput("uiXAxisTextLabel"),
+                                          bsTooltip(id = "uiXAxisTextLabel", title = "comma or space separated",  trigger = "hover", options = list(container = "body"))
+                                          )#manage in server logic
                                  )
-                               )
+                               ),
+                               bsTooltip(id = "changeNameDiv", title = "Applicable only when the x-axis is non-numeric", placement = "top",  trigger = "hover", options = list(container = "body"))
               ),
               
               #font size
@@ -1313,7 +1318,6 @@ server <- function(input, output, session){
   
   #router
   router_server()
-  
   
   #side graph----------------
   #applied module
@@ -2846,9 +2850,16 @@ server <- function(input, output, session){
     validate(
       need(input$xAxis %in% colnames(ptable()), "Wait!")
     )
+    #x-axis must not be numeric
+    # req(!xVarType()[1] %in% c("integer", "numeric", "double"))
     #get number of variables in x-axis
     x <- req(input$xAxis)
-    cVar <- ptable() %>% distinct(.data[[x]]) %>% as.data.frame() %>% as.vector()
+    # cVar <- ptable() %>% distinct(.data[[x]]) %>% as.data.frame() %>% as.vector()
+    cVar <- if(!xVarType()[1] %in% c("integer", "numeric", "double")){
+      c(All="All", ptable() %>% distinct(.data[[x]]) %>% as.data.frame() %>% as.vector())
+    }else{
+      "none"
+    }
     # cVar <- unique(ptable()[,x]) %>% as.character() %>% as.list()#this will avoid issue with factor variable
     # output$uiXAxisTextLabelChoice <- renderUI({
     #   if( req(input$plotType) != "none" ){
@@ -2856,9 +2867,14 @@ server <- function(input, output, session){
     #   }
     # })
     #update option
-    updateSelectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = c(All="All", cVar), selected = "ALL")
-    addTooltip(session, id = "xTextLabelChoice", title = "Applicable only when the x-axis is non-numeric",  trigger = "hover", options = list(container = "body"))
+    updateSelectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = c(cVar), selected = "ALL")
+    # addTooltip(session, id = "xTextLabelChoice", title = "Applicable only when the x-axis is non-numeric",  trigger = "hover", options = list(container = "body"))
+    # addTooltip(session, id = "xTextLabelChoice", title = "Applicable only when the x-axis is non-numeric",  trigger = "hover", options = list(container = "body"))
     output$uiXAxisTextLabel <- renderUI({
+      
+      #x-axis must not be numeric
+      req(!xVarType()[1] %in% c("integer", "numeric", "double"))
+
       if( req(input$plotType) != "none" ){
         # browser()
         # message(str(input$xTextLabelChoice))
@@ -2875,11 +2891,7 @@ server <- function(input, output, session){
   #get the input name and passed it to the figure function 
   xTextLabel <- reactive({
     
-    if(isTruthy(input$xTextLabel) && isTruthy(input$xTextLabelChoice)){
-      # unique(ToothGrowth[,"supp"]) %>% as.vector() %>% length()
-      # unique(as_tibble(PlantGrowth)[,"group"]) %>% as.vector() 
-      # unique(as.data.frame(PlantGrowth)[,"group"]) %>% as.vector() 
-      # length(x)
+    if(isTruthy(input$xTextLabel) && isTruthy(input$xTextLabelChoice) && !xVarType()[1] %in% c("integer", "numeric", "double")){
       #get name of variables in x-axis
       varName <- unique(as.data.frame(ptable())[,input$xAxis]) %>% as.vector() %>% sort()
       #get name of variables user want to change
