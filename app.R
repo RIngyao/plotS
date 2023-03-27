@@ -769,9 +769,17 @@ mainSection <- div(
               
               conditionalPanel(condition = "input.plotType != 'none'",
                                div(
-                                 class = "preViewDiv", 
+                                 class = "preViewDiv", #not only for preView...
                                  style = "border-top:solid #9cd4fc;  padding:10px; background-image:linear-gradient(rgba(56, 168, 249, 0.15), white 17%);",
                                  fluidRow(
+                                   column(2, 
+                                          actionBttn(inputId = "previewFigure", label = tags$b("Preview", style = "color:#C622FA"), 
+                                                     style = "float", size = "sm"),
+                                          # actionButton(inputId = "previewFigure", label = tags$b("Preview", style = "color:#C622FA")),
+                                          bsModal(id ="previewFigureModel", "Preview",trigger = "previewFigure", size = "large",
+                                                  jqui_draggable(jqui_resizable(plotOutput("previewOutput")))
+                                                  )
+                                          ),
                                    column(3, 
                                           fluidRow(
                                             dropdownButton(inputId = "filterData", label = tags$b("Filter", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Filter the input data", placement = "bottom"), icon = icon("sliders"),
@@ -816,7 +824,7 @@ mainSection <- div(
                                    ),
                                    column(3, 
                                           conditionalPanel(condition = "input.pairedData !== 'two'",
-                                                           dropdownButton(inputId = "insetDropdownButton", width="450px", label = tags$b("Inset", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Add or remove inset",placement = "bottom"), icon = icon("sliders"),
+                                                           dropdownButton(inputId = "insetDropdownButton", width="500px", label = tags$b("Inset", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Add or remove inset",placement = "bottom"), icon = icon("sliders"),
                                                                           jqui_draggable(
                                                                             div(
                                                                               class = "insetDoprdownDiv",
@@ -882,9 +890,10 @@ mainSection <- div(
                                                            ) #end inset dropdown
                                           )#end condition for inset
                                    ), #end column for inset
-                                   column(3,
+                                   column(2,
                                           conditionalPanel(condition = "input.pairedData !== 'two'",
-                                                           dropdownButton( inputId = "sideDropdownButton", right = TRUE, width="600px", label = tags$b("Side graph", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Add or remove side graph", placement = "bottom"), icon = icon("sliders"),
+                                                           
+                                                           dropdownButton( inputId = "sideDropdownButton", right = TRUE, width="500px", label = tags$b("Side graph", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Add or remove side graph", placement = "bottom"), icon = icon("sliders"),
                                                                            jqui_draggable(
                                                                              div(
                                                                                class = "sideDropdownDiv",
@@ -932,7 +941,7 @@ mainSection <- div(
                                           )#end of side condition
                                    ),
                                    # column(4, actionBttn("previewActionButton", label = "Preview image",  style = "minimal", size = "xs", color = "royal")),
-                                   column(3, uiOutput("UiClickBrushDownload"))
+                                   column(2, uiOutput("UiClickBrushDownload"))
                                  ),
                                  bsTooltip(id = "UiClickBrushDownload", title = "Download the snippet", placement = "top", trigger = "hover",
                                            options = list(container = "body"))
@@ -1318,7 +1327,12 @@ server <- function(input, output, session){
   
   #router
   router_server()
+  #preview--------------
+   
   
+  observeEvent(isTruthy(input$previewFigure),{
+    output$previewOutput <- renderPlot(saveFigure())
+  })
   #side graph----------------
   #applied module
   observe({
@@ -1525,6 +1539,44 @@ server <- function(input, output, session){
     }
   })
   
+  # #stop here--------------------------
+  # #update the replicate columns
+  # #total column name of the input table
+  # totalCol <- reactiveVal({ c(1,2,3,4) })# req(pInputTable$data); ncol(pInputTable$data)})
+  # usedCol <- reactiveVal(NULL)
+  # unusedCol <- reactiveVal(NULL)
+  # iterate <- 0 #for-loop iteration
+  # observe({
+  #   # browser()
+  #   for(i in 1:as.numeric(req(input$dataVariables))){
+  #     message(i)
+  #     req(eval(str2expression(paste0("input$Variable",i,"R"))))
+  #     # if( isTruthy( eval(str2expression(paste0("input$Variable",i,"R"))) ) ){}
+  #     message(eval(str2expression(paste0("input$Variable",i,"R"))))
+  #     usedCol( as.numeric(eval(str2expression(paste0("input$Variable",i,"R")))) )
+  #     unusedCol( totalCol()[ which(!totalCol() %in% usedCol()) ] )
+  #     if(i > 1){
+  #       updateSelectInput(inputId = paste0("Variable", i,"R"), choices = unusedCol())
+  #       usedCol(unusedCol())
+  #       unusedCol( totalCol()[ which(!totalCol() %in% usedCol()) ] )
+  #     }else if(i == as.numeric(req(input$dataVariables))){
+  #       updateSelectInput(inputId = paste0("Variable", i,"R"), choices = unusedCol())
+  #       break
+  #     }
+  #   }
+  #   
+  #   
+  #   message("print")
+  #   # #if the option given in nR (upper select option) is choosen, than update the lower option n-1R:
+  #   # for(i in 1:as.numeric(input$dataVariables)){
+  #   #   
+  #   # }
+  #   # if(isTruthy(eval(str2expression("input$Variable1R")))){
+  #   #   
+  #   # }
+  # })
+  # #stop here--------------------------
+  
   observe({
     req(pInputTable_orig(), input$replicatePresent == "yes")
     
@@ -1553,22 +1605,29 @@ server <- function(input, output, session){
     
   })
   
+  
   #replicates: column number of replicate
   output$UiVarNameRepCol <- renderUI({
     req(input$replicatePresent == "yes", input$dataVariables)
     #number of variables
-    varNum <- reactive(paste0("Variable", seq_len(input$dataVariables)))
+    varNum <- reactive(paste0("Variable", seq_len(input$dataVariables))) 
     map(varNum(), ~ fluidRow(
+      #input$Variable1 ... n
       column(5, textInput(inputId = .x, label = paste0(.x, " name"))),
+      #input$Variable1R ... nR
       column(7, selectInput(inputId = paste0(.x,"R"), label = "Replicate columns", choices = seq_len(ncol(pInputTable$data)), multiple = TRUE))
     ))
   })
+  
   
   #action button to run the replicate parameters
   output$UiReplicateActionButton <- renderUI({
     #Button will be available only when all the parameters are filled
     req(pInputTable$data, input$headerNumber, input$dataVariables, input$replicateStat)
-    varNum <- input$dataVariables
+    varNum <- as.numeric(input$dataVariables)
+    # browser()
+    # message(str(varNum))
+    
     #check whether name of all the variables has been provided or not
     gName <- all(
       unlist(
@@ -2880,7 +2939,7 @@ server <- function(input, output, session){
         # message(str(input$xTextLabelChoice))
         # message(str(cVar))
         if(req(input$xTextLabelChoice) == "All" || "All" %in% req(input$xTextLabelChoice)){
-          nVar <- nrow(cVar)
+          nVar <- ptable() %>% distinct(.data[[x]]) %>% as.data.frame() %>% nrow() #nrow(cVar)
         }else{
           nVar <- length(input$xTextLabelChoice)
         }
@@ -6691,8 +6750,10 @@ server <- function(input, output, session){
       output$UiClickBrushDownload <- renderUI({
         downloadBttn(
           outputId = "clickBrushDownload",
-          label = tags$b("CSV"),
-          style = "minimal",
+          label = tags$b("CSV"),# style="color:#C622FA"),
+          style = "material-flat",
+          # color = "default",
+          color = "royal",
           size = "xs",
           block = FALSE,
           no_outline = TRUE
@@ -6742,8 +6803,9 @@ server <- function(input, output, session){
       output$UiClickBrushDownload <- renderUI({
         downloadBttn(
           outputId = "clickBrushDownload",
-          label = tags$b("CSV"),
-          style = "minimal",
+          label = tags$b("CSV"),# style="color:#C622FA"),
+          style = "material-flat",
+          color = "royal",
           size = "xs",
           block = FALSE,
           no_outline = TRUE

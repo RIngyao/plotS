@@ -1106,6 +1106,10 @@ stp = numeric. range from 0 to 1. 0 to process and 1 to stop processing
       non-replicate columns
 "
 
+#for reference
+#input$Variable1 ... n
+#input$Variable1R ... nR
+
 tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = c(2,3), stp=0){
   #First process the data for non replicate column and then for replicate column
   #non-replicate column: May not always be in character column when in proper format
