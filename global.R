@@ -8,18 +8,18 @@ options(shiny.maxRequestSize = 50*1024^2) # too large: use 50
 #                "rstatix", "shiny", "tidyverse", "reactable", "ggside", "ggforce",
 #                 "scales", "jqui_resizable")
 # lapply(libraries, library, character.only = TRUE)
-# 
-# install.packages("ggside", dependencies = TRUE)
-# install.packages("shinyjqui", dependencies = TRUE)
-lib <- c("shinyjs","shinyjqui","shiny.router","scales",
-         "ggpp","ggside","ggforce","shinyBS","rlang",
-         "memoise", "effectsize","vroom","car","glue",
-         "flextable","openxlsx","svglite","MASS","skimr",
-         "coin","DT","data.table","readxl","markdown","shinydashboard",
-         "ggpubr","multcompView","rstatix","shiny","tidyverse",
-         "reactable","shinyalert", "shinyWidgets")
-sort(lib)
 
+
+
+#dependencies managed using renv
+# lib <- c("shinyjs","shinyjqui","shiny.router","scales",
+#          "ggpp","ggside","ggforce","shinyBS","rlang",
+#          "memoise", "effectsize","vroom","car","glue",
+#          "flextable","openxlsx","svglite","MASS","skimr",
+#          "coin","DT","data.table","readxl","markdown","shinydashboard",
+#          "ggpubr","multcompView","rstatix","shiny","tidyverse",
+#          "reactable","shinyalert", "shinyWidgets")
+# sort(lib)
 library(shinyalert)
 library(shinyjs)
 library(shinyjqui)
@@ -53,7 +53,7 @@ library(shiny)
 library(tidyverse)
 library(reactable)
 library(shinyWidgets)
-#May use later
+#May use later:
 # library(GenomicRanges)
 # library(bslib)
 # library(shinyWidgets) #useful

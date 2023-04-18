@@ -6387,8 +6387,7 @@ server <- function(input, output, session){
     titleSize <- reactive(req(input$titleSize))
     themes <- reactive(req(input$theme))
     #ylimit parameters
-    # ylimit <- reactive(ifelse(input$Ylimit == "yes", TRUE, FALSE))
-    ylimit <- reactive(FALSE)
+    ylimit <- reactive(ifelse(input$Ylimit == "yes", TRUE, FALSE))
     densityStat <- reactive(if(pltType() == "density") input$densityStat)
     #for labs() -labeling the x- and y-axis: list
     xyLable <- reactive({
