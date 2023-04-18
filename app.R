@@ -3680,7 +3680,7 @@ server <- function(input, output, session){
   # })
   stopTest <- reactiveVal(1)
   observe({
-    req(ptable(), pltType() != "none", input$stat)
+    req(ptable(), pltType() != "none", input$stat %in% c("t.test", "wilcoxon.test"))
     #1 = stop (default); 0 = continue; 
     req(input$xAxis %in% colnames(ptable()))
     if(req(input$colorSet) == 'none' && !isTruthy(input$shapeLine)){
@@ -5425,7 +5425,7 @@ server <- function(input, output, session){
   #plot----------------------------------
   #save the plot for download
   saveFigure <- reactiveVal(NULL)
-  saveFigure2 <- reactiveVal(NULL)
+  # saveFigure2 <- reactiveVal(NULL)
   finalPlt <- NULL #this is require to be able to delete after session end
   
   #all parameters for plotting graph and statistic analysis is process and executed 
@@ -6231,6 +6231,7 @@ server <- function(input, output, session){
         #advance graph setting-------------------------
         #get parameters require for plotting
         #compute statistic
+        
         # if(figType() != "none" && methodSt() != "none"){
         if(figType() != "none" && ( !methodSt() %in% c("t.test", "wilcoxon.test", "none") || (methodSt() %in% c("t.test", "wilcoxon.test") && stopTest() == 0) ) ){
           message(glue::glue("method2: {methodSt()}"))
@@ -6334,8 +6335,7 @@ server <- function(input, output, session){
 
         #advance------------
         #save it for the final plot
-        # forFinalPlt(finalPlt_1)
-        forFinalPlt(firstPlot)
+        forFinalPlt(finalPlt_1)
         #reset error signal
         finalPltError(0)
         finalPltErrorMsg(NULL)
@@ -6464,8 +6464,9 @@ server <- function(input, output, session){
       #save it in an object to process
       finalPlt_settings <- forFinalPlt()
       
-      if(pltType() == "none" | is.null(forFinalPlt()) | !is.null(finalPltErrorMsg())){
-        
+      if(pltType() == "none"){
+        NULL
+      }else if(is.null(forFinalPlt()) | !is.null(finalPltErrorMsg())){
         #Error message is necessary if forFinalPlt is null due to some error
         validate(need(finalPltError() == 0, finalPltErrorMsg()))
         NULL
@@ -6552,6 +6553,12 @@ server <- function(input, output, session){
       sideGraphy(sidey)
   })
   
+  observe({
+    #reset to NULL if plotType changes
+    req(input$plotType)
+    sideGraphy(NULL)
+    sideGraphx(NULL)
+  })
   #old version--------------------------
   # sideGraphx <- reactive({
   #   # browser()

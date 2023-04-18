@@ -19,6 +19,7 @@ lib <- c("shinyjs","shinyjqui","shiny.router","scales",
          "ggpubr","multcompView","rstatix","shiny","tidyverse",
          "reactable","shinyalert", "shinyWidgets")
 sort(lib)
+
 library(shinyalert)
 library(shinyjs)
 library(shinyjqui)
