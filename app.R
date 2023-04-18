@@ -199,7 +199,7 @@ mainSection <- div(
             div({
               trsOpt <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
                              tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
-              radioButtons(inputId = "transform", label = "Reshape the data", choiceNames = trsOpt, choiceValues = c("No", "Yes"), inline = TRUE) 
+              radioButtons(inputId = "transform", label = "Reshape wide to long format", choiceNames = trsOpt, choiceValues = c("No", "Yes"), inline = TRUE) 
             }),
             # selectInput(inputId = "transform", label = "Reshape the data", choi, selected = "No"),
             conditionalPanel(condition = "input.transform == 'Yes'",
@@ -739,13 +739,13 @@ mainSection <- div(
                 column(7,
                        fluidRow(
                          column(3, textInput(inputId = "resolution", label = NULL, placeholder = "dpi"),
-                                bsTooltip(id = "resolution", title = "Graph resolution. Must be numeric.", placement = "top", trigger = "hover",
+                                bsTooltip(id = "resolution", title = "Graph resolution (numeric)", placement = "top", trigger = "hover",
                                           options = list(container = "body"))),
                          column(3, textInput(inputId = "figHeight", label = NULL, placeholder = "Height"),
-                                bsTooltip(id = "figHeight", title = "Height in inch", placement = "top", trigger = "hover",
+                                bsTooltip(id = "figHeight", title = "Height in inch (numeric)", placement = "top", trigger = "hover",
                                           options = list(container = "body"))), #in inch 3.3 default for 1 coulmn wide (https://www.elsevier.com/__data/promis_misc/JBCDigitalArtGuidelines.pdf),
                          column(3, textInput(inputId = "figWidth", label = NULL, placeholder = "Width"),
-                                bsTooltip(id = "figWidth", title = "Width in inch", placement = "top", trigger = "hover",
+                                bsTooltip(id = "figWidth", title = "Width in inch (numeric)", placement = "top", trigger = "hover",
                                           options = list(container = "body"))),
                          column(3, downloadButton("figDownload", label = NULL, class = "btn-info btn-l"),
                                 bsTooltip(id = "figDownload", title = "Download the graph", placement = "top", trigger = "hover",
@@ -5485,10 +5485,10 @@ server <- function(input, output, session){
     # titleSize <- reactive(req(input$titleSize))
     # themes <- reactive(req(input$theme))
     varSet <- reactive(req(input$colorSet))
-    xTextLabels <- reactive({
-      req(figType() != 'none', input$xAxis %in% colnames(ptable()))
-      xTextLabel()
-    })
+    # xTextLabels <- reactive({
+    #   req(figType() != 'none', input$xAxis %in% colnames(ptable()))
+    #   xTextLabel()
+    # })
     #bar graph
     stackDodge <- reactive(if(figType() %in% c("bar plot", "histogram")) req(input$stackDodge))
     #param for histogram (removed this param from bar)
@@ -6107,7 +6107,6 @@ server <- function(input, output, session){
                                  facet = facet(), facetType = faceType(), varRow = varRow(), varColumn = varColumn(),
                                  nRow = nRow(), nColumn = nColumn(), scales = scales(),
                                  layer = layer(), layerSize = layerSize(),  layerAlpha = layerAlpha(), barSize = freqPolySize(),
-                                 xTextLabels = xTextLabels(),
                                  
                                  #aesthetics
                                  xl = xyAxis()[[1]], yl = xyAxis()[[2]], shapes = shapeSet(),
@@ -6122,7 +6121,6 @@ server <- function(input, output, session){
                                  facet = facet(), facetType = faceType(), varRow = varRow(), varColumn = varColumn(), 
                                  nRow = nRow(), nColumn = nColumn(), scales = scales(), 
                                  layer = layer(), layerSize = layerSize(),  layerAlpha = layerAlpha(), barSize = freqPolySize(),
-                                 xTextLabels = xTextLabels(),
                                  
                                  #aesthetics are wild cards in the function
                                  xl = xyAxis()[[1]], yl = xyAxis()[[2]], shapes = shapeSet(), 
@@ -6157,7 +6155,6 @@ server <- function(input, output, session){
                                    facet = facet(), facetType = faceType(), varRow = varRow(), varColumn = varColumn(), 
                                    nRow = nRow(), nColumn = nColumn(), scales = scales(), 
                                    layer = layer(), layerSize = layerSize(),  layerAlpha = layerAlpha(), barSize = freqPolySize(),
-                                   xTextLabels = xTextLabels(),
                                    
                                    #aesthetics
                                    xl = xyAxis()[[1]], yl = xyAxis()[[2]], shapes = shapeSet(),
@@ -6172,7 +6169,7 @@ server <- function(input, output, session){
                                    facet = facet(), facetType = faceType(), varRow = varRow(), varColumn = varColumn(), 
                                    nRow = nRow(), nColumn = nColumn(), scales = scales(), 
                                    layer = layer(), layerSize = layerSize(),  layerAlpha = layerAlpha(), barSize = freqPolySize(),
-                                   xTextLabels = xTextLabels(),
+                                   
                                    
                                    #aesthetics are wild cards in the function
                                    xl = xyAxis()[[1]], yl = xyAxis()[[2]], shapes = shapeSet(), 
@@ -6199,7 +6196,6 @@ server <- function(input, output, session){
                                    facet = facet(), facetType = faceType(), varRow = varRow(), varColumn = varColumn(), 
                                    nRow = nRow(), nColumn = nColumn(), scales = scales(), 
                                    layer = layer(), layerSize = layerSize(),  layerAlpha = layerAlpha(), barSize = freqPolySize(),
-                                   xTextLabels = xTextLabels(),
                                    
                                    #aesthetics
                                    xl = xyAxis()[[1]], yl = xyAxis()[[2]], shapes = shapeSet(),
@@ -6214,7 +6210,6 @@ server <- function(input, output, session){
                                    facet = facet(), facetType = faceType(), varRow = varRow(), varColumn = varColumn(), 
                                    nRow = nRow(), nColumn = nColumn(), scales = scales(), 
                                    layer = layer(), layerSize = layerSize(),  layerAlpha = layerAlpha(), barSize = freqPolySize(),
-                                   xTextLabels = xTextLabels(),
                                    
                                    #aesthetics are wild cards in the function
                                    xl = xyAxis()[[1]], yl = xyAxis()[[2]], shapes = shapeSet(), 
@@ -6452,8 +6447,12 @@ server <- function(input, output, session){
       }
       
     }
-    #end parameters for customizing plot------
     
+    xTextLabels <- reactive({
+      req(pltType() != 'none', input$xAxis %in% colnames(ptable()))
+      xTextLabel()
+    })
+    #end parameters for customizing plot------
     
     #final plot
     output$figurePlot <- renderPlot({
@@ -6512,10 +6511,15 @@ server <- function(input, output, session){
           #inset
           insetPlt()[[1]] + insetPlt()[[2]]
         
+        #add x label if requested
+        if(!is.numeric(xVar())){
+          dispFinalPlt <- finalPlt + scale_x_discrete(labels = xTextLabels() ) 
+        }
         # save it for download option
-        saveFigure(finalPlt)
-        #return
-        finalPlt
+        saveFigure(dispFinalPlt)
+        #return 
+        dispFinalPlt
+        
       }
       
       

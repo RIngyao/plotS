@@ -2064,7 +2064,7 @@ scales = character. 'fixed' or 'free' for facet.
 layer = character. type of layer - 'point', 'line'...
 layerSize = numeric. size for the layer.
 barSize = numeric. size for graph.
-xTextLabels = character. Label name for the variable of x-axis. 
+xTextLabels = Not in use:::: character. Label name for the variable of x-axis. 
 xl, yl, fills, colr, shape, linetype, size = aesthetic options.
 autoCust = character. either the color should be auto filled or customize.
 colorTxt = character. color name specified for the variables.
@@ -2218,15 +2218,17 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
     }#end of customizing color
   }#end for color setting
   
+  #return
+  plt
   # message(xTextLabels)
   #change variable name of x-axis
   
   # if(types %in% c("line", "frequency polygon", "scatter plot")){
-  if(is.numeric(data[,xl])){ 
-    plt  
-  }else{
-    plt + scale_x_discrete(labels = xTextLabels ) 
-  }
+  # if(is.numeric(data[,xl])){ 
+  #   plt  
+  # }else{
+  #   plt + scale_x_discrete(labels = xTextLabels ) 
+  # }
   
 }#end
 
