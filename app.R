@@ -760,12 +760,12 @@ mainSection <- div(
               width = 12,
               # style= "position:fixed;width:inherit",
               height = '400px',
-              jqui_resizable(
-                plotOutput(outputId = "figurePlot", 
-                         hover = hoverOpts(id = "hover_info", delay = 0, nullOutside = FALSE), 
-                         click = clickOpts(id = "click_info"), 
-                         brush = brushOpts(id = "brush_info", delay = 100, resetOnNew = FALSE, fill= "rgba(190, 237, 253)", stroke = "rgba(60, 186, 249)"))
-               ),
+              
+              plotOutput(outputId = "figurePlot", 
+                       hover = hoverOpts(id = "hover_info", delay = 0, nullOutside = FALSE), 
+                       click = clickOpts(id = "click_info"), 
+                       brush = brushOpts(id = "brush_info", delay = 100, resetOnNew = FALSE, fill= "rgba(190, 237, 253)", stroke = "rgba(60, 186, 249)")
+                       ),
               
               conditionalPanel(condition = "input.plotType != 'none'",
                                div(
@@ -783,7 +783,9 @@ mainSection <- div(
                                    column(3, 
                                           fluidRow(
                                             dropdownButton(inputId = "filterData", label = tags$b("Filter", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Filter the input data", placement = "bottom"), icon = icon("sliders"),
-                                                           jqui_draggable(
+                                            # dropdown(inputId = "filterData",  label = tags$b("Filter", style="color:#C622FA"), circle = FALSE, size = "sm", tooltip = tooltipOptions(title = "Filter the input data", placement = "bottom"), icon = icon("sliders"),
+                                                     style = "minimal",      
+                                                     jqui_draggable(
                                                              div(
                                                                class = "filterDataDiv",
                                                                id = "filterDataDivID",
@@ -824,7 +826,7 @@ mainSection <- div(
                                    ),
                                    column(3, 
                                           conditionalPanel(condition = "input.pairedData !== 'two'",
-                                                           dropdownButton(inputId = "insetDropdownButton", width="500px", label = tags$b("Inset", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Add or remove inset",placement = "bottom"), icon = icon("sliders"),
+                                                           dropdownButton(inputId = "insetDropdownButton", right = TRUE, width="500px", label = tags$b("Inset", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Add or remove inset",placement = "bottom"), icon = icon("sliders"),
                                                                           jqui_draggable(
                                                                             div(
                                                                               class = "insetDoprdownDiv",
@@ -3662,13 +3664,150 @@ server <- function(input, output, session){
       }
     })
   })
+  
+  #t-test and wilcoxon: open alert message so that user can proceed or cancel the computation-----------
+  #this is require to save memory
+  # stopTest <- reactiveVal({
+  #   #1 = stop (default); 0 = continue; 
+  #   if(req(input$colorSet) == 'none' && !isTruthy(input$shapeLine)){
+  #     #check variable count
+  #     countVar <- ptable() %>% distinct(.data[[req(input$xAxis)]]) %>% nrow()
+  #   }else if(req(input$colorSet) != 'none'){
+  #     countVar <- ptable() %>% distinct(.data[[req(input$xAxis)]], .data[[input$colorSet]]) %>% nrow()
+  #   }
+  #   
+  #   ifelse(countVar > 2, 1, 0)
+  # })
+  stopTest <- reactiveVal(1)
+  observe({
+    req(ptable(), pltType() != "none", input$stat)
+    #1 = stop (default); 0 = continue; 
+    req(input$xAxis %in% colnames(ptable()))
+    if(req(input$colorSet) == 'none' && !isTruthy(input$shapeLine)){
+      #check variable count
+      countVar <- ptable() %>% distinct(.data[[req(input$xAxis)]]) %>% nrow()
+    }else if(req(input$colorSet) != 'none'){
+      countVar <- ptable() %>% distinct(.data[[req(input$xAxis)]], .data[[input$colorSet]]) %>% nrow()
+    }
+    
+    stopTest(ifelse(countVar > 2, 1, 0))
+  })
+  
+  # #base R for alert: modelDialog()--------------------------
+  # observeEvent({
+  #   req(input$stat %in% c("t.test", "wilcoxon.test"))},{
+  #     
+  #     if(req(input$colorSet) == 'none' && !isTruthy(input$shapeLine)){
+  #       #check variable count
+  #       countVar <- ptable() %>% distinct(.data[[input$xAxis]]) %>% nrow()
+  #     }else if(req(input$colorSet) != 'none'){
+  #       countVar <- ptable() %>% distinct(.data[[input$xAxis]], .data[[input$colorSet]]) %>% nrow()
+  #     }
+  #     
+  #     req(countVar > 2)
+  #     # shinyalert(
+  #     #   inputId = "tw_alert",
+  #     #   title = "Message", #tags$b("Alert!", style = "color:red"),
+  #     #   html = TRUE,
+  #     #   text = tags$b("Data has more than 2 variables to compare. ANOVA may be more appropriate. \n
+  #     #           Continue anyway (slower computation)?", style = "color:red;"),
+  #     #   type = "warning",
+  #     #   closeOnClickOutside = TRUE,
+  #     #   showCancelButton = TRUE,
+  #     #   showConfirmButton = TRUE,
+  #     #   # confirmButtonText = "No", #value : TRUE
+  #     #   # confirmButtonCol = "#EE2B04",
+  #     #   # cancelButtonText = "Yes", #value : FALSE
+  #     #   # cancelButtonCol = "#EE2B04",
+  #     #   animation = "pop",
+  #     #   immediate = TRUE
+  #     # )
+  #   # not useful for my purpose:  can't adjust the position
+  #   showModal(
+  #     # div(
+  #       # class = "testAlertDiv",
+  #       # style = "position:absolute; margin:auto; top: 50%;",
+  #       # style ="background-color:red",
+  #       # style = "display:flex; justify-content:center; align-items:center; margin:auto; top: 50%;",
+  #       draggableModalDialog(
+  #         tags$b("Data has more than 2 variables to compare. ANOVA may be more appropriate.
+  #         Continue anyway (slower computation)?"),
+  #         title = tags$b("Alert!", style = "color:red; text-align:center;"),
+  #         footer = tagList(
+  #           actionButton("test_stop", "No"),
+  #           actionButton("test_continue", "Yes", class = "btn btn-danger")
+  #         )
+  #       )
+  # 
+  #     )
+  # })
+  # 
+  # observeEvent(input$test_stop,{
+  #   #if test_stop is no, update the stat
+  #   updateSelectInput(inputId = "stat", choices = c("none",statMethods), selected = "none")
+  #   # stopTest(1)
+  #   removeModal()
+  # })
+  # 
+  # observeEvent(input$test_continue,{
+  #   stopTest(0)
+  #   removeModal()
+  # })
+  # 
+  # #base R for alert: modelDialog()--------------------------
+  
+  
+  #alert message for t-test: same as modelDialog(), but more easier to implement
+  observeEvent({
+    req(input$stat %in% c("t.test", "wilcoxon.test"))},{
+      
+      req(input$xAxis %in% colnames(ptable()))
+      if(req(input$colorSet) == 'none' && !isTruthy(input$shapeLine)){
+        #check variable count
+        countVar <- ptable() %>% distinct(.data[[input$xAxis]]) %>% nrow()
+      }else if(req(input$colorSet) != 'none'){
+        countVar <- ptable() %>% distinct(.data[[input$xAxis]], .data[[input$colorSet]]) %>% nrow()
+      }
+      
+      req(countVar > 2)
+      shinyalert(
+        inputId = "tw_alert",
+        title = "Message", #tags$b("Alert!", style = "color:red"),
+        html = TRUE,
+        text = tags$b("Data has more than 2 variables to compare. ANOVA may be more appropriate. \n
+                Continue anyway (slower computation)?", style = "color:red;"),
+        type = "warning",
+        closeOnClickOutside = TRUE,
+        showCancelButton = TRUE,
+        showConfirmButton = TRUE,
+        confirmButtonText = "No", #value : TRUE
+        confirmButtonCol = "#04D252",
+        cancelButtonText = "Yes", #value : FALSE
+        # cancelButtonCol = "#EE2B04",
+        animation = "pop",
+        immediate = TRUE
+      )
+    })
+  
+  # observeEvent(req(input$tw_alert) == "No",{
+  observeEvent(input$tw_alert,{
+    if(isTRUE(input$tw_alert)){ #No, don't continue
+      updateSelectInput(inputId = "stat", choices = c("none",statMethods), selected = "none")
+    }else if(isFALSE(input$tw_alert)){ #Yes, continue
+      stopTest(0)
+    }
+  })
+  
+  # observeEvent(input$stat, {
+  #   stopTest(1) #default is stop processing
+  # })
   # #update stat method--------------------------------
   #update stat if input parameters for data changed
   observe({
     req(input$replicatePresent, input$transform)
     if( isTRUE(dataChanged()) || isTruthy(input$replicateActionButton) || isTruthy(input$goAction) ){
       if(pltType() %in% c("none",plotList) || isTRUE(needYAxis())){
-        selectInput(inputId = "stat", label = "Statistical method", choices = c("none",statMethods), selected = "none") 
+        updateSelectInput(inputId = "stat", label = "Statistical method", choices = c("none",statMethods), selected = "none") 
       }
     }
   })
@@ -4332,7 +4471,7 @@ server <- function(input, output, session){
     output$UiDataSummary <- renderPrint({
       #notify
       summaryId <- waitNotify(id = "summaryId")
-      on.exit(removeNotification(summaryId),  add = TRUE)
+      on.exit(removeNotification(summaryId),  add = FALSE, after = TRUE)
       
       if(is.data.frame(ptable())){
         #convert x-axis to factor and display the summary if x-axis is selected
@@ -4365,7 +4504,7 @@ server <- function(input, output, session){
     req(is.data.frame(ptable()), pltType() %in% xyRequire, input$xAxis, input$yAxis, input$colorSet)
     
     summaryId <- waitNotify(id = "summaryId")
-    on.exit(removeNotification(summaryId),  add = TRUE)
+    on.exit(removeNotification(summaryId),  add = FALSE, after = TRUE)
     
     data <- ptable()
     #validate before proceeding
@@ -5286,6 +5425,7 @@ server <- function(input, output, session){
   #plot----------------------------------
   #save the plot for download
   saveFigure <- reactiveVal(NULL)
+  saveFigure2 <- reactiveVal(NULL)
   finalPlt <- NULL #this is require to be able to delete after session end
   
   #all parameters for plotting graph and statistic analysis is process and executed 
@@ -5299,12 +5439,12 @@ server <- function(input, output, session){
         #computeFuncError() #taken care ---this is require for anova: it will reset between non-additive and additive.
     )
   },{
-    
+    #parameters---------------------------
     # browser()
     #show notification
     computeMsg <- showNotification("Computing....", duration = NULL, closeButton = FALSE,
                                    type ="message", id = "computeMsg")
-    on.exit(removeNotification(computeMsg), add = TRUE, after = TRUE)
+    on.exit(removeNotification(computeMsg), add = FALSE, after = TRUE)
     #required parameters
     figType <- reactive(req(input$plotType))
     
@@ -5322,8 +5462,8 @@ server <- function(input, output, session){
       }
     })
     
-    #ylim
-    ylimit <- reactive(ifelse(input$Ylimit == "yes", TRUE, FALSE))
+    # #ylim
+    # ylimit <- reactive(ifelse(input$Ylimit == "yes", TRUE, FALSE))
     #for color setting
     # autoCust <- reactive(if(varSet() != "none") input$autoCustome)
     autoCust <- reactive(ifelse(varSet() != "none", input$autoCustome, "none"))
@@ -5341,9 +5481,9 @@ server <- function(input, output, session){
     model <- reactive(if(anovaType() == "two") input$anovaModel)
     
     #themes and other related paramters
-    textSize <- reactive(req(input$textSize))
-    titleSize <- reactive(req(input$titleSize))
-    themes <- reactive(req(input$theme))
+    # textSize <- reactive(req(input$textSize))
+    # titleSize <- reactive(req(input$titleSize))
+    # themes <- reactive(req(input$theme))
     varSet <- reactive(req(input$colorSet))
     xTextLabels <- reactive({
       req(figType() != 'none', input$xAxis %in% colnames(ptable()))
@@ -5420,10 +5560,10 @@ server <- function(input, output, session){
                
                if(xVarType()[1] %in% c("integer", "numeric", "double")){
                  #group for numeric type
-                 geom_line(group =1, size = freqPolySize())
+                 geom_line(group =1, linewidth = freqPolySize())
                }else{
                  #no need to group for character type
-                 geom_line(size = freqPolySize())
+                 geom_line(linewidth = freqPolySize())
                }
              }else{
                geom_line(aes(group=.data[[connectVar()]]), size = freqPolySize())
@@ -5466,23 +5606,6 @@ server <- function(input, output, session){
     })
     message("---------replace dodge in bar-----------")
     
-    #for labs() -labeling the x- and y-axis: list
-    xyLable <- reactive({
-      if(isTruthy(input$yLable) & isTruthy(input$xLable)){
-        list(input$xLable, input$yLable)
-      }else if(isTruthy(input$yLable)){
-        list(NULL, input$yLable)
-      }else if(isTruthy(input$xLable)){
-        list(input$xLable, NULL)
-      }else if(figType() == "density"){
-        #for density, initial label for y has to be provided
-        if(!isTruthy(input$yLable) && !isTruthy(input$xLable)){
-          list(input$xAxis, densityStat())
-        }else{ #users choice of labeling y axis
-          list(input$xLable, input$yLable)
-        }
-      }
-    })
     
     #histogram mean line
     histLinetypes <- reactive(if(input$histMean != "none") input$histMeanLine)
@@ -5709,7 +5832,7 @@ server <- function(input, output, session){
             #default color is appropriate when user provide color aesthetics
             geom_erbar <- switch(figType(),
                                  "line" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
-                                                        width = 0.2, position = position_dodge(0.03), size = freqPolySize()),
+                                                        width = 0.2, position = position_dodge(0.03), linewidth = freqPolySize()),
                                  "bar plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
                                                             width = 0.2, position = position_dodge(width = 0.9), size = req(input$errorBarSize)),
                                  "scatter plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
@@ -5721,7 +5844,7 @@ server <- function(input, output, session){
             #not default
             geom_erbar <- switch(figType(),
                                  "line" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
-                                                        width = 0.2, position = position_dodge(0.03), size = freqPolySize(), color = errorBarColor()),
+                                                        width = 0.2, position = position_dodge(0.03), linewidth = freqPolySize(), color = errorBarColor()),
                                  "bar plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
                                                             width = 0.2, position = position_dodge(width = 0.9), color = errorBarColor(), size = req(input$errorBarSize)),
                                  "scatter plot" = geom_errorbar(data = newData, aes(ymin= .data[[colnm]] - .data[[ebs]], ymax = .data[[colnm]] + .data[[ebs]]), 
@@ -5790,12 +5913,12 @@ server <- function(input, output, session){
       )
     })
     
-    #legend parameters
-    legendPosition <- reactive(input$legendPosition)
-    legendDirection <- reactive(input$legendDirection)
-    legendSize <- reactive(input$legendSize)
-    legendTitle <- reactive(input$legendTitle)
-    removeLegend <- reactive(input$removeLegend)
+    # #legend parameters
+    # legendPosition <- reactive(input$legendPosition)
+    # legendDirection <- reactive(input$legendDirection)
+    # legendSize <- reactive(input$legendSize)
+    # legendTitle <- reactive(input$legendTitle)
+    # removeLegend <- reactive(input$removeLegend)
     #facet parameters
     facet <- reactive({
       if(figType() == "none" | input$facet == "none"){
@@ -5843,7 +5966,7 @@ server <- function(input, output, session){
     })
     scales <- reactive(input$scales)
     
-    stripBackground <- reactive(ifelse(isTruthy(input$stripBackground), TRUE, FALSE))
+    # stripBackground <- reactive(ifelse(isTruthy(input$stripBackground), TRUE, FALSE))
     #additional layer
     layer <- reactive(input$addLayer)
     #layer size
@@ -5861,85 +5984,89 @@ server <- function(input, output, session){
     })
     #get the computed data for annotating in plot
     
-    #display the plot
-    output$figurePlot <- renderPlot({
+    #display the plot------------
+    #another observe to get final parameters for figure
+    # output$figurePlot <- renderPlot({ #})
+    observe({
       
-      # browser()
       req(is.data.frame(ptable()), pltType() != "none")
+      # browser()
       #Reason for adding all the codes in this reactive is to properly display error msg for the computation.
       
       # #show notification
       computeMsg <- showNotification("Please wait.....", duration = NULL, closeButton = FALSE,
                                      type ="message", id = "computeMsg")
-      on.exit(removeNotification(computeMsg), after = FALSE)
+      on.exit(removeNotification(computeMsg), after = TRUE)
 
       #resolution for the plot
       res=400
       
       message("catVarbelow2----")
       
-      #check condition-----------------------
-      
-      #check for x and y-axis
-      if(pltType() %in% xyRequire){
-        #must have both x- and y-axis
-        req(all(lapply(xyAxis(), length) == 1))
-      }
-      
-      #chosen variable must be in the data
-      # If user change the data, the cached variables will not be available in the data.
-      colms <- colnames(ptable())
-      if(pltType() != "none"){
-        req(unlist(xyAxis()[1]) %in% colms)
-      }else if(varSet() != "none"){
-        req(varSet() %in% colms)
-      }else if(shapeLine() != "none"){
-        if(isTruthy(shapeSet())){
-          req(shapeSet() %in% colms)
-        }else if(isTruthy(lineSet())){
-          req(lineSet() %in% colms)
-        }else if(isTruthy(shapeSet()) && isTruthy(lineSet())){
-          req(all(c(shapeSet(), lineSet()) %in% colms))
+      tryCatch({
+        #check condition-----------------------
+
+        #check for x and y-axis
+        if(pltType() %in% xyRequire){
+          #must have both x- and y-axis
+          req(all(lapply(xyAxis(), length) == 1))
         }
-      }else if(methodSt() == "anova" && anovaType() == "two"){
-        req(twoAovVar() %in% colms, twoAovVar() == varSet())
-      }
-      
-      #second check
-      if(figType() != "none" && !is.null(unlist(xyAxis()[2]))){
-        validate(need(unlist(xyAxis()[1]) != unlist(xyAxis()[2]), "Provide different variable for x- and y-axis."))
-      }
-      #check 3 for density plot
-      if(methodSt() != "none"){
-        validate(need(!figType() %in% c("density", "frequency polygon", "histogram"), glue::glue("Unable to apply statistical method for {figType()} plot")))
-      }
-      #check 4: for t.test and wilcox.test
-      # case 1: check for paired and unpaired data
-      if(methodSt() %in% c('t.test', "wilcoxon.test")){
-        validate(
-          need( unpaired_stopTest() == 'no', "Data appears to be unpaired!")
-        )
-      }
-      #check for anova
-      if(methodSt() == "anova" && anovaType() == "two"){
-        validate(need(twoAnovaError() == 0, "Two-way anova require more variables to compare"))
-      }
-      #check for grid facet
-      #checks: don't allow same variables on both the option
-      if(req(input$facet) == "grid"){
-        validate(
-          need(length(col()) > 1 && req(input$varRow) != req(input$varColumn), "Variable for row and column must be different for grid")
-        )
-      }
-      
-      #check end--------------------------------------
-      
-      #convert the color variable to factor
-      if(varSet() != "none"){
-        data1 <- ptable() %>% mutate(across(.data[[varSet()]], factor)) 
-      }
+
+        #chosen variable must be in the data
+        # If user change the data, the cached variables will not be available in the data.
+        colms <- colnames(ptable())
+        if(pltType() != "none"){
+          req(unlist(xyAxis()[1]) %in% colms)
+        }else if(varSet() != "none"){
+          req(varSet() %in% colms)
+        }else if(shapeLine() != "none"){
+          if(isTruthy(shapeSet())){
+            req(shapeSet() %in% colms)
+          }else if(isTruthy(lineSet())){
+            req(lineSet() %in% colms)
+          }else if(isTruthy(shapeSet()) && isTruthy(lineSet())){
+            req(all(c(shapeSet(), lineSet()) %in% colms))
+          }
+        }else if(methodSt() == "anova" && anovaType() == "two"){
+          req(twoAovVar() %in% colms, twoAovVar() == varSet())
+        }
+
+        #second check
+        if(figType() != "none" && !is.null(unlist(xyAxis()[2]))){
+
+          validate(need(unlist(xyAxis()[1]) != unlist(xyAxis()[2]), "Provide different variables for x- and y-axis."))
+          # validate(unlist(xyAxis()[1]) != unlist(xyAxis()[2]))
+        }
+        #check 3 for density plot
+        if(methodSt() != "none"){
+          validate(need(!figType() %in% c("density", "frequency polygon", "histogram"), glue::glue("Unable to apply statistical method for {figType()} plot")))
+        }
+        #check 4: for t.test and wilcox.test
+        # case 1: check for paired and unpaired data
+        if(methodSt() %in% c('t.test', "wilcoxon.test")){
+          validate(
+            need( unpaired_stopTest() == 'no', "Data appears to be unpaired!")
+          )
+        }
+        #check for anova
+        if(methodSt() == "anova" && anovaType() == "two"){
+          validate(need(twoAnovaError() == 0, "Two-way anova require more variables to compare"))
+        }
+        #check for grid facet
+        #checks: don't allow same variables on both the option
+        if(req(input$facet) == "grid"){
+          validate(
+            need(length(col()) > 1 && req(input$varRow) != req(input$varColumn), "Variable for row and column must be different for grid")
+          )
+        }
+
+        #check end--------------------------------------
+        
+        #convert the color variable to factor
+        if(varSet() != "none"){
+          data1 <- ptable() %>% mutate(across(.data[[varSet()]], factor)) 
+        }
       #new version---------------
-      tryCatch({ 
         
         #data need to be changed based on the type of plots
         if(isFALSE(lineParam()[[1]])){
@@ -5974,7 +6101,7 @@ server <- function(input, output, session){
         if(methodSt() != "anova" || (methodSt() == "anova" && anovaType() == "one")){
           #basic graph other than two-way anova -- two way anova require futher steps
           if(!figType() %in% c("frequency polygon", "line", "scatter plot")){
-            
+            # firstPlot <- ggplot(ToothGrowth, aes(x = supp, y = dose)) + geom_boxplot()
             firstPlot <- plotFig(data = data, types = figType(), geom_type = geomType(),
                                  histLine = histLine(), lineParam = lineParam(),
                                  facet = facet(), facetType = faceType(), varRow = varRow(), varColumn = varColumn(),
@@ -6102,19 +6229,20 @@ server <- function(input, output, session){
         }
         
         #advance graph setting-------------------------
-        #append start------------------
         #get parameters require for plotting
-        #compute statistic 
-        if(figType() != "none" && methodSt() != "none"){
+        #compute statistic
+        # if(figType() != "none" && methodSt() != "none"){
+        if(figType() != "none" && ( !methodSt() %in% c("t.test", "wilcoxon.test", "none") || (methodSt() %in% c("t.test", "wilcoxon.test") && stopTest() == 0) ) ){
           message(glue::glue("method2: {methodSt()}"))
           message(catVar())
           message("input$compareOrReference")
           #necessary for t.test and wilcoxon test: ..??
           message(compareOrReference())
-          
+
           #compute statistic only when requested
           statData <- reactive({
-            
+
+            # if(methodSt() %in% c("t.test", "wilcoxon.test") && stopTest() == 0){}
             generateStatData(data = ptable(), groupStat = groupStat(), groupVar = groupStatVarOption(),
                              method = methodSt(), numericVar = numericVar(),
                              catVar = catVar(), compRef = compareOrReference(),
@@ -6123,18 +6251,19 @@ server <- function(input, output, session){
                              pAdjustMethod = pAdjustMethod(), labelSignif = labelSt(), cmpGrpList = cmpGrpList$lists, rfGrpList = rfGrpList$lists,# switchGrpList = switchGrpList$switchs,
                              xVar = xyAxis()[[1]], anovaType = anovaType())#, ssType = ssType())
           })
-          
+
           #global store to display in summary
           statDataStore$df <<- isolate(statData()[[1]])
         }
         #end of statistic computation
-        
-        
+
+
         #get more parameters for graph
         #shape, linetype taken care in basic plot
-        if(varSet() != "none" || methodSt() != "none"){
+        # if(varSet() != "none" || methodSt() != "none"){
+        if(varSet() != "none" || ( !methodSt() %in% c("t.test", "wilcoxon.test", "none") || (methodSt() %in% c("t.test", "wilcoxon.test") && stopTest() == 0) )){
           advance <- reactiveVal(TRUE)
-          
+
           #statistic data:
           statistic_df <- reactiveVal(NULL)
           #setting for customize color
@@ -6143,12 +6272,12 @@ server <- function(input, output, session){
               message("one and other ====================way=======")
               # message(statData()) #require! don't know why
               statistic_df(statData())
-              
+
             }else if(methodSt() == "anova" && anovaType() == "two"){
               #only for two-way anova
               req(model, twoAovVar(), input$anovaFigure)
-              #For two-way anova: 
-              #1. anovaFigure() requested by user is not interaction, then 
+              #For two-way anova:
+              #1. anovaFigure() requested by user is not interaction, then
               #     1. generate new color. It will be different from varSet()
               #     3. variable for x-axis will change for figure of non-interaction
               message("two====================way=======")
@@ -6158,7 +6287,7 @@ server <- function(input, output, session){
               if(anovaFigure() == "Interaction"){
                 # message(statData()) #require! don't know why
                 statistic_df(statData())
-                
+
               }else if(anovaFigure() != "Interaction"){
                 #Figure for non-interaction
                 message("non-interaction")
@@ -6166,195 +6295,60 @@ server <- function(input, output, session){
                 #main effects selected for figure
                 if(anovaFigure() == twoAovVar()){
                   #get the global output computed for the anova
-                  
+
                   statistic_df <- reactive(list(meanLabPos_a2, NULL))
                 }else{
                   req(colnames(xVar()) %in% colnames(ptable()))
                   # statData <- list(meanLabPos_a, NULL)
-                 
+
                   statistic_df <- reactive(list(meanLabPos_a, NULL))
                 }
-                
+
                 aovX <-if(anovaFigure() == colnames(xVar())){
                   "group1"
                 }else{
                   anovaFigure()
                 }
-                
+
               }
             }
           }
-          
-          
+
+
         }else{ advance <- reactiveVal(FALSE) }
-        
+
         if(isTRUE(advance())){
           # plabelSize <- reactive()
           # message(statistic_df())
-          secondPlot <- advancePlot(data = data, plt = firstPlot, 
+          secondPlot <- advancePlot(data = data, plt = firstPlot,
                                     methodSt = methodSt(), removeBracket = removeBracket(),
                                     # statData = statData, anovaType = anovaType(),
                                     statData = statistic_df(), anovaType = anovaType(),
                                     aovX = aovX, plabelSize = req(input$plabelSize))
-          
-          
+
+
           finalPlt_1 <- secondPlot
         }else{
           finalPlt_1 <- firstPlot
         }
-        
-        #additional layer
-        if(req(input$addLayer) != "none"){
-          # browser()
-          cal <- ifelse(figType() %in% c("box plot", "violin plot"), "median", "mean")
-          finalPlt_1 <- switch(req(input$addLayer),
-                        "line" = finalPlt_1 + stat_summary(fun = cal, geom = 'line', aes(group = 1), size = input$layerSize),
-                        "smooth" = finalPlt_1 + geom_smooth(size = input$layerSize, se = ifelse(isTruthy(input$addLayerCI), TRUE, FALSE), color = req(input$addLayerColor),
-                                                     method = req(input$smoothMethod)),
-                        "point" = finalPlt_1 + geom_point(size = input$layerSize, alpha = input$layerAlpha),
-                        "jitter" = finalPlt_1 + geom_jitter(size = input$layerSize, alpha = input$layerAlpha)
-          )
-        }
-        # selectizeInput(inputId = "smoothMethod", label = "Method", choices = sort(c("lm","glm","gam", "loess")))
-        #Theme for the graph
-        otherTheme <- if(isTRUE(legendTitle())){
-          if(isTRUE(stripBackground())){
-            theme(
-              axis.text = element_text(size = textSize(), face = "bold"),
-              axis.title = element_text(size = titleSize(), face = "bold"),
-              legend.position = legendPosition(),
-              legend.direction = legendDirection(),
-              legend.title = element_blank(),
-              legend.text = element_text(size = legendSize(), face = "bold"),
-              strip.text = element_text(size = textSize(), face = "bold"),
-              strip.background = element_blank())
-          }else{
-            theme(
-              axis.text = element_text(size = textSize(), face = "bold"),
-              axis.title = element_text(size = titleSize(), face = "bold"),
-              legend.position = legendPosition(),
-              legend.direction = legendDirection(),
-              legend.title = element_blank(),
-              legend.text = element_text(size = legendSize(), face = "bold"),
-              strip.text = element_text(size = textSize(), face = "bold"))
-          }
-        }else{
-          if(isTRUE(stripBackground())){
-            theme(
-              axis.text = element_text(size = textSize(), face = "bold"),
-              axis.title = element_text(size = titleSize(), face = "bold"),
-              legend.position = legendPosition(),
-              legend.direction = legendDirection(),
-              legend.title = element_text(size = legendSize(), face = "bold"),
-              legend.text = element_text(size = legendSize(), face = "bold"),
-              strip.text = element_text(size = textSize(), face = "bold"),
-              strip.background = element_blank())
-          }else{
-            theme(
-              axis.text = element_text(size = textSize(), face = "bold"),
-              axis.title = element_text(size = titleSize(), face = "bold"),
-              legend.position = legendPosition(),
-              legend.direction = legendDirection(),
-              legend.title = element_text(size = legendSize(), face = "bold"),
-              legend.text = element_text(size = legendSize(), face = "bold"),
-              strip.text = element_text(size = textSize(), face = "bold"))
-          }
-          
-        }
-        
-        #set lower limit of y axis to 0: kept here for better control in future
-        #add theme to the plot
-        if(isTRUE(ylimit())){
-          
-          finalPlt <- finalPlt_1 +
-            ylim(0, NA) + 
-            axisLabs(x =xyLable()[[1]], y = xyLable()[[2]])+
-            themeF(thme = themes())+
-            otherTheme
-        }else{
-          finalPlt <- finalPlt_1 +
-            axisLabs(x =xyLable()[[1]], y = xyLable()[[2]])+
-            themeF(thme = themes())+
-            otherTheme
-        }
-        
-        # browser()
-        # #revise will try combine inset and side graph
-        # #need to revise: inset in the figure-------------------
-        # if(req(input$stat) != "anova" || (req(input$stat) == "anova" && anovaType() == "one")){
-        #   if(nrow(clickBrush_df()) > 1 && isTruthy(input$brush_info) && req(input$inset) == "yes"){
-        #     req(insetGeomType())
-        # 
-        #     message(req(input$xAxis))
-        #     validate(
-        #       need(req(input$xAxis) %in% colnames(clickBrush_df()), "")
-        #     )
-        #     #get necessary parameters
-        #     # insetParamFunc(inDf, oriDf, orix, oriTextLabel, finalPlt, color = "none", shape=NULL, line=NULL)
-        #     # browser()
-        #     # insetParamFunc(inDf= clickBrush_df(), oriDf = ptable(), orix = xyAxis()[[1]], oriTextLabel = xTextLabels(), finalPlt = finalPlt, color = varSet(), shape=shapeSet(), line=lineSet())
-        #     insetParamFunc(inDf= clickBrush_df(), oriDf = ptable(), orix = req(input$xAxis), oriTextLabel = xTextLabels(), color = req(input$colorSet), shape=shapeSet(), line=lineSet())
-        # 
-        #     #reactive value: insetXTextLabels() - in insetPlt & insetColor() - to be used in inset_df
-        #     #generate inset graph
-        #     if(!req(input$insetPlotType) %in% c("line", "scatter plot")){
-        #       insetPlt <- plotFig(data = req(clickBrush_df()), types = req(input$insetPlotType), geom_type = insetGeomType(),
-        #                            xTextLabels = insetXTextLabels(),
-        #                            xl = req(input$xAxis), yl = req(input$yAxis), shapes = shapeSet(),
-        #                            linetypes = lineSet(), fills = req(input$colorSet), varSet = req(input$colorSet),
-        #                            lineParam = FALSE, autoCust = autoCust(), colorTxt = colorTxt()
-        #       )
-        #     }else{
-        #       insetPlt <- plotFig(data = req(clickBrush_df()), types = req(input$insetPlotType), geom_type = insetGeomType(),
-        #                            xTextLabels = insetXTextLabels(),
-        #                            xl = xyAxis()[[1]], yl = xyAxis()[[2]], shapes = shapeSet(),
-        #                            linetypes = lineSet(), colr = varSet(), varSet = varSet(),
-        #                            lineParam = FALSE, autoCust = autoCust(), colorTxt = colorTxt())
-        #     }
-        #     # browser()
-        # 
-        #     #generate table for the inset
-        #     yMin <- min(clickBrush_df()[[ xyAxis()[[2]] ]])
-        # 
-        #     inset_df <- tibble(x= req(input$insetXPosition), y = input$insetYPosition,
-        #                        plot = list( insetPlt + labs(x=NULL, y = NULL) +
-        #                                       coord_cartesian(ylim = c(min(clickBrush_df()[[ xyAxis()[[2]] ]]), max(clickBrush_df()[[ xyAxis()[[2]] ]]))) +
-        #                                       themeF(thme = req(input$insetTheme))+
-        #                                       theme(legend.position = "none", axis.text = element_text(face = "bold", size = req(input$insetTextSize)))+ scale_fill_manual(values = insetColor())
-        #                                     # if(!input$insetPlotType %in% c("line", "scatter plot")){scale_fill_manual(values = origColor)}else{scale_color_manual(values = origColor)}
-        #                        )
-        #     )
-        # 
-        #     #color: dependening on the data add fill or color and scale_*_manual
-        #     finalInsetPlt <- geom_plot_npc(data = inset_df, aes(npcx =x, npcy = y, label = plot), vp.width = req(input$insetWidth), vp.height = req(input$insetHeight))
-        # 
-        #     #add mark area in the graph
-        #     finalPlt <- finalPlt + geom_mark_rect(data = clickBrush_df(), radius = unit(0,"mm"), expand = unit(3, "mm"), #expand = unit(req(input$insetExpandMarkedArea),"mm"), #expand the marked area
-        #                                           alpha = 0, fill = "white",
-        #                                           linetype = "dotted") + finalInsetPlt
-        #   }
-        # 
-        # }
-        # #end of inset------------
-        # browser()
-        #currently unable to combine side and inset together
-        #validate any error on the side graph
-        #add side graph and inset 
-        finalPlt <- finalPlt + sideGraphx()[[1]] + sideGraphx()[[2]] +
-          #y side
-          sideGraphy()[[1]] + sideGraphy()[[2]] +ggside(scales = "free",  draw_y_on = "main", draw_x_on = "main")+
-          #insed
-          insetPlt()[[1]] + insetPlt()[[2]]
-        
-        #save it for download option
-        saveFigure(finalPlt)
-        
-        # #signal message
+
+        #advance------------
+        #save it for the final plot
+        # forFinalPlt(finalPlt_1)
+        forFinalPlt(firstPlot)
+        #reset error signal
+        finalPltError(0)
+        finalPltErrorMsg(NULL)
         computeFuncError(0)
-        return(finalPlt)
         
       }, error = function(e){
-        
+        #trigger observe plot : require if error occur and forFinalPlt is still NULL
+        forFinalPlt(ggplot()) 
+        #use it for final plot
+        finalPltError(1)
+        # msg <- glue::glue("Unable to compute. Check the input data or parameters. \n {e}")
+        finalPltErrorMsg(e)
+        #use it in anova (I've keep both)
         computeFuncError(1)
         computeFuncErrorMsg(e)
         print(e)
@@ -6364,76 +6358,263 @@ server <- function(input, output, session){
       
       #new version---------------
     })
-    
+    #display the plot---------------------
   })#end of advance plot
   #end plot figures--------------------------------
+  
+  
+  #Display the final plot-----------------
+  forFinalPlt <- reactiveVal(NULL)
+  #error message from computation
+  finalPltError <- reactiveVal(0) #0 - no error, 1 - error
+  finalPltErrorMsg <- reactiveVal(NULL)
+  
+  observe({
+    req(is.data.frame(ptable()), pltType(), forFinalPlt())
+    # browser()
+    #parameters for customizing plot------
+    #parameters has to be outside renderPlot
+    #legend parameters
+    legendPosition <- reactive(input$legendPosition)
+    legendDirection <- reactive(input$legendDirection)
+    legendSize <- reactive(input$legendSize)
+    legendTitle <- reactive(input$legendTitle)
+    removeLegend <- reactive(input$removeLegend)
+    #facet
+    stripBackground <- reactive(ifelse(isTruthy(input$stripBackground), TRUE, FALSE))
+    #themes and other related paramters
+    textSize <- reactive(req(input$textSize))
+    titleSize <- reactive(req(input$titleSize))
+    themes <- reactive(req(input$theme))
+    #ylimit parameters
+    # ylimit <- reactive(ifelse(input$Ylimit == "yes", TRUE, FALSE))
+    ylimit <- reactive(FALSE)
+    densityStat <- reactive(if(pltType() == "density") input$densityStat)
+    #for labs() -labeling the x- and y-axis: list
+    xyLable <- reactive({
+      if(isTruthy(input$yLable) & isTruthy(input$xLable)){
+        list(input$xLable, input$yLable)
+      }else if(isTruthy(input$yLable)){
+        list(NULL, input$yLable)
+      }else if(isTruthy(input$xLable)){
+        list(input$xLable, NULL)
+      }else if(pltType() == "density"){
+        #for density, initial label for y has to be provided
+        if(!isTruthy(input$yLable) && !isTruthy(input$xLable)){
+          list(input$xAxis, densityStat())
+        }else{ #users choice of labeling y axis
+          list(input$xLable, input$yLable)
+        }
+      }
+    })
+    
+    #get theme parameters for the graph
+    otherTheme <- if(isTRUE(legendTitle())){
+      if(isTRUE(stripBackground())){
+        theme(
+          axis.text = element_text(size = textSize(), face = "bold"),
+          axis.title = element_text(size = titleSize(), face = "bold"),
+          legend.position = legendPosition(),
+          legend.direction = legendDirection(),
+          legend.title = element_blank(),
+          legend.text = element_text(size = legendSize(), face = "bold"),
+          strip.text = element_text(size = textSize(), face = "bold"),
+          strip.background = element_blank())
+      }else{
+        theme(
+          axis.text = element_text(size = textSize(), face = "bold"),
+          axis.title = element_text(size = titleSize(), face = "bold"),
+          legend.position = legendPosition(),
+          legend.direction = legendDirection(),
+          legend.title = element_blank(),
+          legend.text = element_text(size = legendSize(), face = "bold"),
+          strip.text = element_text(size = textSize(), face = "bold"))
+      }
+    }else{
+      if(isTRUE(stripBackground())){
+        theme(
+          axis.text = element_text(size = textSize(), face = "bold"),
+          axis.title = element_text(size = titleSize(), face = "bold"),
+          legend.position = legendPosition(),
+          legend.direction = legendDirection(),
+          legend.title = element_text(size = legendSize(), face = "bold"),
+          legend.text = element_text(size = legendSize(), face = "bold"),
+          strip.text = element_text(size = textSize(), face = "bold"),
+          strip.background = element_blank())
+      }else{
+        theme(
+          axis.text = element_text(size = textSize(), face = "bold"),
+          axis.title = element_text(size = titleSize(), face = "bold"),
+          legend.position = legendPosition(),
+          legend.direction = legendDirection(),
+          legend.title = element_text(size = legendSize(), face = "bold"),
+          legend.text = element_text(size = legendSize(), face = "bold"),
+          strip.text = element_text(size = textSize(), face = "bold"))
+      }
+      
+    }
+    #end parameters for customizing plot------
+    
+    
+    #final plot
+    output$figurePlot <- renderPlot({
+      # browser()
+      res=400 #Display resolution
+      
+      #save it in an object to process
+      finalPlt_settings <- forFinalPlt()
+      
+      if(pltType() == "none" | is.null(forFinalPlt()) | !is.null(finalPltErrorMsg())){
+        
+        #Error message is necessary if forFinalPlt is null due to some error
+        validate(need(finalPltError() == 0, finalPltErrorMsg()))
+        NULL
+      }else{
+        
+        # display the error msg on the panel
+        validate(need(finalPltError() == 0, finalPltErrorMsg()))
+        
+        #additional layer
+        if(req(input$addLayer) != "none"){
+          # browser()
+          cal <- ifelse(pltType() %in% c("box plot", "violin plot"), "median", "mean")
+          finalPlt_settings <- switch(req(input$addLayer),
+                               "line" = forFinalPlt() + stat_summary(fun = cal, geom = 'line', aes(group = 1), linewidth = re(input$layerSize)),
+                               "smooth" = forFinalPlt() + geom_smooth(size = req(input$layerSize), se = ifelse(isTruthy(input$addLayerCI), TRUE, FALSE), color = req(input$addLayerColor),
+                                                                   method = req(input$smoothMethod)),
+                               "point" = forFinalPlt() + geom_point(size = req(input$layerSize), alpha = req(input$layerAlpha)),
+                               "jitter" = forFinalPlt() + geom_jitter(size = req(input$layerSize), alpha = req(input$layerAlpha))
+          )
+        }
+        # selectizeInput(inputId = "smoothMethod", label = "Method", choices = sort(c("lm","glm","gam", "loess")))
+        
+        
+        #set lower limit of y axis to 0: kept here for better control in future
+        #add the theme here 
+        if(isTRUE(ylimit())){
+          
+          finalPlt <- finalPlt_settings +
+            ylim(0, NA) + 
+            axisLabs(x =xyLable()[[1]], y = xyLable()[[2]])+
+            themeF(thme = themes())+
+            otherTheme
+        }else{
+          finalPlt <- finalPlt_settings +
+            axisLabs(x =xyLable()[[1]], y = xyLable()[[2]])+
+            themeF(thme = themes())+
+            otherTheme
+        }
+        
+        #add side graph and inset--------------
+        finalPlt <- finalPlt + sideGraphx()[[1]] + sideGraphx()[[2]] +
+          #y side
+          sideGraphy()[[1]] + sideGraphy()[[2]] + ggside(scales = "free",  draw_y_on = "main", draw_x_on = "main")+
+          #inset
+          insetPlt()[[1]] + insetPlt()[[2]]
+        
+        # save it for download option
+        saveFigure(finalPlt)
+        #return
+        finalPlt
+      }
+      
+      
+    })
+    
+  }) #end of final plot 
+  
   #error msg for side graph
   # sideError <- reactiveVal(0)
-  #side graph
-  sideGraphx <- reactive({
+  #side graph---------------------------
+  sideGraphx <- reactiveVal(list(NULL, NULL))
+  observe({
     # browser()
-    if(!isTruthy(input$sideDropdownButton)){
-      list(NULL, NULL)
-    }else{
       color <- if(req(input$colorSet) != "none"){ input$colorSet }else{ NULL }
       shape <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Shape"){ input$shapeSet}else{NULL}
       line <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Line type"){ input$lineSet}else{NULL}
-        
-      sideGraphData(id="xside", side = "x", xyRequire = xyRequire, sideVar = colnames(ptable()), mainGraph = req(input$plotType), color = color, linetype = line, shape = shape,
+
+      sidex <- sideGraphData(id="xside", side = "x", xyRequire = xyRequire, sideVar = colnames(ptable()), mainGraph = req(input$plotType), color = color, linetype = line, shape = shape,
                     borderWidth = req(input$panelBorderWidth), borderColor = req(input$panelBorderColor), panelTheme = req(input$panelBackground),
                     gridColor = req(input$panelGridColor), gridlineWidth = req(input$panelGridLineWidth), gridLineType = req(input$panelGridLineType))
-    }
-    
+      sideGraphx(sidex)
     })
-  sideGraphy <- reactive({
+  
+  sideGraphy <- reactiveVal(list(NULL, NULL))
+  observe({
     # browser()
-    if(!isTruthy(input$sideDropdownButton)){
-      list(NULL, NULL)
-    }else{
       color <- if(req(input$colorSet) != "none"){ input$colorSet }else{ NULL }
       shape <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Shape"){ input$shapeSet}else{NULL}
       line <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Line type"){ input$lineSet}else{NULL}
       # tryCatch({
-      sideGraphData(id="yside", side = "Y", xyRequire = xyRequire, sideVar = colnames(ptable()), mainGraph = req(input$plotType), color = color, linetype = line, shape = shape,
+      sidey <- sideGraphData(id="yside", side = "Y", xyRequire = xyRequire, sideVar = colnames(ptable()), mainGraph = req(input$plotType), color = color, linetype = line, shape = shape,
                     borderWidth = req(input$panelBorderWidth), borderColor = req(input$panelBorderColor), panelTheme = req(input$panelBackground),
                     gridColor = req(input$panelGridColor), gridlineWidth = req(input$panelGridLineWidth), gridLineType = req(input$panelGridLineType))
-      #   sideError(0)
-      #   #return
-      #   sdgy
-      # }, error = function(e){
-      #   sideError(1)
-      # })
-    }
-    
+      sideGraphy(sidey)
   })
   
+  #old version--------------------------
+  # sideGraphx <- reactive({
+  #   # browser()
+  #   if(!isTruthy(input$sideDropdownButton)){
+  #     list(NULL, NULL)
+  #   }else{
+  #     color <- if(req(input$colorSet) != "none"){ input$colorSet }else{ NULL }
+  #     shape <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Shape"){ input$shapeSet}else{NULL}
+  #     line <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Line type"){ input$lineSet}else{NULL}
+  #       
+  #     sideGraphData(id="xside", side = "x", xyRequire = xyRequire, sideVar = colnames(ptable()), mainGraph = req(input$plotType), color = color, linetype = line, shape = shape,
+  #                   borderWidth = req(input$panelBorderWidth), borderColor = req(input$panelBorderColor), panelTheme = req(input$panelBackground),
+  #                   gridColor = req(input$panelGridColor), gridlineWidth = req(input$panelGridLineWidth), gridLineType = req(input$panelGridLineType))
+  #   }
+  #   
+  #   })
+  # sideGraphy <- reactive({
+  #   # browser()
+  #   if(!isTruthy(input$sideDropdownButton)){
+  #     list(NULL, NULL)
+  #   }else{
+  #     color <- if(req(input$colorSet) != "none"){ input$colorSet }else{ NULL }
+  #     shape <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Shape"){ input$shapeSet}else{NULL}
+  #     line <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Line type"){ input$lineSet}else{NULL}
+  #     # tryCatch({
+  #     sideGraphData(id="yside", side = "Y", xyRequire = xyRequire, sideVar = colnames(ptable()), mainGraph = req(input$plotType), color = color, linetype = line, shape = shape,
+  #                   borderWidth = req(input$panelBorderWidth), borderColor = req(input$panelBorderColor), panelTheme = req(input$panelBackground),
+  #                   gridColor = req(input$panelGridColor), gridlineWidth = req(input$panelGridLineWidth), gridLineType = req(input$panelGridLineType))
+  #     #   sideError(0)
+  #     #   #return
+  #     #   sdgy
+  #     # }, error = function(e){
+  #     #   sideError(1)
+  #     # })
+  #   }
+  #   
+  # })
+  #old version--------------------------
   
- 
-  
-  #inset---
+  #inset-------
   #it will return a list of two elements
   insetPlt <- reactive({
     # browser()
-    
     #inset in the figure------------------
     value <- list(NULL, NULL) #to be return as reactive value
     if(req(input$stat) != "anova" || (req(input$stat) == "anova" && req(input$pairedData) == "one")){
-      
-      if(nrow(clickBrush_df()) > 1 && isTruthy(input$brush_info) && req(input$inset) == "yes"){
-        #currently inset and side not supported
-        req(is.null(sideGraphx()[[1]]))
+
+      # if(nrow(clickBrush_df()) > 1 && isTruthy(input$brush_info) && req(input$inset) == "yes"){
+      if(isTruthy(input$brush_info) && nrow(brush_df()) > 1 && req(input$inset) == "yes"){
+        #currently inset and side together not supported
+        # req(is.null(sideGraphx()[[1]]))
         req(insetGeomType())
-        
+
         message(req(input$xAxis))
         validate(
-          need(req(input$xAxis) %in% colnames(clickBrush_df()), "")
+          need(req(input$xAxis) %in% colnames(brush_df()), "")
         )
         #get necessary parameters
         insetPltTypes <- reactive(if(req(input$insetPlotType) != "histogram"){ input$insetPlotType }else{ "inset-histogram" })
         shapeLine <- reactive(ifelse(isTruthy(input$shapeLine), input$shapeLine, "none"))
         shapeSet <- reactive(if(shapeLine() == "Shape") {req(input$shapeSet)}else{NULL})
         lineSet <- reactive(if(shapeLine() == "Line type") {req(input$lineSet)}else{NULL})
-        
+
         autoCust <- reactive(ifelse(req(input$colorSet) != "none", req(input$autoCustome), "none"))
         colorTxt <- reactive(ifelse(autoCust() == "customize" && isTruthy(input$colorAdd), input$colorAdd, "noneProvided"))
         # browser()
@@ -6441,7 +6622,7 @@ server <- function(input, output, session){
           req(input$plotType != 'none', input$xAxis %in% colnames(ptable()))
           xTextLabel()
         })
-        
+
         xl <- reactive({
           if(req(input$insetXAxis) == "default"){
             input$xAxis
@@ -6449,7 +6630,7 @@ server <- function(input, output, session){
             input$insetXAxis
           }
         })
-          
+
         yl <- reactive({
           if(req(input$insetPlotType) != "histogram"){
             if(req(input$insetYAxis) == "default"){
@@ -6458,77 +6639,73 @@ server <- function(input, output, session){
               input$insetYAxis
             }
           }else if(req(input$insetPlotType) == "histogram"){ NULL}
-          
+
         })
         # insetParamFunc(inDf, oriDf, orix, oriTextLabel, finalPlt, color = "none", shape=NULL, line=NULL)
         # browser()
         # insetParamFunc(inDf= clickBrush_df(), oriDf = ptable(), orix = xyAxis()[[1]], oriTextLabel = xTextLabels(), finalPlt = finalPlt, color = varSet(), shape=shapeSet(), line=lineSet())
-        insetParamFunc(inDf= clickBrush_df(), oriDf = ptable(), orix = req(input$xAxis), insx = req(input$insetXAxis), oriTextLabel = xTextLabels(), color = req(input$colorSet), shape=shapeSet(), line=lineSet())
-        
+        # insetParamFunc(inDf= clickBrush_df(), oriDf = ptable(), orix = req(input$xAxis), insx = req(input$insetXAxis), oriTextLabel = xTextLabels(), color = req(input$colorSet), shape=shapeSet(), line=lineSet())
+        insetParamFunc(inDf= brush_df(), oriDf = ptable(), orix = req(input$xAxis), insx = req(input$insetXAxis), oriTextLabel = xTextLabels(), color = req(input$colorSet), shape=shapeSet(), line=lineSet())
+
         #reactive value: insetXTextLabels() - in insetPlt & insetColor() - to be used in inset_df
         #generate inset graph
         # browser()
-        
         if(!req(input$insetPlotType) %in% c("line", "scatter plot")){
-          insetPlt <- plotFig(data = req(clickBrush_df()), types = insetPltTypes(), geom_type = insetGeomType(),
+          insetPlt <- plotFig(data = req(brush_df()), types = insetPltTypes(), geom_type = insetGeomType(),
                               xTextLabels = insetXTextLabels(),
                               xl = xl(), yl = yl(), shapes = shapeSet(),
                               linetypes = lineSet(), fills = req(input$colorSet), varSet = req(input$colorSet),
                               lineParam = FALSE, autoCust = autoCust(), colorTxt = colorTxt()
           )
         }else{
-          insetPlt <- plotFig(data = req(clickBrush_df()), types = insetPltTypes(), geom_type = insetGeomType(),
+          insetPlt <- plotFig(data = req(brush_df()), types = insetPltTypes(), geom_type = insetGeomType(),
                               xTextLabels = insetXTextLabels(),
                               xl = xl(), yl = yl(), shapes = shapeSet(),
                               linetypes = lineSet(), colr = req(input$colorSet), varSet = req(input$colorSet),
                               lineParam = FALSE, autoCust = autoCust(), colorTxt = colorTxt())
         }
-        
-        
+
+
         #generate table for the inset
-        yMin <- min(clickBrush_df()[[ req(input$yAxis) ]])
-        
+        yMin <- min(brush_df()[[ req(input$yAxis) ]])
+
         if(req(input$insetPlotType) != "histogram"){
           #limit y-axis for other graphs
           inset_df <- tibble(x= req(input$insetXPosition), y = input$insetYPosition,
                              plot = list( insetPlt + labs(x=NULL, y = NULL) +
-                                            coord_cartesian(ylim = c(min(clickBrush_df()[[ req(input$yAxis) ]]), max(clickBrush_df()[[ req(input$yAxis) ]]))) +
+                                            coord_cartesian(ylim = c(min(brush_df()[[ req(input$yAxis) ]]), max(brush_df()[[ req(input$yAxis) ]]))) +
                                             themeF(thme = req(input$insetTheme))+
                                             theme(legend.position = "none", axis.text = element_text(face = "bold", size = req(input$insetTextSize)))+ scale_fill_manual(values = insetColor())
-                                          # if(!input$insetPlotType %in% c("line", "scatter plot")){scale_fill_manual(values = origColor)}else{scale_color_manual(values = origColor)}
                              )
           )
         }else{
           #no fixed y-axis
           inset_df <- tibble(x= req(input$insetXPosition), y = input$insetYPosition,
                              plot = list( insetPlt + labs(x=NULL, y = NULL) +
-                                            # coord_cartesian(ylim = c(min(clickBrush_df()[[ req(input$yAxis) ]]), max(clickBrush_df()[[ req(input$yAxis) ]]))) +
                                             themeF(thme = req(input$insetTheme))+
                                             theme(legend.position = "none", axis.text = element_text(face = "bold", size = req(input$insetTextSize)))+ scale_fill_manual(values = insetColor())
-                                          # if(!input$insetPlotType %in% c("line", "scatter plot")){scale_fill_manual(values = origColor)}else{scale_color_manual(values = origColor)}
                              )
           )
         }
-        
-        
-        #color: dependening on the data add fill or color and scale_*_manual
+
+
+        #color: depending on the data add fill or color and scale_*_manual
         finalInsetPlt <- geom_plot_npc(data = inset_df, aes(npcx =x, npcy = y, label = plot), vp.width = req(input$insetWidth), vp.height = req(input$insetHeight))
-        #add mark area in the graph: 
-        geom_mark <- geom_mark_rect(data = clickBrush_df(), radius = unit(0,"mm"), expand = unit(3, "mm"), #expand = unit(req(input$insetExpandMarkedArea),"mm"), #expand the marked area
+        #add mark area in the graph:
+        geom_mark <- geom_mark_rect(data = brush_df(), radius = unit(0,"mm"), expand = unit(3, "mm"), #expand = unit(req(input$insetExpandMarkedArea),"mm"), #expand the marked area
                                     alpha = 0, fill = "white",
                                     linetype = "dotted")
-        
+
         #return as list
         value <- list(finalInsetPlt, geom_mark)
       }
-      
+
     }
-    
+
     #return
     value
-    #end of inset------------
   })
-  
+  #inset------------
   #hover info for the plot
   observe({
     req(ptable(), pltType(), input$hover_info)
@@ -6562,13 +6739,14 @@ server <- function(input, output, session){
   })
   
   
-  #save the click and brush data
+  #save the click and brush data : check global.R for usage of the two df
   # clickBrush_df <- reactiveVal(NULL)
   observe({
     req(!isTruthy(input$brush_info) & !isTruthy(input$click_info))
     # browser()
     #reset to null
     clickBrush_df <- reactiveVal(NULL)
+    brush_df <- reactiveVal(NULL)
     message("done")
   })
   #save inset plot
@@ -6640,10 +6818,10 @@ server <- function(input, output, session){
                  "violin plot" = geom_violin(width = req(input$barPointLineSize)), #width = freqPolySize()
                  "line" = if(xVarType()[1] %in% c("integer", "numeric", "double")){
                    #group for numeric type
-                   geom_line(group =1, size = req(input$barPointLineSize))
+                   geom_line(group =1, linewidth = req(input$barPointLineSize))
                  }else{
                    #no need to group for character type
-                   geom_line(size = req(input$barPointLineSize))
+                   geom_line(linewidth = req(input$barPointLineSize))
                  },
                  "scatter plot" = geom_point(size = req(input$barPointLineSize)),
                  "density" = geom_density(aes(y = after_stat(density) )),
@@ -6662,10 +6840,10 @@ server <- function(input, output, session){
                  "violin plot" = geom_violin(aes_string(x = input$insetXAxis), width = req(input$barPointLineSize)), #width = freqPolySize()
                  "line" = if(xcl %in% c("integer", "numeric", "double")){
                    #group for numeric type
-                   geom_line(aes_string(x = input$insetXAxis), group =1, size = req(input$barPointLineSize))
+                   geom_line(aes_string(x = input$insetXAxis), group =1, linewidth = req(input$barPointLineSize))
                  }else{
                    #no need to group for character type
-                   geom_line(aes_string(x = input$insetXAxis), size = req(input$barPointLineSize))
+                   geom_line(aes_string(x = input$insetXAxis), linewidth = req(input$barPointLineSize))
                  },
                  "scatter plot" = geom_point(aes_string(x = input$insetXAxis), size = req(input$barPointLineSize)),
                  "density" = geom_density(aes(y = after_stat(density))),
@@ -6710,7 +6888,7 @@ server <- function(input, output, session){
                    geom_line(aes_string(x = input$insetXAxis, y = input$insetYAxis), group =1, size = req(input$barPointLineSize))
                  }else{
                    #no need to group for character type
-                   geom_line(aes_string(x = input$insetXAxis, y = input$insetYAxis), size = req(input$barPointLineSize))
+                   geom_line(aes_string(x = input$insetXAxis, y = input$insetYAxis), linewidth = req(input$barPointLineSize))
                  },
                  "scatter plot" = geom_point(aes_string(x = input$insetXAxis, y = input$insetYAxis), size = req(input$barPointLineSize)),
                  "density" = geom_density(aes(y = after_stat(density))),
@@ -6767,7 +6945,8 @@ server <- function(input, output, session){
       })
      
       output$click_table <- renderReactable({
-        reactable(as.data.frame(df), sortable = TRUE, pagination = FALSE, outlined = TRUE, defaultPageSize = 5,
+        reactable(as.data.frame(df), sortable = TRUE, pagination = TRUE, outlined = TRUE, 
+                  defaultPageSize = 5,
                   theme = reactableTheme(backgroundColor = "rgba(190, 237, 253, 0.5)", borderColor = "rgba(60, 186, 249, 0.9)"))
       })
       
@@ -6792,12 +6971,12 @@ server <- function(input, output, session){
       # }else{
       #   df <- brushedPoints(df = ptable(), brush = input$brush_info, xvar = input$xAxis, yvar = input$yAxis)
       # }
-      message(input$click_info)
-      message(str(input$click_info))
       df <- brushedPoints(df = ptable(), brush = input$brush_info, xvar = input$xAxis, yvar = input$yAxis)
     }else{ df <- data.frame(matrix(nrow = 0, ncol = 0)) }
     
     clickBrush_df(df)#save it for download
+    brush_df(df) #use it in inset (only available for brush_info, not for click_info)
+    
     #table to display
     if(input$plotType != "none" && nrow(df) != 0){
       output$UiClickBrushDownload <- renderUI({

@@ -17,9 +17,9 @@ lib <- c("shinyjs","shinyjqui","shiny.router","scales",
          "flextable","openxlsx","svglite","MASS","skimr",
          "coin","DT","data.table","readxl","markdown","shinydashboard",
          "ggpubr","multcompView","rstatix","shiny","tidyverse",
-         "reactable","shinyWidgets")
+         "reactable","shinyalert", "shinyWidgets")
 sort(lib)
-
+library(shinyalert)
 library(shinyjs)
 library(shinyjqui)
 library(shiny.router)
@@ -86,7 +86,9 @@ insetList <- c( "box plot","violin plot", "line", "scatter plot", "density", "hi
 xyRequire <- c(  "box plot", "bar plot", "line", "scatter plot", "violin plot") 
 NS_methods <- list(Normalization= c("log2", "log10", "square-root", "box-cox"), Standardization = c("scale","") )
 #brush data
-clickBrush_df <- reactiveVal(NULL)
+clickBrush_df <- reactiveVal(NULL) #use for table
+brush_df <- reactiveVal(NULL) #only for use in inset: so as to avoid re-computing figure by click
+
 #statistical method----------
 statMethods <- list(Parametric = c("t.test", "anova"), `Non-parametric`=c("wilcoxon.test","kruskal-wallis"))
 statList <- c("t.test", "anova", "wilcoxon.test","kruskal-wallis")
@@ -106,6 +108,18 @@ sdError <- NULL
 waitNotify <- function(msg = "Computing... Please wait..", id = NULL, type = "message"){
   showNotification(msg, id = id, duration = NULL, closeButton = FALSE, type = type)
 }
+
+#alert for t-test and wilcoxon---------------------------
+# confirm_test <- modalDialog(
+#   "Data has more than 2 variables to compare. ANOVA may be more appropriate.
+#   Continue anyway (slower computation)?",
+#   title = tags$b("Alert!", style = "color:red"),
+#   footer = tagList(
+#     actionButton("test_stop", "No"),
+#     actionButton("test_continue", "Yes", class = "btn btn-danger")
+#   )
+# )
+
 #module for side graph-----------------
 sideGraphList <- c("density", "bar plot", "box plot", "scatter plot", "frequency", "violin plot")
 colorOpt <- c("black","grey","red","blue", "brown","orange")
@@ -2068,7 +2082,7 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
                     #, ...
 ){ #if y axis is required specifically mention in function parameter
   
-  # browser() 
+  # browser()  
   message(types)
   if(types == "none"){
     break
