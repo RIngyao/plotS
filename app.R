@@ -5439,6 +5439,15 @@ server <- function(input, output, session){
         #computeFuncError() #taken care ---this is require for anova: it will reset between non-additive and additive.
     )
   },{
+  # observe({
+  #   req(is.data.frame(ptable()),
+  #       input$xAxis,
+  #       input$xAxis %in% colnames(ptable()),
+  #       input$plotType != "none",
+  #       input$normalizeStandardize
+  #       #computeFuncError() #taken care ---this is require for anova: it will reset between non-additive and additive.
+  #   )
+  
     #parameters---------------------------
     # browser()
     #show notification
@@ -5658,6 +5667,7 @@ server <- function(input, output, session){
     twoAovVar <- reactive(if(methodSt() == "anova" && anovaType() == "two" && (varSet() != "none" || shapeLine() != "none")) req(input$twoAovVar))
     # ssType <- reactive(ifelse(methodSt() == "anova" && anovaType() == "two", input$ssType, "not anova"))
     #independent variable
+    browser()
     "For two-way anova: select x-axis and one more independent variable choosen by the user"
     catVar <- reactive({
       #aesthetic(s) not applied, use the variable of x-axis
@@ -6234,10 +6244,11 @@ server <- function(input, output, session){
           message("input$compareOrReference")
           #necessary for t.test and wilcoxon test: ..??
           message(compareOrReference())
-
+          browser()
+          message(varSet())
           #compute statistic only when requested
-          statData <- reactive({
-
+          # statData <- reactive({
+          statData({
             # if(methodSt() %in% c("t.test", "wilcoxon.test") && stopTest() == 0){}
             generateStatData(data = ptable(), groupStat = groupStat(), groupVar = groupStatVarOption(),
                              method = methodSt(), numericVar = numericVar(),
@@ -6357,6 +6368,13 @@ server <- function(input, output, session){
   })#end of advance plot
   #end plot figures--------------------------------
   
+  #statistics object
+  statData <- reactiveVal(NULL)
+  #reset
+  observe({
+    req(input$plotType, input$stat)
+    statData <- reactiveVal(NULL)
+  })
   
   #Display the final plot-----------------
   forFinalPlt <- reactiveVal(NULL)
@@ -6364,9 +6382,10 @@ server <- function(input, output, session){
   finalPltError <- reactiveVal(0) #0 - no error, 1 - error
   finalPltErrorMsg <- reactiveVal(NULL)
   
+  "I have made statData() as global"
   observe({
     req(is.data.frame(ptable()), pltType(), forFinalPlt())
-    # browser()
+    browser()
     #parameters for customizing plot------
     #parameters has to be outside renderPlot
     #legend parameters

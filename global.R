@@ -1970,6 +1970,7 @@ generateStatData <- function(data = "ptable()", groupStat = "groupStat()", group
                              pAdjustMethod = NULL, labelSignif = "labelSt()",
                              cmpGrpList = NULL, rfGrpList = NULL, #switchGrpList = 0, #for ref.group and comparison: global list
                              xVar = "xyAxis()[[1]]", anovaType = "anovaType", ssType ="I"){
+  # browser() 
   #convert the x-axis or group_by variable to factor.  
   #converting to factor is necessary for further processing
   message("entering generateStatData()-------------------")
@@ -2282,7 +2283,7 @@ advancePlot <- function(data, plt,
                         aovX=aovX,
                         plabelSize = 7
 ){
-  # browser() 
+  browser() 
   message(str(statData))
   # advance settings
   message("display advance")
