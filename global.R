@@ -75,11 +75,15 @@ replicate_df <- structure(list(...1 = c("variable", "ob1", "ob2", "ob3", "ob4", 
                                treatment = c("R1", "2", "3", "4", "67", "2", "45", "24"), 
                                ...5 = c("R2", "1", "4", "6", "32", "1", "35", "23")), class = c("data.frame"), row.names = c(NA, -7L))
 
+#plot related object----------------
 #list of graph
 planPlotList <- c("none", "box plot","bar plot", "histogram", "scatter plot",
                   "density plot", "heatmap", "line", "frequency polygon",
                   "violin","jitter","area", "pie chart", "venn", "upset", "tile")
 plotList <- c("box plot","violin plot", "density", "frequency polygon", "histogram","line", "scatter plot", "bar plot")
+#save the plot for download
+saveFigure <- reactiveVal(NULL)
+
 #list of graph allow for inset
 insetList <- c( "box plot","violin plot", "line", "scatter plot", "density", "histogram", "bar plot")
 
@@ -94,7 +98,8 @@ brush_df <- reactiveVal(NULL) #only for use in inset: so as to avoid re-computin
 statMethods <- list(Parametric = c("t.test", "anova"), `Non-parametric`=c("wilcoxon.test","kruskal-wallis"))
 statList <- c("t.test", "anova", "wilcoxon.test","kruskal-wallis")
 
-#stat object
+#statistics object
+statData <- reactiveVal(NULL) #save computation result
 aovClt <- NULL #anova compact leter
 aovMeanLabPos <- NULL #anova mean and label position
 aovMeanLabPos1 <- NULL
@@ -2283,7 +2288,7 @@ advancePlot <- function(data, plt,
                         aovX=aovX,
                         plabelSize = 7
 ){
-  browser() 
+  # browser() 
   message(str(statData))
   # advance settings
   message("display advance")

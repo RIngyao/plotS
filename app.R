@@ -139,28 +139,45 @@ mainSection <- div(
             #                  ),
             {opts <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
                           tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
-            radioButtons(inputId = "replicatePresent", label = "Data with replicates/multiple headers", 
+            radioButtons(inputId = "replicatePresent", label = "Data with replicate/multiple headers", 
                          choiceNames = opts, choiceValues = c("no", "yes"), selected = "no", inline = TRUE
             )},
             
             conditionalPanel(condition = "input.replicatePresent == 'yes'",
-                             helpText("Manage the replicates. Data must have at least one header.", style = "margin-top:5px; margin-bottom: 10px; text-align:center"),
+                             
+                             helpText("Arrange the replicates into group. Data must have at least one header.", style = "margin-top:5px; margin-bottom: 10px; text-align:center",
+                                      style = "font-weight:bold; color:#DE2703; text-align:center"), #F4763A
+                             
+                             actionBttn(inputId = "hideShowReplicateDiv", label = "+", size = "xs"),
+                             bsTooltip(id = "hideShowReplicateDiv", title = "Hide/show the replicate panel", placement = "bottom", trigger = "hover", options = list(container = "body")),
+                             
                              div(
-                               style = "border-top:dotted 1px; border-bottom:dotted 1px; margin-bottom:10px; padding:5px 0 5px 0; text-align:center; 
-                                         overflow-y:auto; max-height: 500px; background-image:linear-gradient(rgba(206,247,250, 0.3), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5)",
-                               #Ui for number of header in the table
-                               # helpText("Provide correct number of header!", style = "margin-top:10px; margin-bottom:0;color:#F49F3A"), 
-                               helpText("Provide number of header row and group/variable of replicates.", style = "margin-top:20px; margin-bottom:7px;font-weight:bold; color:#F4763A"), 
+                               style = "border-top:dotted 1px; padding:0; "
+                             ),
+                             box(
+                               id = "replicateDiv",
+                               width=NULL,
+                               style = "border-bottom:dotted 1px; margin-bottom:10px; padding:0; text-align:center; 
+                                       background-image:linear-gradient(rgba(206,247,250, 0.3), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5)", 
+                               helpText("Provide number of header row and group/variable of replicate.", 
+                                        style = "margin-top:20px; margin-bottom:7px;font-weight:bold;"), 
                                fluidRow(
                                  # column(6,uiOutput("UiHeaderNumber")),
                                  column(6, selectInput(inputId = "headerNumber", label = "Header row", choices = 1:5, selected = 1)),
                                  #let user specify number of variables:
                                  # It is easier to process
-                                 column(6, uiOutput("UiDataVariables"))
+                                 column(6, uiOutput("UiDataVariables"),
+                                        bsTooltip(id = "UiDataVariables", title = "Specify the number of groups/variables to be used for replica grouping", placement = "top", trigger = "hover", options = list(container = "body"))
+                                        )
+                                 # column(6, selectInput(inputId = "dataVariables", label = "Group/variables", #Number of group/variables
+                                 #                                    choices = 1, selected = 1),
+                                 #        bsTooltip(id = "dataVariables", title = "Specify the number of groups/variables to group the replicates", placement = "bottom", trigger = "hover", options = list(container = "body"))
+                                 #        )
+                                 
                                ),
                                textOutput("UiVarList"),
                                uiOutput("UiReplicateNumber"),
-                               helpText("Provide variable's name and index number of the replicate columns", style = "margin-top:15px; margin-bottom:7px;font-weight:bold;color:#F4763A; text-align:center"), #3ABFF4
+                               helpText("Provide variable's name and index number of the replicate columns", style = "margin-top:15px; margin-bottom:7px;font-weight:bold; text-align:center"), #3ABFF4
                                #Ui for adding variable name and replicates column
                                uiOutput("UiVarNameRepCol"),
                                # #Ui for replicate statistic
@@ -171,15 +188,18 @@ mainSection <- div(
                                                               tags$span("Mean", style = "font-weight:bold; color:#0099e6"),
                                                               tags$span("Median", style = "font-weight:bold; color:#0099e6"))
                                                   radioButtons(inputId = "replicateStat", label = "Compute (for the replicates)", choiceNames = lst, choiceValues = c("none", "mean", "median"), inline = TRUE) 
-                                                }
+                                                },
+                                                bsTooltip(id = "replicateStat", title = "Mean is appropriate for parametric statistical method and Median for non-parametric method.", 
+                                                          placement = "bottom", trigger = "hover", options = list(container = "body"))
+                                                
                                ),
                                
-                               #message on when to use mean and median
-                               conditionalPanel(condition = "input.replicateStat != 'none'",
-                                                helpText("'Mean' is appropriate for parametric statistical method and 'Median' for non-parametric method.", 
-                                                         style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
-                                                #style= "margin-bottom:15px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)"), #Compute 'mean' to apply parametric statistic method, 'median' for non-parametric.
-                               ),
+                               # #message on when to use mean and median
+                               # conditionalPanel(condition = "input.replicateStat != 'none'",
+                               #                  helpText("'Mean' is appropriate for parametric statistical method and 'Median' for non-parametric method.", 
+                               #                           style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
+                               #                  #style= "margin-bottom:15px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)"), #Compute 'mean' to apply parametric statistic method, 'median' for non-parametric.
+                               # ),
                                uiOutput("UireplicateStatGroup"),
                                uiOutput("UiReplicateStatGroupMsg"), #warning message
                                uiOutput("UiReplicateStatGroupHelp"), #general message
@@ -1579,6 +1599,35 @@ server <- function(input, output, session){
   # })
   # #stop here--------------------------
   
+  # observe({
+  #   req(pInputTable_orig(), input$replicatePresent == "yes")
+  #   
+  #     
+  #   if(input$replicatePresent == "yes" && req(as.numeric(input$headerNumber)) != 0){
+  #     
+  #     data <- pInputTable$data %>% as.data.frame()
+  #     #it is expected that data with replicates will have more than one header
+  #     nh <- as.numeric(input$headerNumber)
+  #     nVar <- getDataVariable(x= data , nh = nh, re=1)
+  #     varTable <- getDataVariable(x= data, nh = nh, re=2)
+  #   }else{
+  #     #In case when data with replicates have only one header
+  #     nVar <- 1
+  #     varTable <- data.frame( number = (ncol(pInputTable$data) - 1) )
+  #   }
+  #   
+  #   
+  #   if(input$replicatePresent == "yes"){
+  #     
+  #     updateSelectInput(inputId = "dataVariables", #Number of group/variables
+  #                 choices = c(1:max(varTable$number)), selected = nVar)
+  #     # addTooltip(session = session, id = "dataVariables", title = "Specify the number of groups/variables to group the replicates", placement = "bottom", trigger = "hover", options = list(container = "body"))
+  #   }
+  #   
+  #   
+  # })
+  
+  #old
   observe({
     req(pInputTable_orig(), input$replicatePresent == "yes")
     
@@ -1606,8 +1655,6 @@ server <- function(input, output, session){
     })
     
   })
-  
-  
   #replicates: column number of replicate
   output$UiVarNameRepCol <- renderUI({
     req(input$replicatePresent == "yes", input$dataVariables)
@@ -1615,7 +1662,7 @@ server <- function(input, output, session){
     varNum <- reactive(paste0("Variable", seq_len(input$dataVariables))) 
     map(varNum(), ~ fluidRow(
       #input$Variable1 ... n
-      column(5, textInput(inputId = .x, label = paste0(.x, " name"))),
+      column(5, textInput(inputId = .x, label = paste0(.x, " name"))), #icpd: str_replace(.x, "Variable", "Group")
       #input$Variable1R ... nR
       column(7, selectInput(inputId = paste0(.x,"R"), label = "Replicate columns", choices = seq_len(ncol(pInputTable$data)), multiple = TRUE))
     ))
@@ -2518,6 +2565,10 @@ server <- function(input, output, session){
   })
   observeEvent(input$figureThemeHideShow,{
     shinyjs::toggle(id = "figureThemeId")
+  })
+  
+  observeEvent(input$hideShowReplicateDiv,{
+    shinyjs::toggle(id = "replicateDiv")
   })
   
   #create switch:
@@ -5423,23 +5474,12 @@ server <- function(input, output, session){
   }
   
   #plot----------------------------------
-  #save the plot for download
-  saveFigure <- reactiveVal(NULL)
   # saveFigure2 <- reactiveVal(NULL)
   finalPlt <- NULL #this is require to be able to delete after session end
   
   #all parameters for plotting graph and statistic analysis is process and executed 
   # in this observeEvent.
-  observeEvent({
-    req(is.data.frame(ptable()),
-        input$xAxis,
-        input$xAxis %in% colnames(ptable()),
-        input$plotType != "none",
-        input$normalizeStandardize
-        #computeFuncError() #taken care ---this is require for anova: it will reset between non-additive and additive.
-    )
-  },{
-  # observe({
+  # observeEvent({
   #   req(is.data.frame(ptable()),
   #       input$xAxis,
   #       input$xAxis %in% colnames(ptable()),
@@ -5447,6 +5487,15 @@ server <- function(input, output, session){
   #       input$normalizeStandardize
   #       #computeFuncError() #taken care ---this is require for anova: it will reset between non-additive and additive.
   #   )
+  # },{
+  observe({
+    req(is.data.frame(ptable()),
+        input$xAxis,
+        input$xAxis %in% colnames(ptable()),
+        input$plotType != "none",
+        input$normalizeStandardize
+        #computeFuncError() #taken care ---this is require for anova: it will reset between non-additive and additive.
+    )
   
     #parameters---------------------------
     # browser()
@@ -5667,7 +5716,7 @@ server <- function(input, output, session){
     twoAovVar <- reactive(if(methodSt() == "anova" && anovaType() == "two" && (varSet() != "none" || shapeLine() != "none")) req(input$twoAovVar))
     # ssType <- reactive(ifelse(methodSt() == "anova" && anovaType() == "two", input$ssType, "not anova"))
     #independent variable
-    browser()
+    # browser()
     "For two-way anova: select x-axis and one more independent variable choosen by the user"
     catVar <- reactive({
       #aesthetic(s) not applied, use the variable of x-axis
@@ -6244,7 +6293,7 @@ server <- function(input, output, session){
           message("input$compareOrReference")
           #necessary for t.test and wilcoxon test: ..??
           message(compareOrReference())
-          browser()
+          # browser()
           message(varSet())
           #compute statistic only when requested
           # statData <- reactive({
@@ -6368,9 +6417,7 @@ server <- function(input, output, session){
   })#end of advance plot
   #end plot figures--------------------------------
   
-  #statistics object
-  statData <- reactiveVal(NULL)
-  #reset
+  #reset statistics object
   observe({
     req(input$plotType, input$stat)
     statData <- reactiveVal(NULL)
@@ -6385,7 +6432,7 @@ server <- function(input, output, session){
   "I have made statData() as global"
   observe({
     req(is.data.frame(ptable()), pltType(), forFinalPlt())
-    browser()
+    # browser()
     #parameters for customizing plot------
     #parameters has to be outside renderPlot
     #legend parameters
