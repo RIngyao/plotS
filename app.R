@@ -145,7 +145,7 @@ mainSection <- div(
             
             conditionalPanel(condition = "input.replicatePresent == 'yes'",
                              
-                             helpText("Arrange the replicates into group. Data must have at least one header.", style = "margin-top:5px; margin-bottom: 10px; text-align:center",
+                             helpText("Arrange the replicate into group. Data must have at least one header.", style = "margin-top:5px; margin-bottom: 10px; text-align:center",
                                       style = "font-weight:bold; color:#DE2703; text-align:center"), #F4763A
                              
                              actionBttn(inputId = "hideShowReplicateDiv", label = "+", size = "xs"),
@@ -2845,8 +2845,16 @@ server <- function(input, output, session){
     }
     message("x ptable value")
     output$xAxisUi <- renderUI({
-      
-      if(pltType() != "none") selectInput(inputId = "xAxis", label = "X-axis", choices = colnames(ptable()), selected = var)
+      # browser()
+      if(pltType() != "none") {
+        #require checks to prevnt crash: `...1`
+        validate(
+          need( lapply(colnames(ptable()), str_detect, pattern = "^\\..", negate=TRUE) %>% 
+                  unlist() %>% all(.), "Unable to select column. Check the input data!"
+          ) #end need
+        )
+        selectInput(inputId = "xAxis", label = "X-axis", choices = colnames(ptable()), selected = var)
+        }
     })
     
     #selected variable for y-axis
@@ -2858,6 +2866,12 @@ server <- function(input, output, session){
     #y-axis
     output$yAxisUi <- renderUI({
       if(req(pltType() %in% xyRequire || isTRUE(needYAxis()))){
+        #require checks to prevnt crash: `...1`
+        validate(
+          need( lapply(colnames(ptable()), str_detect, pattern = "^\\..", negate=TRUE) %>% 
+                  unlist() %>% all(.), "Unable to select column. Check the input data!"
+          ) #end need
+        )
         
         selectInput(inputId = "yAxis", label = "Y-axis", choices = colnames(ptable()), selected = varC)
       }
