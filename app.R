@@ -5493,7 +5493,7 @@ server <- function(input, output, session){
         input$xAxis,
         input$xAxis %in% colnames(ptable()),
         input$plotType != "none",
-        input$normalizeStandardize
+        # input$normalizeStandardize
         #computeFuncError() #taken care ---this is require for anova: it will reset between non-additive and additive.
     )
   
