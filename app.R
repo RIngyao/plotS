@@ -3708,6 +3708,7 @@ server <- function(input, output, session){
   observe({
     req(is.data.frame(ptable()), pltType() != 'none', input$stat %in% c('t.test', "wilcoxon.test"), input$compareOrReference)
     output$UiTtestAlert <- renderUI({
+      # browser()
       if(input$stat %in% c('t.test', "wilcoxon.test")){
         if(req(input$colorSet) == 'none' && !isTruthy(input$shapeLine)){
           #check variable count
@@ -3716,7 +3717,7 @@ server <- function(input, output, session){
           countVar <- ptable() %>% distinct(.data[[input$xAxis]], .data[[input$colorSet]]) %>% nrow()
         }
         
-        if(countVar > 2 && input$compareOrReference == "none"){
+        if(pltType() != "none" && countVar > 2 && input$compareOrReference == "none"){
           if(input$stat == "t.test"){
             helpText("Data has more than 2 variables to compare. Consider using ANOVA or apply comparions or add reference group (options below)",
                      style= "margin-bottom:20px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")#style = "margin-bottom:20px; color:#EB6305")
@@ -3824,9 +3825,10 @@ server <- function(input, output, session){
   
   #alert message for t-test: same as modelDialog(), but more easier to implement
   observeEvent({
-    req(input$stat %in% c("t.test", "wilcoxon.test"))},{
+    req(input$stat %in% c("t.test", "wilcoxon.test"))
+    },{
       
-      req(input$xAxis %in% colnames(ptable()))
+      req(input$plotType != "none", input$xAxis %in% colnames(ptable()))
       if(req(input$colorSet) == 'none' && !isTruthy(input$shapeLine)){
         #check variable count
         countVar <- ptable() %>% distinct(.data[[input$xAxis]]) %>% nrow()
@@ -3854,14 +3856,29 @@ server <- function(input, output, session){
       )
     })
   
-  # observeEvent(req(input$tw_alert) == "No",{
+  
   observeEvent(input$tw_alert,{
-    if(isTRUE(input$tw_alert)){ #No, don't continue
-      updateSelectInput(inputId = "stat", choices = c("none",statMethods), selected = "none")
-    }else if(isFALSE(input$tw_alert)){ #Yes, continue
-      stopTest(0)
+  # observe({
+    # req(input$tw_alert)
+    # browser()
+    if(stopTest() == 1){
+      
+      if(isTRUE(input$tw_alert)){ #No, don't continue
+        updateSelectInput(inputId = "stat", choices = c("none",statMethods), selected = "none")
+      }else if(isFALSE(input$tw_alert)){ #Yes, continue
+        stopTest(0)
+      }
+      
     }
+    
   })
+  # observeEvent(req(isTRUE(input$tw_alert)),{
+  #   updateSelectInput(inputId = "stat", choices = c("none",statMethods), selected = "none")
+  # })
+  # 
+  # observeEvent(req(isFALSE(input$tw_alert)),{
+  #   stopTest(0)
+  # })
   
   # observeEvent(input$stat, {
   #   stopTest(1) #default is stop processing
@@ -4990,6 +5007,8 @@ server <- function(input, output, session){
     
     #caption
     output$UiStatSumCaption <- renderUI({
+      
+      
       if(input$stat %in% c('t.test', "wilcoxon.test") && unpaired_stopTest() == 'yes'){
         validate("")
       }
@@ -5041,7 +5060,7 @@ server <- function(input, output, session){
     })
     
     output$UiStatSubCaption <- renderUI({
-      
+      # browser()
       #check whether anova can be computed or not
       validate(
         need(twoAnovaError() == 0, " ")
@@ -5070,6 +5089,7 @@ server <- function(input, output, session){
     
     #table for stat summary
     output$UiStatSummaryTable <- renderReactable({
+      
       if(input$stat %in% c('t.test', "wilcoxon.test") && unpaired_stopTest() == 'yes'){
         validate("")
       }else{
@@ -5493,24 +5513,24 @@ server <- function(input, output, session){
   
   #all parameters for plotting graph and statistic analysis is process and executed 
   # in this observeEvent.
-  # observeEvent({
-  #   req(is.data.frame(ptable()),
-  #       input$xAxis,
-  #       input$xAxis %in% colnames(ptable()),
-  #       input$plotType != "none",
-  #       input$normalizeStandardize
-  #       #computeFuncError() #taken care ---this is require for anova: it will reset between non-additive and additive.
-  #   )
-  # },{
-  observe({
+  observeEvent({
     req(is.data.frame(ptable()),
         input$xAxis,
         input$xAxis %in% colnames(ptable()),
         input$plotType != "none",
-        # input$normalizeStandardize
+        input$normalizeStandardize
         #computeFuncError() #taken care ---this is require for anova: it will reset between non-additive and additive.
     )
-  
+  },{
+  # observe({
+  #   req(is.data.frame(ptable()),
+  #       input$xAxis,
+  #       input$xAxis %in% colnames(ptable()),
+  #       input$plotType != "none",
+  #       # input$normalizeStandardize
+  #       #computeFuncError() #taken care ---this is require for anova: it will reset between non-additive and additive.
+  #   )
+  # 
     #parameters---------------------------
     # browser()
     #show notification
@@ -6301,6 +6321,7 @@ server <- function(input, output, session){
         #compute statistic
         
         # if(figType() != "none" && methodSt() != "none"){
+        # if(figType() != "none" && ( !methodSt() %in% c("t.test", "wilcoxon.test", "none") || (methodSt() %in% c("t.test", "wilcoxon.test") && stopTest() == 0) ) ){
         if(figType() != "none" && ( !methodSt() %in% c("t.test", "wilcoxon.test", "none") || (methodSt() %in% c("t.test", "wilcoxon.test") && stopTest() == 0) ) ){
           message(glue::glue("method2: {methodSt()}"))
           message(catVar())
@@ -6321,7 +6342,7 @@ server <- function(input, output, session){
                              pAdjustMethod = pAdjustMethod(), labelSignif = labelSt(), cmpGrpList = cmpGrpList$lists, rfGrpList = rfGrpList$lists,# switchGrpList = switchGrpList$switchs,
                              xVar = xyAxis()[[1]], anovaType = anovaType())#, ssType = ssType())
           })
-
+          
           #global store to display in summary
           statDataStore$df <<- isolate(statData()[[1]])
         }
@@ -6481,7 +6502,7 @@ server <- function(input, output, session){
         }
       }
     })
-    
+
     #get theme parameters for the graph
     otherTheme <- if(isTRUE(legendTitle())){
       if(isTRUE(stripBackground())){
@@ -6525,23 +6546,23 @@ server <- function(input, output, session){
           legend.text = element_text(size = legendSize(), face = "bold"),
           strip.text = element_text(size = textSize(), face = "bold"))
       }
-      
+
     }
-    
+
     xTextLabels <- reactive({
       req(pltType() != 'none', input$xAxis %in% colnames(ptable()))
       xTextLabel()
     })
     #end parameters for customizing plot------
-    
+
     #final plot
     output$figurePlot <- renderPlot({
       # browser()
       res=400 #Display resolution
-      
+
       #save it in an object to process
       finalPlt_settings <- forFinalPlt()
-      
+
       if(pltType() == "none"){
         NULL
       }else if(is.null(forFinalPlt()) | !is.null(finalPltErrorMsg())){
@@ -6549,10 +6570,10 @@ server <- function(input, output, session){
         validate(need(finalPltError() == 0, finalPltErrorMsg()))
         NULL
       }else{
-        
+
         # display the error msg on the panel
         validate(need(finalPltError() == 0, finalPltErrorMsg()))
-        
+
         #additional layer
         if(req(input$addLayer) != "none"){
           # browser()
@@ -6566,14 +6587,14 @@ server <- function(input, output, session){
           )
         }
         # selectizeInput(inputId = "smoothMethod", label = "Method", choices = sort(c("lm","glm","gam", "loess")))
-        
-        
+
+
         #set lower limit of y axis to 0: kept here for better control in future
-        #add the theme here 
+        #add the theme here
         if(isTRUE(ylimit())){
-          
+
           finalPlt <- finalPlt_settings +
-            ylim(0, NA) + 
+            ylim(0, NA) +
             axisLabs(x =xyLable()[[1]], y = xyLable()[[2]])+
             themeF(thme = themes())+
             otherTheme
@@ -6583,29 +6604,29 @@ server <- function(input, output, session){
             themeF(thme = themes())+
             otherTheme
         }
-        
+
         #add side graph and inset--------------
         finalPlt <- finalPlt + sideGraphx()[[1]] + sideGraphx()[[2]] +
           #y side
           sideGraphy()[[1]] + sideGraphy()[[2]] + ggside(scales = "free",  draw_y_on = "main", draw_x_on = "main")+
           #inset
           insetPlt()[[1]] + insetPlt()[[2]]
-        
+
         #add x label if requested
         if(!is.numeric(xVar())){
-          dispFinalPlt <- finalPlt + scale_x_discrete(labels = xTextLabels() ) 
+          dispFinalPlt <- finalPlt + scale_x_discrete(labels = xTextLabels() )
         }
         # save it for download option
         saveFigure(dispFinalPlt)
-        #return 
+        #return
         dispFinalPlt
-        
+
       }
-      
-      
+
+
     })
-    
-  }) #end of final plot 
+
+  }) #end of final plot
   
   #error msg for side graph
   # sideError <- reactiveVal(0)
