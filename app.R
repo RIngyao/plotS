@@ -167,7 +167,7 @@ mainSection <- div(
                                  #let user specify number of variables:
                                  # It is easier to process
                                  column(6, uiOutput("UiDataVariables"),
-                                        bsTooltip(id = "UiDataVariables", title = "Specify the number of groups/variables to be used for replica grouping", placement = "top", trigger = "hover", options = list(container = "body"))
+                                        bsTooltip(id = "UiDataVariables", title = "Specify the number of groups/variables to be used for replica grouping (as column)", placement = "top", trigger = "hover", options = list(container = "body"))
                                         )
                                  # column(6, selectInput(inputId = "dataVariables", label = "Group/variables", #Number of group/variables
                                  #                                    choices = 1, selected = 1),
@@ -628,7 +628,7 @@ mainSection <- div(
                                           
                                           #ui for p adjust method
                                           # column(7, uiOutput("UiChooseSignifMethod"))
-                                          column(7, conditionalPanel(condition = "input.choosePFormat == true",
+                                          column(7, conditionalPanel(condition = "input.choosePFormat == true && input.stat != 'anova'",
                                                                      {
                                                                        pMethod <- c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr") 
                                                                        selectInput(inputId = "signifMethod", label = NULL, choices = sort(pMethod), selected = "bonferroni")
@@ -1769,7 +1769,7 @@ server <- function(input, output, session){
   #notify the user to reshape the data after managing replicates
   observe({
     req(input$replicatePresent == "yes", isTruthy(input$replicateActionButton))
-    
+    req(as.numeric(req(input$dataVariables)) > 1 )
     output$UiAfterReplicate <- renderUI({
       if(input$replicatePresent == "yes" && isTruthy(input$replicateActionButton)){
         helpText("Apply reshape after managing replicates (Recommended)", 
@@ -3710,11 +3710,19 @@ server <- function(input, output, session){
     output$UiTtestAlert <- renderUI({
       # browser()
       if(input$stat %in% c('t.test', "wilcoxon.test")){
-        if(req(input$colorSet) == 'none' && !isTruthy(input$shapeLine)){
-          #check variable count
-          countVar <- ptable() %>% distinct(.data[[input$xAxis]]) %>% nrow()
-        }else if(req(input$colorSet) != 'none'){
+        # default: (req(input$colorSet) == 'none' && !isTruthy(input$shapeLine)){
+        #check variable count
+        countVar <- ptable() %>% distinct(.data[[req(input$xAxis)]]) %>% nrow()
+        
+        if(req(input$colorSet) != 'none'){
           countVar <- ptable() %>% distinct(.data[[input$xAxis]], .data[[input$colorSet]]) %>% nrow()
+        }else if(req(input$colorSet) == 'none' && isTruthy(input$shapeLine)){
+          if(input$shapeLine == "Shape"){
+            countVar <- ptable() %>% distinct(.data[[input$xAxis]], .data[[req(input$shapeSet)]]) %>% nrow()
+          }else if(input$shapeLine == "Line type"){
+            countVar <- ptable() %>% distinct(.data[[input$xAxis]], .data[[req(input$lineSet)]]) %>% nrow()
+          }
+          
         }
         
         if(pltType() != "none" && countVar > 2 && input$compareOrReference == "none"){
@@ -3744,20 +3752,30 @@ server <- function(input, output, session){
   #   
   #   ifelse(countVar > 2, 1, 0)
   # })
-  stopTest <- reactiveVal(1)
-  observe({
-    req(ptable(), pltType() != "none", input$stat %in% c("t.test", "wilcoxon.test"))
-    #1 = stop (default); 0 = continue; 
-    req(input$xAxis %in% colnames(ptable()))
-    if(req(input$colorSet) == 'none' && !isTruthy(input$shapeLine)){
-      #check variable count
-      countVar <- ptable() %>% distinct(.data[[req(input$xAxis)]]) %>% nrow()
-    }else if(req(input$colorSet) != 'none'){
-      countVar <- ptable() %>% distinct(.data[[req(input$xAxis)]], .data[[input$colorSet]]) %>% nrow()
-    }
-    
-    stopTest(ifelse(countVar > 2, 1, 0))
-  })
+  
+  # observe({
+  #   req(ptable(), pltType() != "none", input$stat %in% c("t.test", "wilcoxon.test"))
+  #   #1 = stop (default); 0 = continue; 
+  #   req(input$xAxis %in% colnames(ptable()))
+  #   # default: (req(input$colorSet) == 'none' && !isTruthy(input$shapeLine)){
+  #   #check variable count
+  #   countVar <- ptable() %>% distinct(.data[[req(input$xAxis)]]) %>% nrow()
+  #   
+  #   if(req(input$colorSet) != 'none'){
+  #     countVar <- ptable() %>% distinct(.data[[req(input$xAxis)]], .data[[input$colorSet]]) %>% nrow()
+  #   }else if(req(input$colorSet) == 'none' && isTruthy(input$shapeLine)){
+  #     if(input$shapeLine == "Shape"){
+  #       countVar <- ptable() %>% distinct(.data[[input$xAxis]], .data[[req(input$shapeSet)]]) %>% nrow()
+  #     }else if(input$shapeLine == "Line type"){
+  #       countVar <- ptable() %>% distinct(.data[[input$xAxis]], .data[[req(input$lineSet)]]) %>% nrow()
+  #     }
+  #     
+  #   }
+  #   browser()
+  #   stopTest(ifelse(countVar > 2, 1, 0))
+  #   message(stopTest())
+  #   
+  # })
   
   # #base R for alert: modelDialog()--------------------------
   # observeEvent({
@@ -3821,19 +3839,27 @@ server <- function(input, output, session){
   # })
   # 
   # #base R for alert: modelDialog()--------------------------
-  
-  
+  #default: stop test -> activate this only after alerting the user
+  stopTest <- reactiveVal(1)
   #alert message for t-test: same as modelDialog(), but more easier to implement
   observeEvent({
     req(input$stat %in% c("t.test", "wilcoxon.test"))
     },{
       
       req(input$plotType != "none", input$xAxis %in% colnames(ptable()))
-      if(req(input$colorSet) == 'none' && !isTruthy(input$shapeLine)){
-        #check variable count
-        countVar <- ptable() %>% distinct(.data[[input$xAxis]]) %>% nrow()
-      }else if(req(input$colorSet) != 'none'){
-        countVar <- ptable() %>% distinct(.data[[input$xAxis]], .data[[input$colorSet]]) %>% nrow()
+      
+      #default: to avoid crash
+      countVar <- ptable() %>% distinct(.data[[input$xAxis]]) %>% nrow()
+      
+      if(req(input$colorSet) != 'none'){
+        countVar <- ptable() %>% distinct(.data[[req(input$xAxis)]], .data[[input$colorSet]]) %>% nrow()
+      }else if(req(input$colorSet) == 'none' && isTruthy(input$shapeLine)){
+        if(input$shapeLine == "Shape"){
+          countVar <- ptable() %>% distinct(.data[[input$xAxis]], .data[[req(input$shapeSet)]]) %>% nrow()
+        }else if(input$shapeLine == "Line type"){
+          countVar <- ptable() %>% distinct(.data[[input$xAxis]], .data[[req(input$lineSet)]]) %>% nrow()
+        }
+        
       }
       
       req(countVar > 2)
@@ -3841,8 +3867,11 @@ server <- function(input, output, session){
         inputId = "tw_alert",
         title = "Message", #tags$b("Alert!", style = "color:red"),
         html = TRUE,
-        text = tags$b("Data has more than 2 variables to compare. ANOVA may be more appropriate. \n
-                Continue anyway (slower computation)?", style = "color:red;"),
+        text = tagList(tags$b("Data has more than 2 variables to compare. ANOVA may be more appropriate.", style = "color:red;"),
+                # Continue anyway (may be slow)?", style = "color:red;"),
+                       tags$p(tags$b("Continue anyway (may be slow)?", style = "color:red;")),
+                       tags$p("If yes, it will reset aesthetic options", style = "font:italic")
+                       ),
         type = "warning",
         closeOnClickOutside = TRUE,
         showCancelButton = TRUE,
@@ -3856,21 +3885,18 @@ server <- function(input, output, session){
       )
     })
   
-  
   observeEvent(input$tw_alert,{
-  # observe({
-    # req(input$tw_alert)
-    # browser()
-    if(stopTest() == 1){
-      
-      if(isTRUE(input$tw_alert)){ #No, don't continue
-        updateSelectInput(inputId = "stat", choices = c("none",statMethods), selected = "none")
-      }else if(isFALSE(input$tw_alert)){ #Yes, continue
-        stopTest(0)
-      }
-      
+    if(isTRUE(input$tw_alert)){ #No, don't continue
+      updateSelectInput(inputId = "stat", choices = c("none",statMethods), selected = "none")
+    }else if(isFALSE(input$tw_alert)){ #Yes, continue
+      stopTest(0)
     }
-    
+  })
+  
+  #reset the stopTest to default
+  observe({
+    req(input$plotType, input$stat)
+    stopTest(1)
   })
   # observeEvent(req(isTRUE(input$tw_alert)),{
   #   updateSelectInput(inputId = "stat", choices = c("none",statMethods), selected = "none")
@@ -4552,7 +4578,7 @@ server <- function(input, output, session){
     
     output$UiDataSummary <- renderPrint({
       #notify
-      summaryId <- waitNotify(id = "summaryId")
+      summaryId <- waitNotify(id = "summaryId", msg = "...")
       on.exit(removeNotification(summaryId),  add = FALSE, after = TRUE)
       
       if(is.data.frame(ptable())){
@@ -4585,7 +4611,7 @@ server <- function(input, output, session){
   observe({
     req(is.data.frame(ptable()), pltType() %in% xyRequire, input$xAxis, input$yAxis, input$colorSet)
     
-    summaryId <- waitNotify(id = "summaryId")
+    summaryId <- waitNotify(id = "summaryId", msg = "... ... ...")
     on.exit(removeNotification(summaryId),  add = FALSE, after = TRUE)
     
     data <- ptable()
@@ -6331,9 +6357,8 @@ server <- function(input, output, session){
           # browser()
           message(varSet())
           #compute statistic only when requested
-          # statData <- reactive({
-          statData({
-            # if(methodSt() %in% c("t.test", "wilcoxon.test") && stopTest() == 0){}
+          #make it global (can't use as reactiveVal)
+          statData <<- reactive({
             generateStatData(data = ptable(), groupStat = groupStat(), groupVar = groupStatVarOption(),
                              method = methodSt(), numericVar = numericVar(),
                              catVar = catVar(), compRef = compareOrReference(),
@@ -6562,17 +6587,36 @@ server <- function(input, output, session){
 
       #save it in an object to process
       finalPlt_settings <- forFinalPlt()
-
+      
+      # browser()
+      # message(str(finalPltErrorMsg()))
+      # message(str(finalPltErrorMsg()[[1]]))
+      # message(str(finalPltErrorMsg()$message))
+      # sj <- 2
       if(pltType() == "none"){
         NULL
-      }else if(is.null(forFinalPlt()) | !is.null(finalPltErrorMsg())){
+      }else if(is.null(forFinalPlt()) | !is.null(finalPltErrorMsg()$message)){
         #Error message is necessary if forFinalPlt is null due to some error
-        validate(need(finalPltError() == 0, finalPltErrorMsg()))
+        # str_detect("object 'sData1' not found", "sData1")
+        validate(
+          need(
+            finalPltError() == 0, if(str_detect(finalPltErrorMsg()$message, "sData1")){
+              ""
+            }else{ finalPltErrorMsg()$message }
+          ) 
+          )
         NULL
       }else{
-
+        
         # display the error msg on the panel
-        validate(need(finalPltError() == 0, finalPltErrorMsg()))
+        # validate(need(finalPltError() == 0, finalPltErrorMsg()))
+        validate(
+          need(
+            finalPltError() == 0, if( is.null(finalPltErrorMsg()$message) || finalPltErrorMsg()$message == "" || str_detect(finalPltErrorMsg()$message, "sData1")){
+              ""
+            }else{ finalPltErrorMsg()$message }
+          ) 
+        )
 
         #additional layer
         if(req(input$addLayer) != "none"){
