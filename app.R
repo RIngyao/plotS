@@ -74,7 +74,6 @@ mainSection <- div(
       type="pills",
       tabPanel(
         title = span("Data", style = "font-weight:bold; font-family: 'Times New Roman',Times, Georgia, Serif, sans-serif; text-shadow:1px 4px 5px #C1BEBD"),
-        # icon=icon("table"),
         #require sidebar (Input panel) and main panel (display panel)
         sidebarLayout(
           sidebarPanel(
@@ -129,14 +128,6 @@ mainSection <- div(
             #ui for alerting invalid file type
             uiOutput(outputId = "UiUploadInvalid"),
             #ui for present or absent of replicates
-            # uiOutput(outputId = "UiReplicatePresent"),
-            # conditionalPanel(condition = "input.pInput",
-            #                  {opts <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
-            #                                tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
-            #                  radioButtons(inputId = "replicatePresent", label = "Data with replicates/multiple headers", 
-            #                               choiceNames = opts, choiceValues = c("no", "yes"), selected = "no", inline = TRUE
-            #                  )}
-            #                  ),
             {opts <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
                           tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
             radioButtons(inputId = "replicatePresent", label = "Data with replicate/multiple headers", 
@@ -162,17 +153,12 @@ mainSection <- div(
                                helpText("Provide number of header row and group/variable of replicate.", 
                                         style = "margin-top:20px; margin-bottom:7px;font-weight:bold;"), 
                                fluidRow(
-                                 # column(6,uiOutput("UiHeaderNumber")),
                                  column(6, selectInput(inputId = "headerNumber", label = "Header row", choices = 1:5, selected = 1)),
                                  #let user specify number of variables:
                                  # It is easier to process
                                  column(6, uiOutput("UiDataVariables"),
                                         bsTooltip(id = "UiDataVariables", title = "Specify the number of groups/variables to be used for replica grouping (as column)", placement = "top", trigger = "hover", options = list(container = "body"))
                                         )
-                                 # column(6, selectInput(inputId = "dataVariables", label = "Group/variables", #Number of group/variables
-                                 #                                    choices = 1, selected = 1),
-                                 #        bsTooltip(id = "dataVariables", title = "Specify the number of groups/variables to group the replicates", placement = "bottom", trigger = "hover", options = list(container = "body"))
-                                 #        )
                                  
                                ),
                                textOutput("UiVarList"),
@@ -203,10 +189,7 @@ mainSection <- div(
                                uiOutput("UireplicateStatGroup"),
                                uiOutput("UiReplicateStatGroupMsg"), #warning message
                                uiOutput("UiReplicateStatGroupHelp"), #general message
-                               # conditionalPanel(condition = "input.replicateStat != 'none'",
-                               #                  uiOutput("UiReplicateStatGroupHelp")
-                               #                  
-                               # ),
+                               
                                #action button for running replicates parameter
                                uiOutput("UiReplicateActionButton"),
                                uiOutput("UiAfterReplicate"),
@@ -804,7 +787,7 @@ mainSection <- div(
                                           fluidRow(
                                             dropdownButton(inputId = "filterData", label = tags$b("Filter", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Filter the input data", placement = "bottom"), icon = icon("sliders"),
                                             # dropdown(inputId = "filterData",  label = tags$b("Filter", style="color:#C622FA"), circle = FALSE, size = "sm", tooltip = tooltipOptions(title = "Filter the input data", placement = "bottom"), icon = icon("sliders"),
-                                                     style = "minimal",      
+                                                       
                                                      jqui_draggable(
                                                              div(
                                                                class = "filterDataDiv",
@@ -825,7 +808,7 @@ mainSection <- div(
                                                                # uiOutput("UiFilterMsgGeneral"),
                                                                conditionalPanel(condition = "input.varFilterOpts != ''",
                                                                                 helpText(list(tags$p("Note:", style = "font-style:italic; font-weigth:bold;"), tags$p("1. Numeric variable: provide only one numeric value. To filter 'between', enter two values separated by colon - e.g., 10:34"),
-                                                                                              tags$p('2. Non-numeric variable: allow multiple values separated by comma. Use double quotes (""), if space or comma is included in the value')), style = "text-align:left")
+                                                                                              tags$p('2. Non-numeric variable: allow multiple values separated by comma (not space!). Use double quotes (""), if space or comma is included in the value')), style = "text-align:left")
                                                                ),
                                                                
                                                                # actionBttn(inputId = "applyFilter", label = "Apply filter", block = TRUE, size = "md")
@@ -914,8 +897,8 @@ mainSection <- div(
                                    ), #end column for inset
                                    column(2,
                                           conditionalPanel(condition = "input.pairedData !== 'two'",
-                                                           
-                                                           dropdownButton( inputId = "sideDropdownButton", right = TRUE, width="500px", label = tags$b("Side graph", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Add or remove side graph", placement = "bottom"), icon = icon("sliders"),
+                                                           #sude graph
+                                                           dropdownButton( inputId = "sideDropdownButton", right = TRUE, width="550px", label = tags$b("Side graph", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Add or remove side graph", placement = "bottom"), icon = icon("sliders"),
                                                                            jqui_draggable(
                                                                              div(
                                                                                class = "sideDropdownDiv",
