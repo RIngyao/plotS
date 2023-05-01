@@ -95,6 +95,8 @@ mainSection <- div(
             #ui for uploading the data, 
             uiOutput(outputId = "pUpload"), #ok
             
+            #ui for alerting invalid file type
+            uiOutput(outputId = "UiUploadInvalid"),
             #ui for na 
             conditionalPanel(condition = "input.pInput == 'upload data'",
                              div(
@@ -125,8 +127,6 @@ mainSection <- div(
                                       style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
             ),
             
-            #ui for alerting invalid file type
-            uiOutput(outputId = "UiUploadInvalid"),
             #ui for present or absent of replicates
             {opts <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
                           tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
