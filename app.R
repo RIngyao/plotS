@@ -130,9 +130,10 @@ mainSection <- div(
             #ui for present or absent of replicates
             {opts <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
                           tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
-            radioButtons(inputId = "replicatePresent", label = "Data with replicate/multiple headers", 
+            radioButtons(inputId = "replicatePresent", label = "Data with replicate/multiple headers?", 
                          choiceNames = opts, choiceValues = c("no", "yes"), selected = "no", inline = TRUE
             )},
+            bsTooltip(id= "replicatePresent", title = "Replicates must be grouped and organised into columns."),
             
             conditionalPanel(condition = "input.replicatePresent == 'yes'",
                              
@@ -202,8 +203,9 @@ mainSection <- div(
             div({
               trsOpt <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
                              tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
-              radioButtons(inputId = "transform", label = "Reshape wide to long format", choiceNames = trsOpt, choiceValues = c("No", "Yes"), inline = TRUE) 
+              radioButtons(inputId = "transform", label = "Reshape wide to long format?", choiceNames = trsOpt, choiceValues = c("No", "Yes"), inline = TRUE) 
             }),
+            bsTooltip(id= "transform", title = "Input data must be in long format. Apply reshape if data is in wide format.", options = list(container = "body")),
             # selectInput(inputId = "transform", label = "Reshape the data", choi, selected = "No"),
             conditionalPanel(condition = "input.transform == 'Yes'",
                              # helpText(list(tags$p("Reshape will transpose column to row (long formate)."), tags$p("It facilitate comparison between variables.")), style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")),
@@ -242,7 +244,8 @@ mainSection <- div(
             uiOutput(outputId = "trAction"),
             
             #Ui for normalization and standardization of data  
-            selectInput(inputId = "normalizeStandardize", label = "Transform", choices = c('none', NS_methods), selected = 'none'),
+            selectInput(inputId = "normalizeStandardize", label = "Apply data transform", choices = c('none', NS_methods), selected = 'none'),
+            
             conditionalPanel(condition = "input.normalizeStandardize != 'box-cox'",
                              uiOutput("UiNsNumVar")
             ),
@@ -2380,9 +2383,9 @@ server <- function(input, output, session){
     req(input$replicatePresent, replicateError(), input$transform, reshapeError())
     # browser()
     if( (input$replicatePresent == "yes" && isTruthy(input$replicateActionButton) && replicateError() == 1) | (input$transform == "Yes" && isTruthy(input$goAction) && reshapeError() == 1) ){
-      updateSelectInput(inputId = "normalizeStandardize", label = "Transform", choices = "none")
+      updateSelectInput(inputId = "normalizeStandardize", label = "Apply data transform", choices = "none")
     }else{
-      updateSelectInput(inputId = "normalizeStandardize", label = "Transform", choices = c('none', NS_methods), selected = 'none')
+      updateSelectInput(inputId = "normalizeStandardize", label = "Apply data transform", choices = c('none', NS_methods), selected = 'none')
     }
   })
 
@@ -6419,13 +6422,13 @@ server <- function(input, output, session){
         if(isTRUE(advance())){
           # plabelSize <- reactive()
           # message(statistic_df())
+          message("advance plot")
           secondPlot <- advancePlot(data = data, plt = firstPlot,
                                     methodSt = methodSt(), removeBracket = removeBracket(),
                                     # statData = statData, anovaType = anovaType(),
                                     statData = statistic_df(), anovaType = anovaType(),
                                     aovX = aovX, plabelSize = req(input$plabelSize))
-
-
+          message("advance plot end")
           finalPlt_1 <- secondPlot
         }else{
           finalPlt_1 <- firstPlot
