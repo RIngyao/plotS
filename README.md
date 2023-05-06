@@ -14,10 +14,14 @@ The list of graphs currently available for plotting:
 8. Violin plot
 
 For statistical analysis, we have included the most commonly used parametric and non-parametric methods in biological research:
+
 I. Parametric test
+
   1. T-test
   2. ANOVA (One-way and Two-way)
+
 II. Non-parametric test
+
   1. Wilcoxon test
   2. Kruskal-Wallis test
 
