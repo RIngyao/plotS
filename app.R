@@ -891,7 +891,7 @@ mainSection <- div(
                                                                                                # sliderInput(inputId = "insetExpandMarkedArea", label = "Expand the marked area", min = 1, max = 20, value = 3)
                                                                                                
                                                                               ), #end of condition parameter
-                                                                              helpText( tags$p("** Does not support for two-way ANOVA and when side graph is added"), style = "text-align:center"),
+                                                                              helpText( tags$p("** Does not support for two-way ANOVA"), style = "text-align:center"),
                                                                             )#end of inset
                                                                           ),#end of draggable inset
                                                                           bsTooltip(id= "insetDoprdownDivID", title = "Click and drag the panel", placement = "top")
