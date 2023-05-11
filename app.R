@@ -164,7 +164,7 @@ mainSection <- div(
                                ),
                                textOutput("UiVarList"),
                                uiOutput("UiReplicateNumber"),
-                               helpText("Provide variable's name and index number of the replicate columns", style = "margin-top:15px; margin-bottom:7px;font-weight:bold; text-align:center"), #3ABFF4
+                               helpText("Provide group/variable's name and replicate columns", style = "margin-top:15px; margin-bottom:7px;font-weight:bold; text-align:center"), #3ABFF4
                                #Ui for adding variable name and replicates column
                                uiOutput("UiVarNameRepCol"),
                                # #Ui for replicate statistic
@@ -182,11 +182,6 @@ mainSection <- div(
                                ),
                                
                                # #message on when to use mean and median
-                               # conditionalPanel(condition = "input.replicateStat != 'none'",
-                               #                  helpText("'Mean' is appropriate for parametric statistical method and 'Median' for non-parametric method.", 
-                               #                           style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
-                               #                  #style= "margin-bottom:15px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)"), #Compute 'mean' to apply parametric statistic method, 'median' for non-parametric.
-                               # ),
                                uiOutput("UireplicateStatGroup"),
                                uiOutput("UiReplicateStatGroupMsg"), #warning message
                                uiOutput("UiReplicateStatGroupHelp"), #general message
@@ -1407,39 +1402,35 @@ server <- function(input, output, session){
     filterMsg(NULL)
     #get data based on users input
     if(req(input$pInput) == "upload data"){
+      #initial data is null
+      pData <- NULL
       
-      #get the extension of the file
-      ext <- tools::file_ext(req(upPath()$datapath))
-      
-      #alert and validate the file type
-      output$UiUploadInvalid <- renderUI({
-        if(req(input$pInput) == "upload data" && !ext %in% c("csv","tsv","xlsx", "xls","rds", "txt") ){
-          helpText(list(tags$p("Invalid file!!"), tags$p("Please upload a valid file: csv/tsv/txt/xlsx/xls/rds")), style= "color:red; text-align:center")
-        }
-      })
-      shiny::validate(
-        need(ext %in% c("csv","tsv","xlsx", "xls","rds", "txt"), "Please upload a valid file: csv/tsv/txt/xlsx/xls/rds")
-      )
-      
-      
-      # #manage missing values
-      if(!isTruthy(input$selectNA)){
-        naList <- c("", " ", "NA", "na")
-      }else if(isTruthy(input$selectNA)){
-        #process the given list
-        naList <- strsplit(gsub(",", "=", input$selectNA),"=") %>% unlist()#strsplit(str_trim(gsub(",", " ", input$selectNA))," +") %>% unlist()
-      }
       tryCatch({
-        # browser()
+        
+        #manage missing values
+        if(!isTruthy(input$selectNA)){
+          naList <- c("", " ", "NA", "na")
+        }else if(isTruthy(input$selectNA)){
+          #process the given list
+          naList <- strsplit(gsub(",", "=", input$selectNA),"=") %>% unlist()#strsplit(str_trim(gsub(",", " ", input$selectNA))," +") %>% unlist()
+        }
+        
+        #get the extension of the file
+        ext <- tools::file_ext(req(upPath()$datapath))
+        
+        #invalid file extension: alert and validate the file type
+        shiny::validate(
+          need(ext %in% c("csv","tsv","xlsx", "xls","rds", "txt"), "Error: upload a valid file: csv/tsv/txt/xlsx/xls/rds")
+        )
         #read the data
         up_df <- switch(ext,
-                        "csv" = vroom::vroom(upPath()$datapath, na = naList) %>% as.data.frame(), #, na = naList
-                        "tsv" = vroom::vroom(upPath()$datapaht, na = naList) %>% as.data.frame(),
+                        "csv" = vroom::vroom(upPath()$datapath, na = naList, delim = ",") %>% as.data.frame(), #, na = naList
+                        "tsv" = vroom::vroom(upPath()$datapaht, na = naList, delim = "\t") %>% as.data.frame(),
                         "txt" = vroom::vroom(upPath()$datapaht, na = naList) %>% as.data.frame(),
                         "xlsx" = read_xlsx(upPath()$datapath, na = naList),
                         "xls" = read_xls(upPath()$datapath, na = naList),
                         "rds" = readRDS(upPath()$datapath, na = naList))
-        uploadError <<- 0
+       
         
         #remove or replace na 
         if(input$remRepNa == "remove"){
@@ -1448,29 +1439,43 @@ server <- function(input, output, session){
           pData1 <- up_df %>% mutate_all(., ~replace(., is.na(.), 0)) %>% as.data.frame()#mutate_if(is.numeric, ~ replace(., is.na(.), 0)) %>% as.data.frame()
         }
         
-        #search and convert to numeric: there is no need to convert to numeric.
-        pData <- pData1 
-        pData
+        #column name starting with number must be reported and stop execuation
+        nonNumberCol <- str_detect(colnames(pData1), "^\\D")
+        
+        validate(
+          need(all(nonNumberCol), "Error: can't proceed. Column name must not start with number!!")
+        )
+        
+        #header may include `...1` while importing: replace the `...` with new name
+        dotPresence <- str_detect(colnames(pData1), "^\\.+")
+        
+        if(any(dotPresence)){
+          showNotification("Improprer column name. Column name has been renamed.", duration = 4, type = "warning")
+          oldCol <- colnames(pData1)
+          #replaced with new column name: 'new_alphabet'
+          newCol <- str_replace(oldCol,"\\.+", paste0("new_",letters[1:length(oldCol)]))
+          colnames(pData1) <- newCol
+        }
+        
+        pData <- pData1
+        uploadError(0)
         
       }, error = function(e){
-        uploadError <<- 1
-        # uploadErrorMessage <<- e
-        print(e)
-        validate(
-          "Unable to load the file!"
-        )
+        uploadError(1)
+        uploadMsg(e)
       })
       
       
     }else if(input$pInput == "example"){
       req(input$pFile %in% c("long format", "wide format", "replicate"))
+      #data is in global.R
+      
       if(req(input$pFile) == "long format"){
         #example for long format
         pData <- long_df
       }else if(req(input$pFile) == "wide format"){
         #example for wide format
         pData <- wide_df
-        
         
       }else if (req(input$pFile) == "replicate"){
         #example for replicate
@@ -1483,6 +1488,25 @@ server <- function(input, output, session){
     pInputTable_orig(pData) 
   })
   
+  #error msg for upload
+  #alert and validate the file type
+  observe({
+    req(uploadError() == 1)
+    
+    output$UiUploadInvalid <- renderUI({
+      
+      if(uploadError() == 1) helpText(uploadMsg()$message, style= "color:red; text-align:center")
+      
+    })
+  })
+  
+  
+  #reset error msg
+  observe({
+    req(input$pInput)
+    uploadError(0)
+    uploadMsg(NULL)
+  })
   
   #signal the change of data-----------------
   oldData <- reactiveValues(df = NULL)
@@ -1646,11 +1670,13 @@ server <- function(input, output, session){
     req(input$replicatePresent == "yes", input$dataVariables)
     #number of variables
     varNum <- reactive(paste0("Variable", seq_len(input$dataVariables))) 
+    
     map(varNum(), ~ fluidRow(
       #input$Variable1 ... n
       column(5, textInput(inputId = .x, label = paste0(.x, " name"))), #icpd: str_replace(.x, "Variable", "Group")
       #input$Variable1R ... nR
-      column(7, selectInput(inputId = paste0(.x,"R"), label = "Replicate columns", choices = seq_len(ncol(pInputTable$data)), multiple = TRUE))
+      # column(7, selectInput(inputId = paste0(.x,"R"), label = "Replicate columns", choices = seq_len(ncol(pInputTable$data)), multiple = TRUE))
+      column(7, selectInput(inputId = paste0(.x,"R"), label = "Replicate columns", choices = colnames(pInputTable$data), multiple = TRUE))
     ))
   })
   
@@ -1660,8 +1686,6 @@ server <- function(input, output, session){
     #Button will be available only when all the parameters are filled
     req(pInputTable$data, input$headerNumber, input$dataVariables, input$replicateStat)
     varNum <- as.numeric(input$dataVariables)
-    # browser()
-    # message(str(varNum))
     
     #check whether name of all the variables has been provided or not
     gName <- all(
@@ -1670,24 +1694,50 @@ server <- function(input, output, session){
           req( eval(str2expression(paste0("input$Variable",.x))) ), regex("[:alnum:]")
         ) )
       ) )
-    
-    #convert to numeric and check whether all the replicate columns have been selected
+    #all replicate columns provided?
+    rCol <- all(
+      unlist(
+        map(1:varNum, ~ str_detect( 
+          req( eval(str2expression(paste0("input$Variable",.x, "R"))) ), regex("[:alnum:]")
+        ) )
+      ) )
+    # convert to numeric and check whether all the replicate columns have been selected
     # the above strategy does not work in selectInput, so run for loop
-    rCol <- FALSE
-    for (i in seq_len(varNum)){
-      if( all(
-        str_detect( 
-          as.numeric(unlist( req( eval(str2expression(paste0("input$Variable",i,"R"))) ) )), regex("[:digit:]")
-        ) 
-      ) ){
-        
-        rCol <- TRUE
-        
-      }else{
-        rCol <- FALSE
-        break
-      }
+    # rCol <- FALSE
+    # for (i in seq_len(varNum)){
+    #   if( all(
+    #     str_detect(
+    #       as.numeric(unlist( req( eval(str2expression(paste0("input$Variable",i,"R"))) ) )), regex("[:digit:]")
+    #     )
+    #   ) ){
+    # 
+    #     rCol <- TRUE
+    # 
+    #   }else{
+    #     rCol <- FALSE
+    #     break
+    #   }
+    # }
+    
+    #check whether replicate columns has duplicated: 
+    listCol <- c(NULL, NULL)
+    for(i in seq_len(varNum)){
+      listCol <- c(listCol, eval(str2expression(paste0("input$Variable",i,"R"))))
     }
+    validate(
+      need(
+        length(unique(listCol)) == length(listCol), "Error: duplicate columns selected for replicate!"
+      )
+    )
+    #number of replicate must be equal for all
+    #get replicates detail from the user's input as list
+    repDetails <- lapply(1:input$dataVariables, function(x) eval(str2expression(paste0("input$Variable",x,"R"))))
+    #count the replicates for each group
+    repCount <- lapply(repDetails, length)
+    
+    validate(
+      need(all(repCount == repCount[[1]]), "Error: variable has unequal replicates!")
+    )
     
     if(isTRUE(gName) && isTRUE(rCol)){
       actionButton(inputId = "replicateActionButton", label = span("Apply", style="color:white; font-weight:bold"), width = '100%', class = "btn-primary")
@@ -1700,19 +1750,21 @@ server <- function(input, output, session){
     # req(pInputTable$data, input$headerNumber, input$dataVariables, input$replicateStat)
     req(is.data.frame(pInputTable$data), pInputTable$data, input$dataVariables, input$replicateStat != "none", eval( str2expression(paste0("input$Variable",1:input$dataVariables,"R")) ) )
     output$UireplicateStatGroup <- renderUI({
+      
       if(input$replicateStat != "none"){
-        #provide option for the column index
-        #make sure that no index overlapped with replicates index
-        df_col <- 1:ncol(pInputTable$data)
-        replicateIndx <- lapply( 1:as.numeric(input$dataVariables), function(x) as.numeric(eval( str2expression(paste0("input$Variable",x,"R")) )) ) %>% unlist()
-        
-        #get the index not present in the replicates
+        #provide option to choose the columns
+        #make sure that no columns overlapped with replicates columns
+        # df_col <- 1:ncol(pInputTable$data)
+        df_col <- colnames(pInputTable$data)
+        # replicateIndx <- lapply( 1:as.numeric(input$dataVariables), function(x) as.numeric(eval( str2expression(paste0("input$Variable",x,"R")) )) ) %>% unlist()
+        replicateIndx <- lapply( 1:as.numeric(input$dataVariables), function(x) eval( str2expression(paste0("input$Variable",x,"R")) ) ) %>% unlist()
+        #get the columns not present in the replicates
         gr_col <- df_col[!df_col %in% replicateIndx]
-        selectInput(inputId = "replicateStatGroup", label = "Specify column(s) to group by", choices = c("none", gr_col), multiple = TRUE, selected = "none")
+        # selectInput(inputId = "replicateStatGroup", label = "Specify column(s) to group by", choices = c("none", gr_col), multiple = TRUE, selected = "none")
         #below code: use it for data base (ibdc), but not for plotS
         #get the column name from the table
-        # gr_col_name <- pInputTable$data[, gr_col, drop = FALSE] %>% colnames()
-        # selectInput(inputId = "replicateStatGroup", label = "Specify column(s) to group by", choices = c("none", gr_col_name), multiple = TRUE)
+        gr_col_name <- pInputTable$data[, gr_col, drop = FALSE] %>% colnames()
+        selectInput(inputId = "replicateStatGroup", label = "Specify column(s) to group by", choices = c("none", gr_col_name), multiple = TRUE)
       }
     })
   })
@@ -1733,7 +1785,7 @@ server <- function(input, output, session){
     output$UiReplicateStatGroupHelp <- renderUI({
       
       if(input$replicateStat != "none" && !isTruthy(input$replicateStatGroup)){
-        helpText( list(tags$p("Specify one or more column index to group by and determine mean or median"),
+        helpText( list(tags$p("Specify one or more column(s) to group by and determine mean or median"),
                        tags$p("Note: only replicate mean and, if applied, variables used for grouping will be retained.")), 
                   style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")
                   # style= "margin-bottom:20px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")
@@ -1742,7 +1794,7 @@ server <- function(input, output, session){
         if(length(req(input$replicateStatGroup)) > 1  && any("none" %in% req(input$replicateStatGroup))){
           helpText("Remove 'none' from the selection", style = "margin-bottom:20px; border-radius:10%; color:red; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")
         }else if(length(req(input$replicateStatGroup)) == 1){
-          helpText( list(tags$p("Specify one or more column index to group by and determine mean or median"),
+          helpText( list(tags$p("Specify one or more column(s) to group by and determine mean or median"),
                          tags$p("Note: only replicate mean and, if applied, variables used for grouping will be retained.")), 
                     style= "margin-bottom:15px; margin-top:0; color:black; background-color:#D6F4F7; border-radius:5%; text-align:center;")#style= "margin-bottom:20px; border-radius:10%; color:#921802; text-align:center; padding:auto; background-color:rgba(252, 198, 116, 0.2)")
         }
@@ -1987,7 +2039,6 @@ server <- function(input, output, session){
       req(input$replicateStatGroup)
       
       #-message(input$replicateStatGroup)
-      #for future
       if(length(input$replicateStatGroup) > 1){
         validate(
           need( !any("none" %in% req(input$replicateStatGroup)), "Remove 'none' from the selection")
@@ -2008,9 +2059,8 @@ server <- function(input, output, session){
       
       if( !any("none" %in% req(input$replicateStatGroup)) ){
         #For mean and median, if user specified group by, then, keep the variable in the first column of the table
-        data <- data %>% select(colnames(data[, as.numeric(input$replicateStatGroup), drop=FALSE]), everything())
-        #below code: use it for data base (ibdc), but not for plotS
-        # data <- data %>% select(!!!rlang::syms(input$replicateStatGroup), everything())
+        # data <- data %>% select(colnames(data[, as.numeric(input$replicateStatGroup), drop=FALSE]), everything())
+        data <- data %>% select(!!!rlang::syms(input$replicateStatGroup), everything())
       }
     }
     
@@ -2024,29 +2074,30 @@ server <- function(input, output, session){
     #count the replicates for each group
     repCount <- lapply(repDetails, length)
     
-    
-    #check error and alert the user:
-    # case 1: must have equal replicates for all the group
-    # case 2: must not select the same replicate column more than once
-    if( any(repCount != repCount[[1]]) & length(unlist(repDetails)) == length(unique(unlist(repDetails))) ){
-      #case 1
-      unequalReplicateError(1)
-    }else if( all(repCount == repCount[[1]]) & length(unlist(repDetails)) != length(unique(unlist(repDetails))) ){
-      #case 2
-      unequalReplicateError(2)
-    }else if( any(repCount != repCount[[1]]) & length(unlist(repDetails)) != length(unique(unlist(repDetails))) ){
-      #case 1 and 2
-      unequalReplicateError(3)
-    }else{
-      #no error
-      unequalReplicateError(0)
-    }
-    #stop processing
-    validate(
-      need(#case 1
-        all(repCount == repCount[[1]]) && length(unlist(repDetails)) == length(unique(unlist(repDetails))), "Error: select the appropriate replicate column for variables"
-      )
-    )
+    browser()
+    browser()
+    # #check error and alert the user:
+    # # case 1: must have equal replicates for all the group
+    # # case 2: must not select the same replicate column more than once
+    # if( any(repCount != repCount[[1]]) & length(unlist(repDetails)) == length(unique(unlist(repDetails))) ){
+    #   #case 1
+    #   unequalReplicateError(1)
+    # }else if( all(repCount == repCount[[1]]) & length(unlist(repDetails)) != length(unique(unlist(repDetails))) ){
+    #   #case 2
+    #   unequalReplicateError(2)
+    # }else if( any(repCount != repCount[[1]]) & length(unlist(repDetails)) != length(unique(unlist(repDetails))) ){
+    #   #case 1 and 2
+    #   unequalReplicateError(3)
+    # }else{
+    #   #no error
+    #   unequalReplicateError(0)
+    # }
+    # #stop processing
+    # validate(
+    #   need(#case 1
+    #     all(repCount == repCount[[1]]) && length(unlist(repDetails)) == length(unique(unlist(repDetails))), "Error: select the appropriate replicate column for variables"
+    #   )
+    # )
     
     #unlist and convert to numeric (it's a list of index number for columns)
     repCol <- repDetails %>% unlist() %>% as.numeric()
@@ -6110,7 +6161,11 @@ server <- function(input, output, session){
       
       tryCatch({
         #check condition-----------------------
-
+        
+        #data must have atleast two row
+        validate(
+          need(nrow(ptable()) > 1, "Error: data must have at least two rows!")
+        )
         #check for x and y-axis
         if(pltType() %in% xyRequire){
           #must have both x- and y-axis
