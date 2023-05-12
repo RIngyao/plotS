@@ -1125,7 +1125,7 @@ x = dataframe. data with both non-replicate and replicate column i.e. whole data
 y = dataframe. data with only non-replicate column. 
 colName = character. Column name. To be used for the  tidied data
 headerNo = numeric. row index of header used in the table. numeric sequence.
-colNo = numeric. column index for the replicates of each group. It can be vector or range
+colNo = character. column name for the replicates of each group. It can be vector or range
 stp = numeric. range from 0 to 1. 0 to process and 1 to stop processing 
       non-replicate columns
 "
@@ -1140,9 +1140,8 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
   # later some column may have to be converted to numeric
   # and tidied data will be appended to this data
   
-  
-  #check for addition of header by R: V1, V2, .....Vn
-  # removed the header if present. R will add header only if needed (not always) -> updated: 
+  #may not require (updated): check for addition of header by R: V1, V2, .....Vn
+  # removed the header if present.
   if(all( str_detect(x[1,], regex("^V[:digit:]")) )){
     x <- x[-1, ]
     y <- y[-1, ] 
@@ -1178,57 +1177,22 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
           
           if(length(headerNo) == 1){
             #one header
-            if(is.na(headr[,i])){
-              #give new name
-              getName[i] <- paste0("Var",i)
-            }else{
-              getName[i] <- headr[,i]
-            }
-            
+            getName[i] <- headr[,i]
           }else{
             
-            #multiple header
-            if( all(is.na(headr[,i])) ){
-              getName[i] <- paste0("Var",i)
-            }else if( any(is.na(headr[,i])) ){
-              
-              #check whether there is any row with name for all the columns
-              # if so, use that row as column  name
-              noNaRow <- as.character()
-              for(i in headerNo){
-                if(all(!is.na(headr[i,]))){
-                  
-                  #check for one more condition: skip row that starts with ..number in more 
-                  # than one column (this are default header added while uploading data)
-                  if( any( isTRUE(str_detect(headr[i,], regex("^\\.+[:digit:]"))) ) ){
-                    next
-                  }else{
-                    noNaRow <- headr[i,]
-                  }
-                  message("noNaRow")
-                }
-              }
-              
-              if(!is_empty(noNaRow)){
-                
-                getName <- noNaRow
-              }else{
-                #remove na and get the first element
-                vec <- headr[,i]
-                naRemovedHdr <- vec[!is.na(vec)]
-                getName[i] <- naRemovedHdr[1]
-              }
-              
+            #multiple header:
+            #this works only when data has two header row
+            if(any(headr[,i] == "0") ){
+              #the first row will always have name, so use that row as column name
+              getName <- headr[1, ]
             }else{
-              #no na;  
-              # check for condition
-              #   skip row that starts with ..number  
-              #   than one column (this are default header added while uploading data)
+              #no 0;  
+              #   skip row that starts with new_a (added while uploading) or 0 
               for(n in headerNo){
-                if(any( isTRUE(str_detect(headr[n,i], regex("^\\.+[:digit:]"))) ) ){
+                if(any( str_detect( headr[n,i], regex("^new_[:alpha:][:digit:]|0") ) )){
                   next
                 }else{
-                  #get the first name
+                  #get the name
                   getName[i] <- headr[n,i] 
                   break #get out of the nested loop
                 }
@@ -1262,30 +1226,14 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
   #select only the specified columns
   x2 <- x[, colNo, drop = FALSE] 
   #remove the header 
-  
   x2 <- x2[-c(headerNo),] %>% as.data.frame() 
-  
-  message("replicate selection")
   # convert to numeric
   onlyNumeric <- x2 %>% as.data.frame() %>% mutate_if(is.character, as.numeric)  #%>% as_tibble()
-  #validate whether the replicate data is in numeric, if not, than the column
-  # cannot be used as replicates. It is a categorical variable(s).
- 
-  validate(
-    need(
-        #must not contain any alphabets in the column: added here just to avoid repeated writing (not recommended)
-        all( unlist( lapply(x2, function(x) !str_detect(x, regex("[:alpha:]"))) ) ) &&
-        #must have been converted to numeric
-        all( unlist( lapply(onlyNumeric, is.numeric) ) ), "Specified replicate column(s) must be numeric!"
-        )
-  )
   
-  message("converted to numeric")
   #generate and add column names
   nn <- ncol(onlyNumeric)
-  
   colnames(onlyNumeric) <- paste0("Replicate_",1:nn)
-  message("merge")
+  
   #merge the noNumeric (character column) and onlyNumeric (replicate column)
   if(!is_empty(y) && stp == 0){
     newDf <- cbind(y_headRe, onlyNumeric) %>% as.data.frame()
@@ -1294,7 +1242,6 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
   }
   
   message("merge done3")
-  message(str(newDf))
   
   #Reshape the data: keep replicate row-wise i.e. longer format (pivot_longer())
   newDf2 <- pivot_longer(newDf, cols = colnames(onlyNumeric), names_to = "replicates", values_to = colName)
@@ -1325,11 +1272,9 @@ getMeanMedian <- function(x, df, stat='none', grp = NULL, varNum = NULL, repNum 
   
   if(is.null(grp)){
     #user provide no column to group by
-    message(varNum)
     #add unique id to each sample to be used in group by
     df2$newId <- rep(1:varNum, each = repNum)
     
-    message(str(df2))
     #group by based on the ID
     if(stat == "mean"){
       gb_df <- df2 %>% group_by(newId) %>% summarise(mean= mean(.data[[x]])) %>% as.data.frame() 
@@ -1430,10 +1375,12 @@ getDataVariable <- function(x, nh = 1, re = 1){
     h <- headr_df[i]
     len <- length(unique(h[,1]))
     var <- unique(h[,1])
-    var <- var[!is.na(var)]
+    # var <- var[!is.na(var)]
+    var <- var[var != "0" || var != 0 ]
     
-    if(any(is.na(h[,1]))){
-      #if na is present, then reduce the number of 
+    # if(any(is.na(h[,1]))){
+    if(any(h[,1] == "0")){
+      #if 0 is present, then reduce the number of 
       # variable by 1
       len <- len - 1
     }

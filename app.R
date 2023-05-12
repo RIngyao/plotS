@@ -1439,7 +1439,7 @@ server <- function(input, output, session){
           pData1 <- up_df %>% mutate_all(., ~replace(., is.na(.), 0)) %>% as.data.frame()#mutate_if(is.numeric, ~ replace(., is.na(.), 0)) %>% as.data.frame()
         }
         
-        #column name starting with number must be reported and stop execuation
+        #column name starting with number must be reported and stop execution
         nonNumberCol <- str_detect(colnames(pData1), "^\\D")
         
         validate(
@@ -1459,6 +1459,7 @@ server <- function(input, output, session){
         
         pData <- pData1
         uploadError(0)
+        
         
       }, error = function(e){
         uploadError(1)
@@ -2069,72 +2070,52 @@ server <- function(input, output, session){
     varId <- reactive(paste0("Variable", seq_len(input$dataVariables)))
     
     #get replicates detail from the user's input as list
-    repDetails <- lapply(1:input$dataVariables, function(x) eval(str2expression(paste0("input$Variable",x,"R"))))
+    repDetails <- lapply(1:input$dataVariables, function(x) eval(str2expression(paste0("input$Variable",x,"R")))) %>% unlist()
     
     #count the replicates for each group
-    repCount <- lapply(repDetails, length)
-    
-    browser()
-    browser()
-    # #check error and alert the user:
-    # # case 1: must have equal replicates for all the group
-    # # case 2: must not select the same replicate column more than once
-    # if( any(repCount != repCount[[1]]) & length(unlist(repDetails)) == length(unique(unlist(repDetails))) ){
-    #   #case 1
-    #   unequalReplicateError(1)
-    # }else if( all(repCount == repCount[[1]]) & length(unlist(repDetails)) != length(unique(unlist(repDetails))) ){
-    #   #case 2
-    #   unequalReplicateError(2)
-    # }else if( any(repCount != repCount[[1]]) & length(unlist(repDetails)) != length(unique(unlist(repDetails))) ){
-    #   #case 1 and 2
-    #   unequalReplicateError(3)
-    # }else{
-    #   #no error
-    #   unequalReplicateError(0)
-    # }
-    # #stop processing
-    # validate(
-    #   need(#case 1
-    #     all(repCount == repCount[[1]]) && length(unlist(repDetails)) == length(unique(unlist(repDetails))), "Error: select the appropriate replicate column for variables"
-    #   )
-    # )
+    # repCount <- lapply(repDetails, length)
     
     #unlist and convert to numeric (it's a list of index number for columns)
-    repCol <- repDetails %>% unlist() %>% as.numeric()
+    # repCol <- repDetails %>% unlist() %>% as.numeric()
     
-    #separate data to replicate and non-replicate [if any (not all data will have variables other than replicates)]
-    
-    #non-replicate data: 
-    # case 1: not need of mean or median, than proceed as usual i.e. deselect the replicate column 
-    # case 2: with mean or median,
-    #       case i: group by column is specified, than add length(input$replicateStatGroup) 
-    #               to repCol if it is not 1, since the group by variables is being placed in the start column
-    #       case ii: group by not specified, than proceed as case 1.
-    
-    if(req(input$replicateStat) != "none"){
-      
-      if(req(input$replicateStatGroup) != "none"){
-        
-        if(as.numeric(input$replicateStatGroup) == 1){
-          noRep_df <- data[, -(repCol), drop=FALSE] 
-        }else{
-          noRep_df <- data[, -(repCol + length(input$replicateStatGroup)), drop=FALSE] 
-        }
-        
-      }else{
-        noRep_df <- data[, -repCol, drop=FALSE] 
-      }
-      
-    }else{
-      noRep_df <- data[, -repCol, drop=FALSE] 
-    }
-    
-    #dummy data frame to collect the replicates data after iteration and processing for each variable.
-    mergeData <- data.frame()
-    #stopwatch for processing columns other than replicates (inside the function: tidyReplicate())
-    stp <- 0 # 0 to 1: 1 is to stop
     
     tryCatch({
+      # browser()
+      message(str(repDetails))
+      message(repDetails)
+      #get non-replicate data [if any (not all data will have variables other than replicates)]
+      noRep_df <- data %>% select(-repDetails) %>% as.data.frame()
+      #get non-replicate data: 
+      # case 1: not need of mean or median, than proceed as usual i.e. deselect the replicate column 
+      # case 2: with mean or median,
+      #       case i: group by column is specified, than add length(input$replicateStatGroup) 
+      #               to repCol if it is not 1, since the group by variables is being placed in the start column
+      #       case ii: group by not specified, than proceed as case 1.
+      
+      # if(req(input$replicateStat) != "none"){
+      #   
+      #   if(req(input$replicateStatGroup) != "none"){
+      #     
+      #     noRep_df <- data[, -(repDetails), drop=FALSE] 
+      #     
+      #     # if(as.numeric(input$replicateStatGroup) == 1){
+      #     #   noRep_df <- data[, -(repDetails), drop=FALSE] 
+      #     # }else{
+      #     #   noRep_df <- data[, -(repCol + length(input$replicateStatGroup)), drop=FALSE] 
+      #     # }
+      #     
+      #   }else{
+      #     noRep_df <- data[, -repCol, drop=FALSE] 
+      #   }
+      #   
+      # }else{
+      #   noRep_df <- data[, -repDetails, drop=FALSE] 
+      # }
+      
+      #dummy data frame to collect the replicates data after iteration and processing for each variable.
+      mergeData <- data.frame()
+      #stopwatch for processing columns other than replicates (inside the function: tidyReplicate())
+      stp <- 0 # 0 to 1: 1 is to stop
       
       #for loop to tidy up the replicate for each group [[change code later]]
       for(i in seq_along(varId())){
@@ -2143,14 +2124,14 @@ server <- function(input, output, session){
         colName <- eval(str2expression(paste0("input$Variable",i)))
         
         #replicates column for the given variable
-        no <- eval(str2expression(paste0("input$Variable",i,"R")))
-        #convert to numeric: replicate columns
-        colNo <- as.numeric(no)
+        reps <- eval(str2expression(paste0("input$Variable",i,"R")))
+        # #convert to numeric: replicate columns
+        # colNo <- as.numeric(no)
         #use trycatch()
         # tryCatch({
           #run the tidy function
           rstat <- tidyReplicate(x=data, y = noRep_df, headerNo = 1:headerNo(),
-                                 colName= colName, colNo = colNo, stp=stp)
+                                 colName= colName, colNo = reps, stp=stp)
           stp <- 1
           
           message("000000000000000000000000helo")
