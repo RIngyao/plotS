@@ -76,7 +76,7 @@ replicate_df <- structure(list(new_a1 = c("variable", "ob1", "ob2", "ob3", "ob4"
                                control = c("R1","23", "41", "24", "5", "23", "56", "23"), 
                                new_b3 = c("R2","23", "54", "65", "32", "57", "73", "42"), 
                                treatment = c("R1", "2", "3", "4", "67", "2", "45", "24"), 
-                               new_c5 = c("R2", "1", "4", "6", "32", "1", "35", "23")), class = c("data.frame"), row.names = c(NA, -7L))
+                               new_c5 = c("R2", "1", "4", "6", "32", "1", "35", "23")), class = c("data.frame"), row.names = c(NA, -8L))
 
 #plot related object----------------
 #list of graph
@@ -139,125 +139,7 @@ colorOpt <- c("black","grey","red","blue", "brown","orange")
 "
 arguments:
 rm = Logical. If TRUE, remove frequency plot and FALSE is to keep all the plot"
-#old---------------
-# sideGraphUi_old <- function(id,side = "X"){
-#   ns <- NS(id)
-#   tagList(
-#     #graph option binwidth
-#     selectInput(ns("sideGraphType"), label = paste0(side, "-graph"), choices = if(!isTRUE(rm)){c("none",sort(sideGraphList))}else{c("none",sort(sideGraphList[which(sideGraphList != "frequency")]))}, selected = "none"),
-#     
-#     #variables for y
-#     
-#     #other ui
-#     conditionalPanel(ns=ns, condition = "input.sideGraphType == 'bar plot'",
-#                      #stat: identity or count
-#                      {
-#                        statList <- list(tags$span("Identity", style = "font-weight:bold; color:#0099e6"), tags$span("Count", style = "font-weight:bold; color:#0099e6"))
-#                        radioButtons(inputId = ns("stat"), label = "Evaluate", choiceNames = statList, choiceValues = c("identity", "count"), selected = "identity", inline = TRUE)
-#                      },
-#                      bsTooltip(id = ns("stat"), title = "Identity will use the Y-axis value.", placement = "top", trigger = "hover",
-#                                options = list(container = "body"))
-#                      ), 
-#     
-#     conditionalPanel(ns=ns, condition = "input.sideGraphType == 'frequency'",
-#                      #stat: identity or count
-#                      sliderInput(inputId = "binwidth", label = "Bin width", min = 1, max = 100, value = 30)
-#     ),
-#     
-#     #only for scatter plot
-#     conditionalPanel(ns=ns, condition = "input.sideGraphType == 'scatter plot'",
-#                      #stat: identity or count
-#                      fluidRow(
-#                        column(6, sliderInput(inputId = ns("pointSize"), label = "Point size", min = 1, max = 15, value = 1)),#pointstat
-#                               # {
-#                               #      statList <- list(tags$span("Identity", style = "font-weight:bold; color:#0099e6"), tags$span("Count", style = "font-weight:bold; color:#0099e6"))
-#                               #      radioButtons(inputId = ns("pointStat"), label = "Evaluate", choiceNames = statList, choiceValues = c("identity", "count"), selected = "identity", inline = TRUE)
-#                               #    },
-#                               #    bsTooltip(id = ns("pointStat"), title = "Identity will use the Y-axis value.", placement = "top", trigger = "hover",
-#                               #              options = list(container = "body"))
-#                               
-#                        column(6, 
-#                               {
-#                                 statList <- list(tags$span("Yes", style = "font-weight:bold; color:#0099e6"), tags$span("No", style = "font-weight:bold; color:#0099e6"))
-#                                 radioButtons(inputId = ns("pointPosition"), label = "Adjust overlap", choiceNames = statList, choiceValues = c("yes", "no"), selected = "yes", inline = TRUE)
-#                               }
-#                               )
-#                      ),
-#                      
-#                      sliderInput(inputId = ns("pointAlpha"), label = "Transparency", min = 0, max = 1, value = 0.5)
-#                      
-#                      # fluidRow(
-#                      #   column(6, sliderInput(inputId = ns("pointSize"), label = "Point size", min = 1, max = 15, value = 1)),
-#                      #   column(6, sliderInput(inputId = ns("pointAlpha"), label = "Transparency", min = 0, max = 1, value = 0.5))
-#                      # )
-#                      ),
-#     
-#     conditionalPanel(ns=ns, condition = "input.sideGraphType == 'bar plot' || input.sideGraphType == 'box plot'",
-#                      sliderInput(inputId = ns("barWidth"), label = "Width", min = 0, max = 1, value = 0.5)
-#                      ),
-#     
-#     conditionalPanel(ns=ns, condition = "input.sideGraphType == 'density' || input.sideGraphType == 'bar plot'",
-#                      
-#                      #position for 
-#                      {
-#                        position <- list(tags$span("Stack", style = "font-weight:bold; color:#0099e6"), tags$span("Dodge", style = "font-weight:bold; color:#0099e6"))
-#                        radioButtons(inputId = ns("position"), label = "Position", choiceNames = position, choiceValues = c("stack", "dodge"), inline = TRUE, selected = "stack")
-#                      }
-#                      ),
-#     
-#     conditionalPanel(ns=ns, condition = "input.sideGraphType == 'density' || input.sideGraphType == 'bar plot' || input.sideGraphType == 'box plot'",
-#                      #orientation
-#                      {
-#                        #deafult = NA (auto)
-#                        oreint <- list(tags$span("X", style = "font-weight:bold; color:#0099e6"), tags$span("Y", style = "font-weight:bold; color:#0099e6")) #tags$span("default", style = "font-weight:bold; color:#0099e6"), 
-#                        radioButtons(inputId = ns("orientation"), label = "Orientation", choiceNames = oreint, choiceValues = c("x", "y"), inline = TRUE)
-#                        # radioButtons(inputId = ns("orientation"), label = "Orientation", choiceNames = oreint, choiceValues = c("default","x", "y"), inline = TRUE, selected = "default")
-#                      },
-#                      ),
-#     
-#     conditionalPanel(ns=ns, condition = "input.sideGraphType == 'density'",
-#                      #transparency
-#                      sliderInput(inputId = ns("alpha"), label = "Transparency", min = 0, max=1, value=0.5),
-#                      bsTooltip(id = ns("alpha"), title = "Effects depend on the main graph", placement = "top", trigger = "hover",
-#                                options = list(container = "body"))
-#                      ),
-#     #theme applied to all type
-#     conditionalPanel(ns=ns, condition = "input.sideGraphType != 'none'",
-#                      fluidRow(
-#                        column(6, sliderInput(inputId = ns("panelTextSize"), label = "Text size", min=5, max=20, value= 10)),
-#                        column(6, sliderInput(inputId = ns("panelScale"), label = "Panel size", min=0, max=1, value= 0.1))
-#                      ),
-#                      
-#                      fluidRow(
-#                        column(6, sliderInput(inputId = ns("panelSpacing"), label = "Panel space", min=1, max=15, value= 2)),
-#                        column(6, )
-#                      )
-#                      
-#                      # fluidRow(
-#                      #   column(6, selectInput(inputId = ns("panelBackground"), label = "Panel background", choices = c("default", "blank"))),
-#                      #   column(6, selectInput(inputId = ns("panelGridColor"), label = "Grid color", choices = sort(colorOpt), selected = "grey"))
-#                      # ),
-#                      # 
-#                      # fluidRow(
-#                      #   column(6, sliderInput(inputId = ns("panelGridLineWidth"), label = "Grid line width", min=0, max= 1, value=0.1)),
-#                      #   column(6, selectInput(inputId = ns("panelGridLineType"), label = "Grid line type", choices = sort(c("solid","dotted","dashed"))))
-#                      # ),
-#                      # 
-#                      # fluidRow(
-#                      #   column(6, sliderInput(inputId = ns("panelBorderWidth"), label = "Border width", min= 0, max = 5, value = 1)),
-#                      #   column(6, selectInput(inputId = ns("panelBorderColor"), label = "Border color", choices = sort(colorOpt), selected = "grey"))
-#                      # ),
-#                      
-#                      # fluidRow(
-#                      #   column(6, ),
-#                      #   column(6, )
-#                      # )
-#                      #border
-#                      )
-#     
-#   )
-# }
-#end old----------------
+
 
 sideGraphUi <- function(id,side = "X", sideVar = "default"){
   ns <- NS(id)
@@ -735,7 +617,7 @@ arguments
 update = logical. TRUE to update the selectinput and false to reset.
 pltType = character. type of graph
 data = data frame. 
-label = character.
+label = character.  
 newId = character. ID for the selectinput
 firchoice = character. 'none' as default first choice
 choice = list of character. 
@@ -743,6 +625,7 @@ selecteds = character. must be present in the choice list"
 selectInputParam <- function(update= TRUE, pltType = "none",
                        data, label = "Add color", newId = "colorSet", 
                        firstChoice = "none", choice = "", selecteds = "none",...){
+  # browser()   
   if(!isTRUE(update)){
     if(!is.data.frame(data) || (is.data.frame(data) && pltType == "none")){
       selectInput(inputId = newId, label = label, choices = list("none"))
@@ -763,6 +646,7 @@ selectInputParam <- function(update= TRUE, pltType = "none",
 #remove the below later: when color option is being optimized
 displayAes <- function(update= "no", transform = TRUE, action = FALSE, pltType = "pltType()",#!isTruthy(input$goAction)
                        data, label = "Variable to fill color", newId = "colorSet", firstChoice = "none", choice = colnames(ptable()), selecteds = "none",...){
+  # browser() 
   if(tolower(update) =="no"){
     if(!is.data.frame(data) || (is.data.frame(data) & isFALSE(transform) & req(pltType) == "none") || (is.data.frame(data) & isTRUE(transform) & isFALSE(action))){
       selectInput(inputId = newId, label = label, choices = list("none"))
@@ -774,6 +658,9 @@ displayAes <- function(update= "no", transform = TRUE, action = FALSE, pltType =
       updateSelectInput(inputId = newId, label = label, choices = list("none"))
     }else{#} if(is.data.frame(data)){
       message("-===========updating selectInput================")
+      message(str(firstChoice))
+      message(str(choice))
+      message(str(selecteds))
       updateSelectInput(inputId = newId, label = label, choices = c(firstChoice, choice), selected = selecteds)
     }
     
@@ -1194,7 +1081,7 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
                 }else{
                   #get the name
                   getName[i] <- headr[n,i] 
-                  break #get out of the nested loop
+                  break #out of the nested loop
                 }
               }
               
@@ -1245,7 +1132,6 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
   
   #Reshape the data: keep replicate row-wise i.e. longer format (pivot_longer())
   newDf2 <- pivot_longer(newDf, cols = colnames(onlyNumeric), names_to = "replicates", values_to = colName)
-  message("reshape done inside replicate func")
   rownames(newDf2) <- NULL
   
   return(newDf2)
@@ -1306,7 +1192,6 @@ getMeanMedian <- function(x, df, stat='none', grp = NULL, varNum = NULL, repNum 
     }
     
   }
-  
   
   return(final)
 }

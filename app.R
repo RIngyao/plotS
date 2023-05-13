@@ -200,7 +200,7 @@ mainSection <- div(
                              tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
               radioButtons(inputId = "transform", label = "Reshape wide to long format?", choiceNames = trsOpt, choiceValues = c("No", "Yes"), inline = TRUE) 
             }),
-            bsTooltip(id= "transform", title = "Input data must be in long format. Apply reshape if data is in wide format.", options = list(container = "body")),
+            bsTooltip(id= "transform", title = "Input data for graph should be in long format. Apply reshape if data is in wide format.", options = list(container = "body")),
             # selectInput(inputId = "transform", label = "Reshape the data", choi, selected = "No"),
             conditionalPanel(condition = "input.transform == 'Yes'",
                              # helpText(list(tags$p("Reshape will transpose column to row (long formate)."), tags$p("It facilitate comparison between variables.")), style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")),
@@ -308,7 +308,10 @@ mainSection <- div(
           sidebarPanel(
             width = 5,
             style="margin:0; background-image:linear-gradient(to right, #F2F0EF, #FEFEFE)",
+            # style = "border:dotted 1px #9cd4fc; border-radius: 5px; padding:10px;
+            #           background-image:linear-gradient(to right, rgba(103, 188, 250, 0.15), white);",
             
+            #rgba(56, 168, 249, 0.15)
             h3("", br(), align = "center", style = "color:green"),
             #two column
             fluidRow(
@@ -964,113 +967,95 @@ mainSection <- div(
                 )
               )
             ) %>% tagAppendAttributes(class = "figurePlotBox"),
+            
+            #additional settings for graph-------------------------
             #box for figure settings:theme  
             conditionalPanel(condition = "input.plotType != 'none' ",
                              actionBttn(inputId = "figureThemeHideShow", label = "+", size = "xs"),
                              bsTooltip(id = "figureThemeHideShow", title = "Hide/show the below panel", placement = "top", trigger = "hover", options = list(container = "body"))
                              ),
-            box(
-              id = "figureThemeId",
-              width = 12,
-              
-              #text label for x-axis
-              conditionalPanel(condition = "input.plotType != 'none' ",
-                               div(
-                                 id = "changeNameDiv",
-                                 style= "border-top:dotted 1px;margin:0; text-align:center;
-                                                      background-image:linear-gradient(rgba(206,247,250, 0.2), rgba(206,247,250, 0.1), white)", #rgba(206,247,250, 0.2), rgba(254, 254, 254, 0.1), rgba(206,247,250, 0.5)
-                                 h4("Change variable name of x-axis", align = "center", style = "color:green; margin-bottom:7px"),
-                                 fluidRow(
-                                   # column(4, uiOutput("uiXAxisTextLabelChoice")),
-                                   column(4, selectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = "none", multiple = TRUE)),
-                                   column(8, 
-                                          uiOutput("uiXAxisTextLabel"),
-                                          bsTooltip(id = "uiXAxisTextLabel", title = "comma or space separated",  trigger = "hover", options = list(container = "body"))
-                                          )#manage in server logic
-                                 )
-                               ),
-                               bsTooltip(id = "changeNameDiv", title = "Applicable only when the x-axis is non-numeric", placement = "top",  trigger = "hover", options = list(container = "body"))
-              ),
-              
-              #font size
-              conditionalPanel(condition = "input.plotType != 'none'",
-                               column(6, sliderInput(inputId = "titleSize", label = "Axis title font size", min = 10, max = 50, value = 15)),
-                               column(6, sliderInput(inputId = "textSize", label = "Axis text font size", min = 10, max = 50, value = 15)),
-                               fluidRow(
-                                 column(6, textAreaInput(inputId = "yLable", label = "Enter title for Y-axis", height = "35px")),
-                                 column(6, textAreaInput(inputId = "xLable", label = "Enter title for X-axis", height = "35px"))
-                               )
-              ),
-              # column(6, uiOutput("uiTitleSize")),
-              # column(6, uiOutput("uiTextSize")),
-              # fluidRow(
-              #   column(6, uiOutput("uiYlable")),
-              #   column(6, uiOutput("uiXlable")),
-              # ),
-              
-              #ui for legend
-              # fluidRow(
-              conditionalPanel(condition = "input.plotType != 'none' && (input.colorSet != 'none' || (input.shapeLine == 'Shape' || input.shapeLine == 'Line type'))",
-                               fluidRow(
-                                 
-                                 #position
-                                 column(3, selectInput(inputId = "legendPosition", label = "Legend position", choices = c("none","bottom","left","right","top"), selected = "right")),
-                                 conditionalPanel(condition = "input.legendPosition != 'none'",
-                                                  #direction
-                                                  column(3, selectInput(inputId = "legendDirection", label = "Legend direction", choices = c("horizontal","vertical"), selected = "vertical")),
-                                                  #font size
-                                                  column(3, sliderInput(inputId = "legendSize", label = "Legend size", min = 10, max = 50, value = 15)),
-                                                  #Legend title on & off
-                                                  column(3, checkboxInput(inputId = "legendTitle", label = span("Remove legend title", style = "font-weight:bold; color:cornflowerblue")))
-                                 )
-                               )
-              ),
-              # fluidRow(
-              #   
-              #   #position
-              #   column(3, uiOutput("UiLegendPosition")),
-              #   #direction
-              #   column(3, uiOutput("UiLegendDirection")),
-              #   #font size
-              #   column(3,uiOutput("UiLegendSize")),
-              #   #Legend title on & off
-              #   column(3, uiOutput("UiLegendTitle"))
-              # ),
-              
-              fluidRow(
-                # uiOutput("UiPlabelSize"),
-                conditionalPanel(condition = "input.plotType != 'none' && input.stat != 'none'",
-                                 sliderInput(inputId = "plabelSize", label = "Adjust p-value label size", min = 1, max = 15, value = 7)
-                ),
+            conditionalPanel(condition = "input.plotType != 'none' ",
+              box(
+                id = "figureThemeId",
+                width = 12,
+                style = "border:dotted 1px #9cd4fc; border-radius: 5px; padding-left:10px; padding-right:10px; padding-bottom:10px;
+                        background-image:linear-gradient(rgba(56, 168, 249, 0.15), white 17%);",
+                #text label for x-axis
+                 div(
+                   id = "changeNameDiv",
+                   style= "margin:0; text-align:center; border-bottom:dotted 1px #9cd4fc; margin-bottom:15px;
+                          background-image:linear-gradient(rgba(206,247,250, 0.2), rgba(206,247,250, 0.1), white)", #rgba(206,247,250, 0.2), rgba(254, 254, 254, 0.1), rgba(206,247,250, 0.5)
+                   h4("Change variable name of x-axis", align = "center", style = "color:green; margin-bottom:7px"),
+                   fluidRow(
+                     # column(4, uiOutput("uiXAxisTextLabelChoice")),
+                     column(4, selectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = "none", multiple = TRUE)),
+                     column(8, 
+                            uiOutput("uiXAxisTextLabel"),
+                            bsTooltip(id = "uiXAxisTextLabel", title = "comma or space separated",  trigger = "hover", options = list(container = "body"))
+                            )#manage in server logic
+                   )
+                 ),
+                 bsTooltip(id = "changeNameDiv", title = "Applicable only when the x-axis is non-numeric", placement = "top",  trigger = "hover", options = list(container = "body")),
                 
-                #Miscellaneous setting for graph
-                conditionalPanel(condition = "input.plotType != 'none'",
-                                 dropdownButton(
-                                   inputId = "miscGraphSet",
-                                   label = "Misc setting",
-                                   icon = icon("sliders"),
-                                   size="sm",
-                                   up=TRUE,
-                                   margin = '5px',
-                                   status = "primary",
-                                   circle = FALSE,
-                                   tooltip = tooltipOptions(title = "Click"),
-                                   div(
-                                     class = "miscDiv",
-                                     {lch <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
-                                                  tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
-                                     
-                                     radioButtons(inputId = "Ylimit", label = "Set lower limit of y-axis to 0?",
-                                                  choiceNames = lch, choiceValues = c("no", "yes"), inline = TRUE)},
-                                     
-                                     uiOutput("UiRemoveBracket"),
-                                     uiOutput("UiStripBackground")
-                                     
-                                   )
-                                 )
-                ))
-              # )#end for legend
-            ) %>% tagAppendAttributes(class="figureTheme")#end figure box
+                #font size
+                 column(6, sliderInput(inputId = "titleSize", label = "Axis title font size", min = 10, max = 50, value = 15)),
+                 column(6, sliderInput(inputId = "textSize", label = "Axis text font size", min = 10, max = 50, value = 15)),
+                 fluidRow(
+                   column(6, textAreaInput(inputId = "yLable", label = "Enter title for Y-axis", height = "35px")),
+                   column(6, textAreaInput(inputId = "xLable", label = "Enter title for X-axis", height = "35px"))
+                 ),
+                
+                #ui for legend
+                 fluidRow(
+                   
+                   #position
+                   column(3, selectInput(inputId = "legendPosition", label = "Legend position", choices = c("none","bottom","left","right","top"), selected = "right")),
+                   conditionalPanel(condition = "input.legendPosition != 'none'",
+                                    #direction
+                                    column(3, selectInput(inputId = "legendDirection", label = "Legend direction", choices = c("horizontal","vertical"), selected = "vertical")),
+                                    #font size
+                                    column(3, sliderInput(inputId = "legendSize", label = "Legend size", min = 10, max = 50, value = 15)),
+                                    #Legend title on & off
+                                    column(3, checkboxInput(inputId = "legendTitle", label = span("Remove legend title", style = "font-weight:bold; color:cornflowerblue")))
+                   )
+                 ),
+                
+                fluidRow(
+                  # uiOutput("UiPlabelSize"),
+                  div(
+                    style = "padding-left: 10px",
+                  conditionalPanel(condition = "input.plotType != 'none' && input.stat != 'none'",
+                                     sliderInput(inputId = "plabelSize", label = "Adjust p-value label size", min = 1, max = 15, value = 7),
+                  ),
+                  
+                  #Miscellaneous setting for graph
+                  conditionalPanel(condition = "input.plotType != 'none'",
+                                     dropdownButton(
+                                       inputId = "miscGraphSet",
+                                       label = "Misc setting",
+                                       icon = icon("sliders"),
+                                       size="sm",
+                                       up=TRUE,
+                                       margin = '5px',
+                                       status = "primary",
+                                       circle = FALSE,
+                                       tooltip = tooltipOptions(title = "Click"),
+                                       div(
+                                         class = "miscDiv",
+                                         {lch <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"), 
+                                                      tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
+                                         
+                                         radioButtons(inputId = "Ylimit", label = "Set lower limit of y-axis to 0?",
+                                                      choiceNames = lch, choiceValues = c("no", "yes"), inline = TRUE)},
+                                         
+                                         uiOutput("UiRemoveBracket"),
+                                         uiOutput("UiStripBackground")
+                                         
+                                       )
+                                     )
+                  ))) #end of fluidrow
+              ) %>% tagAppendAttributes(class="figureTheme")#end figure box
+          )#additional settings for graph-------------------------
           ) %>% tagAppendAttributes(class="figureMainPanel")#end mainpanel
           
         ) %>% tagAppendAttributes(class = "figureSidebarLayout")#end of figure sidebar layout
@@ -1572,73 +1557,7 @@ server <- function(input, output, session){
     }
   })
   
-  # #stop here--------------------------
-  # #update the replicate columns
-  # #total column name of the input table
-  # totalCol <- reactiveVal({ c(1,2,3,4) })# req(pInputTable$data); ncol(pInputTable$data)})
-  # usedCol <- reactiveVal(NULL)
-  # unusedCol <- reactiveVal(NULL)
-  # iterate <- 0 #for-loop iteration
-  # observe({
-  #   # browser()
-  #   for(i in 1:as.numeric(req(input$dataVariables))){
-  #     message(i)
-  #     req(eval(str2expression(paste0("input$Variable",i,"R"))))
-  #     # if( isTruthy( eval(str2expression(paste0("input$Variable",i,"R"))) ) ){}
-  #     message(eval(str2expression(paste0("input$Variable",i,"R"))))
-  #     usedCol( as.numeric(eval(str2expression(paste0("input$Variable",i,"R")))) )
-  #     unusedCol( totalCol()[ which(!totalCol() %in% usedCol()) ] )
-  #     if(i > 1){
-  #       updateSelectInput(inputId = paste0("Variable", i,"R"), choices = unusedCol())
-  #       usedCol(unusedCol())
-  #       unusedCol( totalCol()[ which(!totalCol() %in% usedCol()) ] )
-  #     }else if(i == as.numeric(req(input$dataVariables))){
-  #       updateSelectInput(inputId = paste0("Variable", i,"R"), choices = unusedCol())
-  #       break
-  #     }
-  #   }
-  #   
-  #   
-  #   message("print")
-  #   # #if the option given in nR (upper select option) is choosen, than update the lower option n-1R:
-  #   # for(i in 1:as.numeric(input$dataVariables)){
-  #   #   
-  #   # }
-  #   # if(isTruthy(eval(str2expression("input$Variable1R")))){
-  #   #   
-  #   # }
-  # })
-  # #stop here--------------------------
   
-  # observe({
-  #   req(pInputTable_orig(), input$replicatePresent == "yes")
-  #   
-  #     
-  #   if(input$replicatePresent == "yes" && req(as.numeric(input$headerNumber)) != 0){
-  #     
-  #     data <- pInputTable$data %>% as.data.frame()
-  #     #it is expected that data with replicates will have more than one header
-  #     nh <- as.numeric(input$headerNumber)
-  #     nVar <- getDataVariable(x= data , nh = nh, re=1)
-  #     varTable <- getDataVariable(x= data, nh = nh, re=2)
-  #   }else{
-  #     #In case when data with replicates have only one header
-  #     nVar <- 1
-  #     varTable <- data.frame( number = (ncol(pInputTable$data) - 1) )
-  #   }
-  #   
-  #   
-  #   if(input$replicatePresent == "yes"){
-  #     
-  #     updateSelectInput(inputId = "dataVariables", #Number of group/variables
-  #                 choices = c(1:max(varTable$number)), selected = nVar)
-  #     # addTooltip(session = session, id = "dataVariables", title = "Specify the number of groups/variables to group the replicates", placement = "bottom", trigger = "hover", options = list(container = "body"))
-  #   }
-  #   
-  #   
-  # })
-  
-  #old
   observe({
     req(pInputTable_orig(), input$replicatePresent == "yes")
     
@@ -1695,6 +1614,11 @@ server <- function(input, output, session){
           req( eval(str2expression(paste0("input$Variable",.x))) ), regex("[:alnum:]")
         ) )
       ) )
+    #check that variables name are not the same
+    varName <- lapply(1:varNum, function(x) eval(str2expression( paste0("input$Variable",x)) )) %>% unlist()
+    validate(
+      need(length(unique(varName)) == length(varName), "Error: must not provide same group/variable name!")
+    )
     #all replicate columns provided?
     rCol <- all(
       unlist(
@@ -1702,23 +1626,6 @@ server <- function(input, output, session){
           req( eval(str2expression(paste0("input$Variable",.x, "R"))) ), regex("[:alnum:]")
         ) )
       ) )
-    # convert to numeric and check whether all the replicate columns have been selected
-    # the above strategy does not work in selectInput, so run for loop
-    # rCol <- FALSE
-    # for (i in seq_len(varNum)){
-    #   if( all(
-    #     str_detect(
-    #       as.numeric(unlist( req( eval(str2expression(paste0("input$Variable",i,"R"))) ) )), regex("[:digit:]")
-    #     )
-    #   ) ){
-    # 
-    #     rCol <- TRUE
-    # 
-    #   }else{
-    #     rCol <- FALSE
-    #     break
-    #   }
-    # }
     
     #check whether replicate columns has duplicated: 
     listCol <- c(NULL, NULL)
@@ -1733,6 +1640,17 @@ server <- function(input, output, session){
     #number of replicate must be equal for all
     #get replicates detail from the user's input as list
     repDetails <- lapply(1:input$dataVariables, function(x) eval(str2expression(paste0("input$Variable",x,"R"))))
+    
+    #check that the column can be converted as numeric
+    #get
+    numericCheck_df <- pInputTable$data[-c(1:as.numeric(input$headerNumber)), ] %>% select(!!!rlang::syms(unlist(repDetails))) #%>% mutate(across(.cols = everything(), as.numeric))
+    # browser()
+    message(str(numericCheck_df))
+    #check
+    validate(
+      need( all(lapply(numericCheck_df, str_detect, pattern = "^[:digit:]*$") %>% unlist()), "Error: must select only numeric columns!")
+    )
+    
     #count the replicates for each group
     repCount <- lapply(repDetails, length)
     
@@ -2080,38 +1998,8 @@ server <- function(input, output, session){
     
     
     tryCatch({
-      # browser()
-      message(str(repDetails))
-      message(repDetails)
       #get non-replicate data [if any (not all data will have variables other than replicates)]
       noRep_df <- data %>% select(-repDetails) %>% as.data.frame()
-      #get non-replicate data: 
-      # case 1: not need of mean or median, than proceed as usual i.e. deselect the replicate column 
-      # case 2: with mean or median,
-      #       case i: group by column is specified, than add length(input$replicateStatGroup) 
-      #               to repCol if it is not 1, since the group by variables is being placed in the start column
-      #       case ii: group by not specified, than proceed as case 1.
-      
-      # if(req(input$replicateStat) != "none"){
-      #   
-      #   if(req(input$replicateStatGroup) != "none"){
-      #     
-      #     noRep_df <- data[, -(repDetails), drop=FALSE] 
-      #     
-      #     # if(as.numeric(input$replicateStatGroup) == 1){
-      #     #   noRep_df <- data[, -(repDetails), drop=FALSE] 
-      #     # }else{
-      #     #   noRep_df <- data[, -(repCol + length(input$replicateStatGroup)), drop=FALSE] 
-      #     # }
-      #     
-      #   }else{
-      #     noRep_df <- data[, -repCol, drop=FALSE] 
-      #   }
-      #   
-      # }else{
-      #   noRep_df <- data[, -repDetails, drop=FALSE] 
-      # }
-      
       #dummy data frame to collect the replicates data after iteration and processing for each variable.
       mergeData <- data.frame()
       #stopwatch for processing columns other than replicates (inside the function: tidyReplicate())
@@ -2125,17 +2013,12 @@ server <- function(input, output, session){
         
         #replicates column for the given variable
         reps <- eval(str2expression(paste0("input$Variable",i,"R")))
-        # #convert to numeric: replicate columns
-        # colNo <- as.numeric(no)
-        #use trycatch()
-        # tryCatch({
-          #run the tidy function
-          rstat <- tidyReplicate(x=data, y = noRep_df, headerNo = 1:headerNo(),
-                                 colName= colName, colNo = reps, stp=stp)
-          stp <- 1
-          
-          message("000000000000000000000000helo")
-          
+        #run the tidy function
+        rstat <- tidyReplicate(x=data, y = noRep_df, headerNo = 1:headerNo(),
+                               colName= colName, colNo = reps, stp=stp)
+        stp <- 1
+        
+        message("000000000000000000000000helo")
         
         #tidy the computed data.: output will have all the columns and computed stat
         #remove column not necessary 
@@ -2162,14 +2045,17 @@ server <- function(input, output, session){
           gb_col <- NULL
         }
         
-        # browser()
-        #-message(str(mergeData))
-        #get the name of the columns for which variables to determine mean or median
+        #get the name of the columns for which variables the mean or median is to be determined
         other_col <- colnames( mergeData[, 1:which(colnames(mergeData) == "replicates")-1, drop = FALSE] )
         
         #check that the col must be numeric (other than other_col)
-        numericCheck_df <- mergeData %>% select(-all_of(other_col), -replicates)
-        #-message(str(numericCheck_df))
+        #get
+        numericCheck_df <- mergeData %>% select(-all_of(other_col), -replicates) #%>% mutate(across(.cols = everything(), as.numeric))
+        #check
+        validate(
+          need( all(lapply(numericCheck_df, str_detect, pattern = "[:digit:]") %>% unlist()), "Error: cannot convert to numeric. Select only numeric columns!")
+        )
+        
         #get only the names of the necessary columns to process futher
         mm_col <- mergeData %>% select(-all_of(other_col), -replicates) %>% colnames()
         
@@ -2188,7 +2074,7 @@ server <- function(input, output, session){
         mm_df <- mm_list %>% as.data.frame.list()
         if(!is_empty(gb_col)){
           #keep variables used in group by
-          nR_df <- mergeData %>% select(gb_col) 
+          nR_df <- mergeData %>% select(all_of(gb_col))
           # keep only the unique
           nr_df_uniq <- nR_df %>% distinct(!!!rlang::syms(colnames(nR_df))) %>% as.data.frame()
           #append
@@ -2608,6 +2494,7 @@ server <- function(input, output, session){
   #   1. Necessary to process the data according to the number of header in managing replicates
   #     or with more than one header
   # change in header number will trigger the processing
+  #this step is require not to display header two times to avoid confusion
   updated_df <- reactiveVal(NULL)
   observe({
     req(pInputTable_orig(), input$replicatePresent == "yes" )
@@ -2617,29 +2504,19 @@ server <- function(input, output, session){
       
       #data has header
       #get all the header and add as row dataset
-      #header name: vector
-      message("greater than 0")
-      realColN <- colnames(df_nproper) #header name
       
-      if(as.numeric(input$headerNumber) > 1){
-        #if user specified more than 1 header, than require more steps to process
-        #get the data for the header from the row
-        userColN <- df_nproper[1:as.numeric(input$headerNumber), ,drop=FALSE] #not require
-        
-        #create one duplicate rows and append real colnames to it
-        add_df <- df_nproper[1, ,drop=FALSE]
-        
-        df_nproper2 <- rbind(add_df, df_nproper)
-        
-        #start appending
-        df_nproper2[1,] <- realColN
-        
-        
-      }else if(as.numeric(input$headerNumber) == 1){
-        #for just one header: add the column name as header
-        df_nproper2 <- rbind(df_nproper[1,], df_nproper) %>% as.data.frame()
-        df_nproper2[1, ] <- realColN
-      }
+      message("greater than 0")
+      # create one duplicate rows and append real colnames to it
+      #duplicate
+      df_nproper2 <- rbind(df_nproper[1,,drop=FALSE], df_nproper)
+      #appending
+      df_nproper2[1,] <- colnames(df_nproper) #original column name
+      # ex <- vroom::vroom("~/Desktop/delete/example_gt.csv")
+      # cl <- colnames(ex)
+      # colnames(ex) <- str_replace(cl, "\\.\\.\\.", "new_")
+      # head(ex)
+      # s <- rbind(cars[1,],cars)
+      # rbind(ex[1,,drop=F], ex)
       
       #Note:R will add header if needed (not always) [when using fread(), instead of vroom()]
       # check for addition of header by R: V1, V2, .....Vn
@@ -2818,6 +2695,8 @@ server <- function(input, output, session){
   #                   "density plot", "heatmap", "line", "frequency polygon",
   #                   "violin","jitter","area", "pie chart", "venn", "upset", "tile")
   # plotList <- c(  "box plot","violin plot", "density", "frequency polygon", "histogram","line", "scatter plot", "bar plot")
+  
+  
   #update plot
   observe({
     req(is.data.frame(cleanData())) #use cleanData so that applying filter doesnot effect it
@@ -3436,26 +3315,7 @@ server <- function(input, output, session){
   #reactive input for transform:remove this later when displayAes() is no longer useful
   transformation <- reactive(ifelse(input$transform == "Yes", TRUE, FALSE))
   action <- reactive(ifelse(isTruthy(input$goAction), TRUE, FALSE))
-  #temp: remove from server (it is in global)
-  selectInputParam <- function(update= TRUE, pltType = "none",
-                         data = ptable(), label = "Add color", newId = "colorSet", 
-                         firstChoice = "none", choice = "", selecteds = "none",...){
-    if(!isTRUE(update)){
-      if(!is.data.frame(data) || (is.data.frame(data) && pltType == "none")){
-        selectInput(inputId = newId, label = label, choices = list("none"))
-      }else{#} if(is.data.frame(data)){
-        selectInput(inputId = newId, label = label, choices = c(firstChoice, choice), selected = selecteds)
-      }
-    }else if(isTRUE(update)){
-      if(!is.data.frame(data) ||  (is.data.frame(data) && pltType == "none")){
-        updateSelectInput(inputId = newId, label = label, choices = list("none"))
-      }else{#} if(is.data.frame(data)){
-        message("-===========updating selectInput================")
-        updateSelectInput(inputId = newId, label = label, choices = c(firstChoice, choice), selected = selecteds)
-      }
-      
-    }
-  }
+  
   #color setting-------------------------
   
   lineGrpVar <- reactive(req(input$lineGroupVar))
@@ -3588,25 +3448,6 @@ server <- function(input, output, session){
     }
   })
   
-  #remove the below later: when color option is being optimized
-  displayAes <- function(update= "no", transform = TRUE, action = FALSE, pltType = "pltType()",#!isTruthy(input$goAction)
-                         data = ptable(), label = "Variable to fill color", newId = "colorSet", firstChoice = "none", choice = colnames(ptable()), selecteds = "none",...){
-    if(tolower(update) =="no"){
-      if(!is.data.frame(data) || (is.data.frame(data) & isFALSE(transform) & req(pltType) == "none") || (is.data.frame(data) & isTRUE(transform) & isFALSE(action))){
-        selectInput(inputId = newId, label = label, choices = list("none"))
-      }else{#} if(is.data.frame(data)){
-        selectInput(inputId = newId, label = label, choices = c(firstChoice, choice), selected = selecteds)
-      }
-    }else if(tolower(update) == "yes"){
-      if(!is.data.frame(data) || (is.data.frame(data) & isFALSE(transform) & req(pltType) == "none") || (is.data.frame(data) & isTRUE(transform) & isFALSE(action))){
-        updateSelectInput(inputId = newId, label = label, choices = list("none"))
-      }else{#} if(is.data.frame(data)){
-        message("-===========updating selectInput================")
-        updateSelectInput(inputId = newId, label = label, choices = c(firstChoice, choice), selected = selecteds)
-      }
-      
-    }
-  }
   
   
   #variable option for shape and line
@@ -6147,6 +5988,12 @@ server <- function(input, output, session){
         validate(
           need(nrow(ptable()) > 1, "Error: data must have at least two rows!")
         )
+        #check: y-axis variable must be numeric
+        #this is very important when data has multiple header rows (with replicates)
+        validate(
+          need(is.numeric(ptable()[, input$yAxis]), "Error: non-numeric data. Provide numeric column to y-axis")
+        )
+        
         #check for x and y-axis
         if(pltType() %in% xyRequire){
           #must have both x- and y-axis
@@ -6620,9 +6467,11 @@ server <- function(input, output, session){
       }else if(is.null(forFinalPlt()) | !is.null(finalPltErrorMsg()$message)){
         #Error message is necessary if forFinalPlt is null due to some error
         # str_detect("object 'sData1' not found", "sData1")
+        # str_detect("undefined column selected", "sData1|undefined column selected")
+        
         validate(
           need(
-            finalPltError() == 0, if(str_detect(finalPltErrorMsg()$message, "sData1")){
+            finalPltError() == 0, if(str_detect(finalPltErrorMsg()$message, "sData1|undefined columns selected")){
               ""
             }else{ finalPltErrorMsg()$message }
           ) 
@@ -6645,7 +6494,7 @@ server <- function(input, output, session){
           # browser()
           cal <- ifelse(pltType() %in% c("box plot", "violin plot"), "median", "mean")
           finalPlt_settings <- switch(req(input$addLayer),
-                               "line" = forFinalPlt() + stat_summary(fun = cal, geom = 'line', aes(group = 1), linewidth = re(input$layerSize)),
+                               "line" = forFinalPlt() + stat_summary(fun = cal, geom = 'line', aes(group = 1), linewidth = req(input$layerSize)),
                                "smooth" = forFinalPlt() + geom_smooth(size = req(input$layerSize), se = ifelse(isTruthy(input$addLayerCI), TRUE, FALSE), color = req(input$addLayerColor),
                                                                    method = req(input$smoothMethod)),
                                "point" = forFinalPlt() + geom_point(size = req(input$layerSize), alpha = req(input$layerAlpha)),
