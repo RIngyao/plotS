@@ -611,6 +611,161 @@ insetParamFunc <- function(inDf, oriDf, orix, insx = "default", oriTextLabel, fi
 #   return("")
 # }
 #old version-----------
+#module for dual y-axis-------------------
+secLine <- reactiveVal(list(NULL, NULL))  
+#generic module for secondary y-axis variable and color
+"argument:
+id = character. Input id.
+df = data frame.
+yPr = character. variable for primary y-axis"
+moduleSecVarColor <- function(id, df = NULL, yPr = NULL){
+  ns <- NS(id) 
+  browser() 
+  #variable for secondary y-axis
+  #get numeric columns from data
+  colList <- lapply(colnames(df), function(x) is.numeric(df[,x])) %>% unlist()
+  df_numOnly <- df[, which(colList)]
+  
+  validate(
+    need(nrow(df_numOnly) > 1 & ncol(df_numOnly) >= 2, "Error: data must have at least two numeric columns!")
+  )
+  #selected default variable from the table
+  selCol <- colnames(df_numOnly)[which(colnames(df_numOnly) != yPr)]
+  
+  tagList(
+    #provide variable option to choose 
+    selectInput(inputId = "secVariable", label = "Choose variable", choices = c(colnames(df_numOnly)), selected = selCol[1]),
+    #color 
+    selectInput(inputId = "secColor", label = "color", choices = sort(c("blue", "green", "red", "black", "grey", "brown")))
+  )
+  
+}
+
+
+#module for line
+"arguments:
+id = character. input id
+"
+moduleLineSecUi <- function(id){
+  ns <- NS(id)
+  tagList(
+    #ui for variable and color
+    # uiOutput(ns("uiVarCol")),
+    #ui for line width
+    sliderInput(ns("secLineWidth"), label = "Line width", min = 0.1, max = 10, value = 1),
+    #ui line type
+    selectInput(ns("secLineType"), label = "Line type", choices = sort(c("solid", "dotted", "dashed", "longdash", "dotdash")), selected = "solid"),
+    #ui alpha
+    sliderInput(ns("secLineAlpha"), label = "Transparency", min = 0.01, max = 1, value = 1)
+    #connect: add later
+  )
+}
+"
+
+arguments:
+id = character. input id
+df = data.frame.
+
+
+pltType = May not require!! character. Type of graph for secondary y-axis.
+
+yPr = character. Column name used in primary y-axis (left). Must be numeric column.
+ySec = character. Column name to be used in secondary y-axis (right).
+        It must be numeric columns.
+yCol= character. Color for line.
+titlePr = character. title of primary axis.
+
+Return type: list of ggplot object
+"
+moduleLineSecSer <- function(id, df = NULL, pltType = NULL, yPr= NULL,
+                             titlePr = NULL,
+                             ySec = NULL, yCol = NULL
+                             ){
+  moduleServer(id, function(input, output, session){
+   
+    req(is.data.frame(df))
+    # #variable and color
+    # output$uiVarCol <- renderUI({
+    #   # moduleSecVarColor(id = NS(id, "secVar"), df= df)
+    #   moduleSecVarColor(id = NS(id, "vaCol"), df= df, yPr = yPr) 
+    # })
+    
+    tryCatch({
+      
+        req(input$secLineType, input$secLineAlpha, input$secLineWidth)
+        # browser()
+        
+        #get the data for yPr and ySec
+        yPr_d <- reactiveVal(df[, yPr]) #vector
+        ySec_d <- reactiveVal(df[, ySec]) #vector
+        
+        #checks: both must be numeric
+        shiny::validate(
+          #this was taken care
+          need(all(is.numeric(yPr_d())), "Error: primary y-axis is non-numeric. Provide numeric column!"),
+          need(all(is.numeric(ySec_d())), "Error: secondary y-axis is non-numeric. Provide numeric column!")
+        )
+        #axis transformation: balance the dual axis
+        myp <- max(yPr_d())
+        mys <- max(ySec_d())
+         
+        if(myp > mys){
+          #primary is greater than sec
+          #get multiplier for sec
+          mlp <- myp/mys
+          
+          list(
+            #
+            geom_line(aes( y = eval(str2expression(ySec)) * mlp, group = 1), color = yCol, linetype = input$secLineType,
+                      alpha = input$secLineAlpha, linewidth = input$secLineWidth),
+            scale_y_continuous(
+              #title of primary y-axis
+              name = titlePr, 
+              #param for sec y-axis
+              sec.axis = sec_axis(trans = ~. / mlp, name = "input$secTitle")
+            )
+          )
+        
+        }else if(myp < mys){
+          #secondary is greater than primary
+          #get divider for sec
+          dv <- mys/myp
+          #list
+          list(
+            #
+            geom_line(aes( y = eval(str2expression(ySec)) / dv, group = 1), color = yCol, linetype = req(input$secLineType),
+                      alpha = req(input$secLineAlpha), linewidth = req(input$secLineWidth)),
+            scale_y_continuous(
+              #title of primary y-axis
+              name = titlePr, 
+              #param for sec y-axis
+              sec.axis = sec_axis(trans = ~. * dv, name = "input$secTitle")
+            )
+          )
+        }else{
+          list(
+            #no difference in max
+            geom_line(aes( y = eval(str2expression(ySec)), group =1 ), color = yCol, linetype = req(input$secLineType),
+                      alpha = req(input$secLineAlpha), linewidth = req(input$secLineWidth)),
+            scale_y_continuous(
+              #title of primary y-axis
+              name = titlePr, 
+              #param for sec y-axis 
+              sec.axis = sec_axis(trans = ~., name = "req(input$secTitle)")
+            )
+          )
+        }
+     
+     }, error = function(e){
+       print(e) 
+     })
+     
+  })
+}
+ 
+#common module: variable, color, theme -> name of axis title, font size of axis,
+
+#module for dual y-axis-------------------
 #function to create input and update options: mainly for color options
 "date: 2/3/23
 arguments

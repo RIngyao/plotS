@@ -503,7 +503,10 @@ mainSection <- div(
                        #ui for adding shape and linetype
                        # uiOutput("UiShapeLine"),
                        conditionalPanel(condition = "input.plotType !== ''",
-                                        checkboxGroupInput(inputId = "shapeLine", label = "Add more aesthetic", choices = c("Shape", "Line type"), inline = TRUE)
+                                        {
+                                          shapeLineChoice <- list(tags$span("Shape", style = "font-weight:bold; color:#0099e6"), tags$span("Line type", style = "font-weight:bold; color:#0099e6"))
+                                          checkboxGroupInput(inputId = "shapeLine", label = "Add more aesthetic", choiceNames = shapeLineChoice, choiceValues = c("Shape", "Line type"), inline = TRUE)
+                                        }
                        ),
                        
                        #ui for shape
@@ -698,25 +701,45 @@ mainSection <- div(
                                       )
                      ), #end of conditional panel facet
                      
-                     #Ui for additional layer
+                     #Div for additional layer
                      # uiOutput("UiLayer"),
-                     {
-                       layerChoice <- c("line", "smooth", "point", "jitter")
-                       selectInput(inputId = "addLayer", label = "Additional layer", choices = c("none", sort(layerChoice)), selected = "none") 
-                     },
-                     
-                     conditionalPanel(condition = "input.addLayer != 'none'",
-                                      sliderInput(inputId = "layerSize", label = "Adjust size", min = 1, max = 10, value = 1)
-                     ),
-                     
-                     conditionalPanel(condition = "input.addLayer == 'point' | input.addLayer == 'jitter'",
-                                      sliderInput(inputId = "layerAlpha", label = "Transparency",min = 0, max = 1, value = 0.5)
-                     ),
-                     conditionalPanel(condition = "input.addLayer == 'smooth'",
-                                      checkboxInput(inputId = "addLayerCI", label = "Confidence interval", value = TRUE),
-                                      selectizeInput(inputId = "smoothMethod", label = "Method", choices = list(`Linear regression model (LM)` = "lm",`Generalized LM` = "glm", `Generalized additive model` = "gam", `LOESS` = "loess")),
-                                      selectizeInput(inputId = "addLayerColor", label = "Line color", choices = sort(c("blue","red","black", "brown")), selected = "blue")
-                                      )
+                     conditionalPanel(condition = "input.plotType != 'histogram' && input.plotType != 'frequency polygon' && input.plotType != 'density'",
+                     # conditionalPanel(condition = "input.plotType != 'histogram' && input.plotType != 'density'",
+                               div(
+                                 style = "padding: 10px; border-top:dotted 1px; border-bottom:dotted 1px;",
+                                 
+                                 {
+                                   layerChoice <- c("line", "smooth", "point", "jitter")
+                                   selectInput(inputId = "addLayer", label = "Additional layer", choices = c("none", sort(layerChoice)), selected = "none") 
+                                 },
+                                 
+                                 conditionalPanel(condition = "input.addLayer != 'none'",
+                                                  sliderInput(inputId = "layerSize", label = "Adjust size", min = 1, max = 10, value = 1)
+                                 ),
+                                 
+                                 conditionalPanel(condition = "input.addLayer == 'point' | input.addLayer == 'jitter'",
+                                                  sliderInput(inputId = "layerAlpha", label = "Transparency",min = 0, max = 1, value = 0.5)
+                                 ),
+                                 conditionalPanel(condition = "input.addLayer == 'smooth'",
+                                                  checkboxInput(inputId = "addLayerCI", label = "Confidence interval", value = TRUE),
+                                                  selectizeInput(inputId = "smoothMethod", label = "Method", choices = list(`Linear regression model (LM)` = "lm",`Generalized LM` = "glm", `Generalized additive model` = "gam", `LOESS` = "loess")),
+                                                  selectizeInput(inputId = "addLayerColor", label = "Line color", choices = sort(c("blue","red","black", "brown")), selected = "blue")
+                                 ),
+                                 
+                                 #layer for dual y-axis
+                                 # {
+                                 #  dualChoice <- list(tags$span("Yes", style = "font-weight:bold; color:#0099e6"), tags$span("No", style = "font-weight:bold; color:#0099e6"))
+                                 #  radioButtons(inputId = "dualAxis", label = "Additional layer with dual y-axis", choiceNames = dualChoice, choiceValues = c("yes","no"), inline = TRUE)
+                                 # },
+                                selectInput(inputId = "dualAxis", label = "Additional layer with dual y-axis", choices = c("none", sort(c("line", "box plot", "bar plot", "scatter plot"))), selected = "none"),
+                                conditionalPanel(condition = "input.dualAxis != 'none'",
+                                                 uiOutput("uiVarCol")
+                                                 ),
+                                conditionalPanel(condition = "input.dualAxis == 'line'",
+                                                 moduleLineSecUi(id = "secondaryLine")
+                                                 )
+                               )#end of div for additional layer
+                              )#end of conditional panel for additional layer
               ) #end of 2nd column
             )
           
@@ -1313,6 +1336,51 @@ ui <- fluidPage(
 #server------------------------
 server <- function(input, output, session){
   
+  
+  # secondary graph-----------------
+  #update dualAxis
+  observe({
+    req(ptable(), input$plotType)
+    updateSelectInput(inputId = "dualAxis", choices = c("none", sort(c("line", "box plot", "bar plot", "scatter plot"))), selected = "none")
+  })
+  #variable and color for sec y-axis
+  # uiOutput(ns("uiVarCol"))
+  output$uiVarCol <- renderUI({
+    req(ptable(), input$yAxis, input$xAxis)
+    #variable for secondary y-axis
+    #get numeric columns from data
+    colList <- lapply(colnames(ptable()), function(x) is.numeric(ptable()[,x])) %>% unlist()
+    df_numOnly <- ptable()[, which(colList)]
+     
+    validate(
+      need(nrow(df_numOnly) > 1 & ncol(df_numOnly) >= 2, "Error: data must have at least two numeric columns!")
+    )
+    #column available for selection: remove primary y-axis and x-axis
+    allCol <- colnames(df_numOnly)[which(!colnames(df_numOnly) %in% c(input$yAxis, input$xAxis))]
+    tagList(
+      #provide variable option to choose 
+      selectInput(inputId = "secVariable", label = "Choose variable", choices = allCol),
+      #color 
+      selectInput(inputId = "secColor", label = "color", choices = sort(c("blue", "green", "red", "black", "grey", "brown")))
+    )
+  })
+  
+  observe({
+    # req(ptable(),  input$plotType,input$yAxis, input$dualAxis, input$secVariable, input$secColor)
+    req(ptable(), input$yAxis, input$dualAxis, input$secVariable, input$secColor)
+    req(input$yAxis %in% colnames(ptable()))
+    secLine(moduleLineSecSer(id = "secondaryLine", df = ptable(), pltType = req(input$plotType), yPr= req(input$yAxis),
+                     titlePr = "primary y-axis", ySec = input$secVariable, yCol = input$secColor))
+  })
+  #reset secLine
+  observe({
+    req(input$plotType, input$dualAxis == "none")
+    secLine(list(NULL, NULL))
+  })
+  #end of secondary graph-------
+  
+  # moduleLineSecSer(id = "secondaryLine", df = req(ptable()), pltType = req(input$plotType), yPr= req(input$yAxis),
+  #                  titlePr = "neww")
   #router
   router_server()
   #preview--------------
@@ -2703,13 +2771,6 @@ server <- function(input, output, session){
     updateSelectInput(inputId = "plotType", label = "Choose type of plot",
                       choices = c("none",sort(plotList)), selected = "none")
   })
-  # observe({
-  #   req(input$replicatePresent, input$transform)
-  #   if( isTRUE(dataChanged()) || isTruthy(input$replicateActionButton) || isTruthy(input$goAction) ) {
-  #     updateSelectInput(inputId = "plotType", label = "Choose type of plot",
-  #                       choices = c("none",sort(plotList)), selected = "none")
-  #   }
-  # })
   
   #reactive plot type
   pltType <- reactive({
@@ -2808,12 +2869,7 @@ server <- function(input, output, session){
       updateSelectInput(inputId = "xAxis", label = "X-axis", choices = colnames(ptable()), selected = xVarFilter())
     }
   })
-  # #msg to provide numeric variable for y-axis
-  # output$UiYAxisMsg <- renderUI({
-  #   if(req(pltType() %in% xyRequire || isTRUE(needYAxis()))){
-  #     helpText("Provide numeric variable to y-axis", style = "text-align:center; margin-top:0")
-  #   }
-  # })
+  
 
   #get the selected variables of axes from the data
   xVar <- reactive({
@@ -2849,15 +2905,6 @@ server <- function(input, output, session){
     updateTextAreaInput(inputId = "yLable", value = character(0))
     updateTextAreaInput(inputId = "xLable", value = character(0))
     
-    
-    # output$uiTextSize <- renderUI({if( req(input$plotType) != "none" ) sliderInput(inputId = "textSize", label = "Axis text font size", min = 10, max = 50, value = 15)})
-    # output$uiTitleSize <- renderUI({if( req(input$plotType) != "none" ) sliderInput(inputId = "titleSize", label = "Axis title font size", min = 10, max = 50, value = 15)})
-    # output$uiYlable <- renderUI({if( req(input$plotType) != "none" )textAreaInput(inputId = "yLable", label = "Enter title for Y-axis", height = "35px")})
-    # output$uiXlable <- renderUI({if( req(input$plotType) != "none" )textAreaInput(inputId = "xLable", label = "Enter title for X-axis", height = "35px")})
-    # output$uiBinWidth <- renderUI({
-    #   req(input$plotType, xVarType())
-    #   if(input$plotType %in% c("histogram", "frequency polygon") & xVarType()[1] %in% c("integer", "numeric", "double")) sliderInput(inputId = "binWidth", label = "Adjust bin width", min = 0.01, max = 100, value = 30)
-    # })
 
   })
   
@@ -2883,12 +2930,7 @@ server <- function(input, output, session){
     }else{
       "none"
     }
-    # cVar <- unique(ptable()[,x]) %>% as.character() %>% as.list()#this will avoid issue with factor variable
-    # output$uiXAxisTextLabelChoice <- renderUI({
-    #   if( req(input$plotType) != "none" ){
-    #     selectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = c(All="All", cVar), selected = "ALL", multiple = TRUE)
-    #   }
-    # })
+    
     #update option
     updateSelectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = c(cVar), selected = "ALL")
     # addTooltip(session, id = "xTextLabelChoice", title = "Applicable only when the x-axis is non-numeric",  trigger = "hover", options = list(container = "body"))
@@ -2941,19 +2983,6 @@ server <- function(input, output, session){
     }
     
   })
-  
-  #Bar graph settings---------------------
-  # output$UiStackDodge <- renderUI({
-  #   #Bar plot and histogram will have this option
-  #   #this will be updated when user request for error bar in bar plot, but not for histogram
-  #   req(refresh_3(), pltType(), xVar())
-  #   choices <- list(tags$span("Stack", style = "font-weight:bold; color:#0099e6"), 
-  #                   tags$span("Dodge", style = "font-weight:bold; color:#0099e6"))
-  #   if(pltType() %in% c("bar plot", "histogram")){
-  #     radioButtons(inputId = "stackDodge", label = "Bar position", choiceNames = choices, choiceValues = list("Stack", "Dodge"), inline = TRUE)
-  #   }
-  # })
-  
   
   
   #Line graph settings---------------
@@ -3016,22 +3045,6 @@ server <- function(input, output, session){
     }
   })
   
-  # #update ci, se and sd
-  # observe({
-  #   req(pltType() != "none", isTruthy(input$lineErrorBar), input$errorBarStat)
-  #   
-  #     choic <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"),
-  #                   tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
-  #     
-  #     if(input$errorBarStat == "Standard error (SE)"){
-  #       updateRadioButtons(inputId = "lineComputeSd", label = "Auto compute SE?", choiceNames = choic, choiceValues = c("no","yes"), selected = "no", inline = TRUE)
-  #     }else if(input$errorBarStat == 'Standard deviation (SD)'){
-  #       updateRadioButtons(inputId = "lineComputeSd", label = "Auto compute SD?", choiceNames = choic, choiceValues = c("no","yes"), selected = "no", inline = TRUE)
-  #     }else{
-  #       updateRadioButtons(inputId = "lineComputeSd", label = "Auto compute CI?", choiceNames = choic, choiceValues = c("no","yes"), selected = "no", inline = TRUE)
-  #     }
-  # })
-  # 
 
   #display error message for SD
   sdError <- 0
@@ -3255,34 +3268,7 @@ server <- function(input, output, session){
   })
   
   
-  #scatter plot:----------------------------
-  # #add jitter
-  # output$UiJitter <- renderUI({
-  #   req(refresh_2(), pltType())
-  #   if(pltType() == "scatter plot") checkboxInput(inputId = "jitter", label = tags$span("Handle overplotting (jitter)", style = "font-weight:bold; color:#b30000; background:#f7f3f3"))
-  # })
-  #Density-----------------------------------
-  # kde <- c("gaussian", "epanechnikov", "rectangular", "triangular", "biweight", "cosine", "optcosine")
-  # output$UiDensityKernel <- renderUI({
-  #   req(refresh_3(), pltType())
-  #   if(pltType() == "density") selectInput(inputId = "densityKernel", label = "Kernel\ndensity", choices = sort(kde), selected = "gaussian")
-  # })
-  # 
-  # output$UiDensityStat <- renderUI({
-  #   req(refresh_3(), pltType())
-  #   
-  #   if(pltType() == "density") selectInput(inputId = "densityStat", label = "Computed\n stat", choices = sort(computes), selected = "density")
-  # })
   
-  # output$UiDensityBandwidth <- renderUI({
-  #   req(refresh_3(), pltType())
-  #   binwd <- c("nrd0","nrd", "ucv","bcv","SJ-ste","SJ-dpi")
-  #   if(pltType() == "density") selectInput(inputId = "densityBandwidth", label = "Bandwidth (bw)", choices = sort(binwd), selected = "nrd0")
-  # })
-  # output$UiDensityAdjust <- renderUI({
-  #   req(refresh_3(), pltType())
-  #   if(pltType() == "density") sliderInput(inputId = "densityAdjust", label = "Adjust bw", min = 1, max = 20, value = 1)
-  # })
   #update the density parameters, theme with change in plot type
   observe({
     req(pltType())
@@ -3298,12 +3284,7 @@ server <- function(input, output, session){
     #theme
     updateSelectInput(inputId = "theme", label = "Background theme", choices = c("default", sort(c( "dark", "grey", "white", "white with grid lines","blank", "minimal"))), selected = "default") 
   })
-  # #theme for plot
-  # output$UiTheme <- renderUI({
-  #   if(isTruthy(input$plotType)){
-  #     selectInput(inputId = "theme", label = "Background theme", choices = c("default", "dark", "white", "white with grid lines","blank"), selected = "default") 
-  #   }
-  # })
+  
   #update density position
   observe({
     req(input$plotType, input$colorSet)
@@ -3344,40 +3325,14 @@ server <- function(input, output, session){
     }
   })
   
-  # output$UiColorSet <- renderUI({
-  #   req(refresh_2())
-  #   #This will be updated based on the type of ANOVA, if required
-  #   displayAes(update = "yes", transform = transformation(), action = action(), pltType = pltType(),
-  #              data = ptable(), label= "Add color", newId = "colorSet", choice = varColorChoice()) #selecteds = selectedChoice()
-  # })
+  
   #update color option when plot type is choosen
   observe({
     req(pltType())
       selectInputParam(update = TRUE, pltType = pltType(),
                  data = ptable(), label= "Add color", newId = "colorSet", choice = varColorChoice()) 
   })
-  # #update color if the input feature change
-  # observe({
-  #   req(input$replicatePresent, input$transform)
-  #   if( isTRUE(dataChanged()) || isTruthy(input$replicateActionButton) || isTruthy(input$goAction) ){
-  #     selectInputParam(update = TRUE, pltType = pltType(),
-  #                data = ptable(), label= "Add color", newId = "colorSet", choice = varColorChoice()) 
-  #   }
-  # })
-  # observe({
-  #   req(input$replicatePresent, input$transform)
-  #   if( isTRUE(dataChanged()) || isTruthy(input$replicateActionButton) || isTruthy(input$goAction) ){
-  #     displayAes(update = "yes", transform = transformation(), action = action(), pltType = pltType(),
-  #                data = ptable(), label= "Add color", newId = "colorSet", choice = varColorChoice()) 
-  #   }
-  # })
   
-  # #option to provide color 
-  # #provide option to auto fill the color or customize it
-  # output$uiAutoCustome <- renderUI(
-  #   if(req(input$colorSet) != "none"){
-  #     radioButtons("autoCustome", label = NULL, choices = c("auto filled","customize"), selected = "auto filled")
-  #   })
   #update auto and custome options
   observe({
     if(req(input$colorSet) != "none"){
@@ -3397,49 +3352,26 @@ server <- function(input, output, session){
     
   })
   
-  # #color and fill for histogram----------------
-  # #above option to add color and histogram color setting will be mutually exclusive
-  # observeEvent(req(pltType() %in% c("histogram"), input$colorSet == "none"),{
-  #   output$UiHistBarColor <- renderUI({
-  #     if(pltType() %in% c("histogram") & input$colorSet == "none") textInput(inputId = "histBarColor", label = "Bar color", placeholder = "red or #ff0000")
-  #   })
-  #   output$UiHistBarFill <- renderUI({
-  #     if(pltType() %in% c("histogram") & input$colorSet == "none") textInput(inputId = "histBarFill", label = "Fill bar", placeholder = "blue or #b3d9ff")
-  #   })
-  # })
-  #shape and line-----------------
-  #shapeExcluded <- c("histogram", "frequency polygon", "line", "scatter plot")
-  # shapeLineOption <- reactive({
-  #   if(req(pltType()) %in% c("scatter plot")){
-  #     # list(tags$span("Shape", style = "font-weight:bold; color:#0099e6"))
-  #     c("Shape")
-  #   }else if(req(pltType()) %in% c(  "box plot","violin plot", "bar plot", "histogram", "frequency polygon", "line", "density")){
-  #     #remove shape for histogram, frequency polygon, line
-  #     c("Line type")
-  #   }else{
-  #     c("Shape", "Line type")
-  #   }
-  # })
+  
   #update shapeline
   observe({
     req(input$plotType, input$stat)
-    shapeLineOption <- reactive({
-      if(req(input$plotType) %in% c("scatter plot")){
-        # list(tags$span("Shape", style = "font-weight:bold; color:#0099e6"))
-        c("Shape")
-      }else if(req(input$plotType) %in% c(  "box plot","violin plot", "bar plot", "histogram", "frequency polygon", "line", "density")){
-        #remove shape for histogram, frequency polygon, line
-        c("Line type")
-      }else{
-        c("Shape", "Line type")
-      }
-    })
-    updateCheckboxGroupInput(inputId = "shapeLine", label = "Add more aesthetic", choices = shapeLineOption(), inline = TRUE)
+
+    if(req(input$plotType) %in% c("scatter plot")){
+      # list(tags$span("Shape", style = "font-weight:bold; color:#0099e6"))
+      shlVal <- reactiveVal(("Shape"))
+      shlChoice <- reactiveVal(list(tags$span("Shape", style = "font-weight:bold; color:#0099e6")))
+    }else if(req(input$plotType) %in% c(  "box plot","violin plot", "bar plot", "histogram", "frequency polygon", "line", "density")){
+      #remove shape for histogram, frequency polygon, line
+      shlVal <- reactiveVal("Line type")
+      shlChoice <- reactiveVal(list(tags$span("Line type", style = "font-weight:bold; color:#0099e6")))
+    }else{
+      shlVal <- reactiveVal(c("Shape", "Line type"))
+      shlChoice <- reactiveVal(list(tags$span("Shape", style = "font-weight:bold; color:#0099e6"), tags$span("Line type", style = "font-weight:bold; color:#0099e6")))
+    }
+    updateCheckboxGroupInput(inputId = "shapeLine", label = "Add more aesthetic", choiceNames = shlChoice(), choiceValues = shlVal(), inline = TRUE)
   })
-  # output$UiShapeLine <- renderUI({
-  #   req(refresh_2(), pltType(), input$stat)
-  #   checkboxGroupInput(inputId = "shapeLine", label = "Add more aesthetic", choices = shapeLineOption(), inline = TRUE)
-  # })
+  
   #update shapeLine if input parameters for data changed
   observe({
     req(input$replicatePresent, input$transform, pltType())
@@ -5540,7 +5472,8 @@ server <- function(input, output, session){
                  geom_line(group =1, linewidth = freqPolySize())
                }else{
                  #no need to group for character type
-                 geom_line(linewidth = freqPolySize())
+                 #for only one observation it has to be group =1:need to rework
+                 geom_line(linewidth = freqPolySize(), group = 1)
                }
              }else{
                geom_line(aes(group=.data[[connectVar()]]), size = freqPolySize())
@@ -5990,9 +5923,7 @@ server <- function(input, output, session){
         )
         #check: y-axis variable must be numeric
         #this is very important when data has multiple header rows (with replicates)
-        validate(
-          need(is.numeric(ptable()[, input$yAxis]), "Error: non-numeric data. Provide numeric column to y-axis")
-        )
+        if(figType() %in% xyRequire) validate(need(is.numeric(ptable()[, input$yAxis]), "Error: non-numeric data. Provide numeric column to y-axis"))
         
         #check for x and y-axis
         if(pltType() %in% xyRequire){
@@ -6534,7 +6465,7 @@ server <- function(input, output, session){
         # save it for download option
         saveFigure(dispFinalPlt)
         #return
-        dispFinalPlt
+        dispFinalPlt + secLine()
 
       }
 
