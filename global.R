@@ -1,9 +1,9 @@
-
+#vignette("ggplot2-specs")
 options(shiny.maxRequestSize = 50*1024^2) # too large: use 50
 #library--------------------------------
 #can't use this method for loading library: shinyapps.io
 # libraries <- c("flextable", "openxlsx", "svglite",
-#                "MASS", "skimr", "coin", "DT", "data.table", 
+#                "MASS", "skimr", "coin", "DT", "data.table",
 #                "readxl", "markdown", "shinydashboard","ggpubr","multcompView",
 #                "rstatix", "shiny", "tidyverse", "reactable", "ggside", "ggforce",
 #                 "scales", "jqui_resizable")
@@ -56,7 +56,7 @@ library(shinyWidgets)
 #May use later:
 # library(GenomicRanges)
 # library(bslib)
-# library(shinyWidgets) #useful. 
+# library(shinyWidgets) #useful.
 # library(shinyjs)
 # library(shinyFeedback)
 # library(shinyvalidate)
@@ -68,14 +68,14 @@ uploadError <- reactiveVal(0) #1: stop; 0 continue
 uploadMsg <- reactiveVal(NULL)
 #example dataset
 long_df <- PlantGrowth
-wide_df <- structure(list(ctrl = c(4.17, 5.58, 5.18, 6.11, 4.5, 4.61, 5.17,4.53, 5.33, 5.14), 
-                          trt1 = c(4.81, 4.17, 4.41, 3.59, 5.87, 3.83,6.03, 4.89, 4.32, 4.69), 
-                          trt2 = c(6.31, 5.12, 5.54, 5.5, 5.37,5.29, 4.92, 6.15, 5.8, 5.26)), 
+wide_df <- structure(list(ctrl = c(4.17, 5.58, 5.18, 6.11, 4.5, 4.61, 5.17,4.53, 5.33, 5.14),
+                          trt1 = c(4.81, 4.17, 4.41, 3.59, 5.87, 3.83,6.03, 4.89, 4.32, 4.69),
+                          trt2 = c(6.31, 5.12, 5.54, 5.5, 5.37,5.29, 4.92, 6.15, 5.8, 5.26)),
                      row.names = c(NA, -10L), class = c("data.frame"))
-replicate_df <- structure(list(new_a1 = c("variable", "ob1", "ob2", "ob3", "ob4", "ob5", "ob6", "ob7"), 
-                               control = c("R1","23", "41", "24", "5", "23", "56", "23"), 
-                               new_b3 = c("R2","23", "54", "65", "32", "57", "73", "42"), 
-                               treatment = c("R1", "2", "3", "4", "67", "2", "45", "24"), 
+replicate_df <- structure(list(new_a1 = c("variable", "ob1", "ob2", "ob3", "ob4", "ob5", "ob6", "ob7"),
+                               control = c("R1","23", "41", "24", "5", "23", "56", "23"),
+                               new_b3 = c("R2","23", "54", "65", "32", "57", "73", "42"),
+                               treatment = c("R1", "2", "3", "4", "67", "2", "45", "24"),
                                new_c5 = c("R2", "1", "4", "6", "32", "1", "35", "23")), class = c("data.frame"), row.names = c(NA, -8L))
 
 #plot related object----------------
@@ -91,7 +91,7 @@ saveFigure <- reactiveVal(NULL)
 insetList <- c( "box plot","violin plot", "line", "scatter plot", "density", "histogram", "bar plot")
 
 #plot that require x and y-axis
-xyRequire <- c(  "box plot", "bar plot", "line", "scatter plot", "violin plot") 
+xyRequire <- c(  "box plot", "bar plot", "line", "scatter plot", "violin plot")
 NS_methods <- list(Normalization= c("log2", "log10", "square-root", "box-cox"), Standardization = c("scale","") )
 #brush data
 clickBrush_df <- reactiveVal(NULL) #use for table
@@ -143,19 +143,19 @@ rm = Logical. If TRUE, remove frequency plot and FALSE is to keep all the plot"
 
 sideGraphUi <- function(id,side = "X", sideVar = "default"){
   ns <- NS(id)
-  
+
   tagList(
     #graph option binwidth
     # selectInput(ns("sideGraphType"), label = paste0(side, "-graph"), choices = if(!isTRUE(rm)){c("none",sort(sideGraphList))}else{c("none",sort(sideGraphList[which(sideGraphList != "frequency")]))}, selected = "none"),
     selectInput(ns("sideGraphType"), label = paste0(side, "-graph"), choices = c("none",sort(sideGraphList)), selected = "none"),
-    
+
     #variables for y
     conditionalPanel(ns=ns, condition = "input.sideGraphType !== 'none'",
                      selectInput(inputId = ns("sideVariable"), label = "Variable", choices = c("default", sort(sideVar))),
                      ),
-     
+
     #I have decided to creat ui separately for each plot type for user-friendtly as well as to optimize space constrain
-    #bar ui 
+    #bar ui
     conditionalPanel(ns=ns, condition = "input.sideGraphType == 'bar plot'",
                      fluidRow(
                        column(6,
@@ -168,42 +168,42 @@ sideGraphUi <- function(id,side = "X", sideVar = "default"){
                        column(6, sliderInput(inputId = ns("barWidth"), label = "Bar width", min = 0, max = 1, value = 0.5))
                      ),
                      fluidRow(
-                       column(6, 
-                              #position for  
+                       column(6,
+                              #position for
                               {
                                 position <- list(tags$span("Stack", style = "font-weight:bold; color:#0099e6"), tags$span("Dodge", style = "font-weight:bold; color:#0099e6"))
                                 radioButtons(inputId = ns("barPosition"), label = "Position", choiceNames = position, choiceValues = c("stack", "dodge"), inline = FALSE, selected = "stack")
                               }),
-                       column(6, 
+                       column(6,
                               #orientation
                               {
                                 #deafult = NA (auto)
-                                oreint <- list(tags$span("X", style = "font-weight:bold; color:#0099e6"), tags$span("Y", style = "font-weight:bold; color:#0099e6")) #tags$span("default", style = "font-weight:bold; color:#0099e6"), 
+                                oreint <- list(tags$span("X", style = "font-weight:bold; color:#0099e6"), tags$span("Y", style = "font-weight:bold; color:#0099e6")) #tags$span("default", style = "font-weight:bold; color:#0099e6"),
                                 radioButtons(inputId = ns("barOrientation"), label = "Orientation", choiceNames = oreint, choiceValues = c("x", "y"), inline = TRUE)
                                 # radioButtons(inputId = ns("orientation"), label = "Orientation", choiceNames = oreint, choiceValues = c("default","x", "y"), inline = TRUE, selected = "default")
                               })
                      )
-    ), 
-    
-    #box plot and violin 
+    ),
+
+    #box plot and violin
     conditionalPanel(ns=ns, condition = " input.sideGraphType == 'box plot' || input.sideGraphType == 'violin plot'",
                      fluidRow(
                        column(6, sliderInput(inputId = ns("boxWidth"), label = "Box width", min = 0, max = 1, value = 0.5)),
-                       column(6, 
+                       column(6,
                               {
                                 #deafult = NA (auto)
-                                oreint <- list(tags$span("X", style = "font-weight:bold; color:#0099e6"), tags$span("Y", style = "font-weight:bold; color:#0099e6")) #tags$span("default", style = "font-weight:bold; color:#0099e6"), 
+                                oreint <- list(tags$span("X", style = "font-weight:bold; color:#0099e6"), tags$span("Y", style = "font-weight:bold; color:#0099e6")) #tags$span("default", style = "font-weight:bold; color:#0099e6"),
                                 radioButtons(inputId = ns("boxOrientation"), label = "Orientation", choiceNames = oreint, choiceValues = c("x", "y"), inline = TRUE)
                                 # radioButtons(inputId = ns("orientation"), label = "Orientation", choiceNames = oreint, choiceValues = c("default","x", "y"), inline = TRUE, selected = "default")
                               })
                      ),
     ),
-    
+
     #density
     conditionalPanel(ns=ns, condition = "input.sideGraphType == 'density'",
-                     #position for 
+                     #position for
                      fluidRow(
-                       column(6, 
+                       column(6,
                               {
                                 position <- list(tags$span("Stack", style = "font-weight:bold; color:#0099e6"), tags$span("Dodge", style = "font-weight:bold; color:#0099e6"))
                                 radioButtons(inputId = ns("densityPosition"), label = "Position", choiceNames = position, choiceValues = c("stack", "dodge"), inline = TRUE, selected = "stack")
@@ -211,51 +211,51 @@ sideGraphUi <- function(id,side = "X", sideVar = "default"){
                        column(6,
                               {
                                 #deafult = NA (auto)
-                                oreint <- list(tags$span("X", style = "font-weight:bold; color:#0099e6"), tags$span("Y", style = "font-weight:bold; color:#0099e6")) #tags$span("default", style = "font-weight:bold; color:#0099e6"), 
+                                oreint <- list(tags$span("X", style = "font-weight:bold; color:#0099e6"), tags$span("Y", style = "font-weight:bold; color:#0099e6")) #tags$span("default", style = "font-weight:bold; color:#0099e6"),
                                 radioButtons(inputId = ns("densityOrientation"), label = "Orientation", choiceNames = oreint, choiceValues = c("x", "y"), inline = TRUE)
                                 # radioButtons(inputId = ns("orientation"), label = "Orientation", choiceNames = oreint, choiceValues = c("default","x", "y"), inline = TRUE, selected = "default")
                               })
                      )
-                     
+
     ),
-    
-    
-    
+
+
+
     conditionalPanel(ns=ns, condition = "input.sideGraphType == 'frequency'",
                      #stat: identity or count
                      sliderInput(inputId = "binwidth", label = "Bin width", min = 1, max = 100, value = 30)
     ),
-    
+
     #only for scatter plot
     conditionalPanel(ns=ns, condition = "input.sideGraphType == 'scatter plot'",
                      #stat: identity or count
                      fluidRow(
                        column(6, sliderInput(inputId = ns("pointSize"), label = "Point size", min = 1, max = 15, value = 1)),#pointstat
-                       
-                       column(6, 
+
+                       column(6,
                               {
                                 statList <- list(tags$span("Yes", style = "font-weight:bold; color:#0099e6"), tags$span("No", style = "font-weight:bold; color:#0099e6"))
                                 radioButtons(inputId = ns("pointPosition"), label = "Adjust overlap", choiceNames = statList, choiceValues = c("yes", "no"), selected = "yes", inline = TRUE)
                               }
                        )
                      )
-                     
+
     ),
-    
-    
+
+
     #theme applied to all type
     conditionalPanel(ns=ns, condition = "input.sideGraphType != 'none'",
                      fluidRow(
                        column(6, sliderInput(inputId = ns("panelTextSize"), label = "Text size", min=5, max=20, value= 10)),
                        column(6, sliderInput(inputId = ns("panelScale"), label = "Panel size", min=0, max=1, value= 0.1))
                      ),
-                     
+
                      fluidRow(
-                       column(6,  
+                       column(6,
                               sliderInput(inputId = ns("panelSpacing"), label = "Panel space", min=1, max=15, value= 2),
                               bsTooltip(id = ns("panelSpacing"), title = "Space between main and side graphs", placement = "top", trigger = "hover",
                                         options = list(container = "body"))),
-                       column(6, 
+                       column(6,
                               tagList(
                                 conditionalPanel(ns=ns,condition = "input.sideGraphType == 'scatter plot'",
                                                  sliderInput(inputId = ns("pointAlpha"), label = "Transparency", min = 0, max = 1, value = 0.5)),
@@ -265,25 +265,25 @@ sideGraphUi <- function(id,side = "X", sideVar = "default"){
                                                  bsTooltip(id = ns("alpha"), title = "Effects depend on the main graph", placement = "top", trigger = "hover",
                                                            options = list(container = "body")))
                               )#end taglist
-                       )#end column 
+                       )#end column
                      )#end fludro
     )
-    
-  ) 
-  
+
+  )
+
 }
 
 "
 argument:
 x = character. variable of x-axis
 side = character. side to add the graph - x or y side
-color, linetype, shape = character. variables name. It will be evaluated and use in aes(). 
+color, linetype, shape = character. variables name. It will be evaluated and use in aes().
 mainGraph = character. specify the graph used in the main graph. This is require for graph like scatter plot to adjust the stat
 xyRequire = character vertor. type of graph that require both x and y-axis
 
 **note: it will return a list of two ggside objects
-" 
-sideGraphData <- function(id, side = "x", mainGraph = "none", xyRequire = xyRequire, linetype = NULL, 
+"
+sideGraphData <- function(id, side = "x", mainGraph = "none", xyRequire = xyRequire, linetype = NULL,
                           sideVar = "default", color = NULL, shape = NULL,
                           borderWidth = 1, borderColor = "grey", panelTheme = "default",
                           gridColor = "grey", gridlineWidth = 0.5, gridLineType = "dashed"){
@@ -291,20 +291,20 @@ sideGraphData <- function(id, side = "x", mainGraph = "none", xyRequire = xyRequ
   # req(x %in% colnames(data))
   moduleServer(id, function(input, output, session){
     # browser()
-    
+
     graph <- list(NULL, NULL)
     #trycatch use here is for log file to debug: not really necessary for other purpose
     tryCatch({
-      if(req(input$sideGraphType) != "none" && (req(input$sideVariable) == "default" || req(input$sideVariable) %in% sideVar)){ 
+      if(req(input$sideGraphType) != "none" && (req(input$sideVariable) == "default" || req(input$sideVariable) %in% sideVar)){
         #graph
-        graph1 <- list(NULL,NULL)  
-        
-        
+        graph1 <- list(NULL,NULL)
+
+
         if(tolower(side) == "x"){
           message("neww-----------")
           message( req(input$sideVariable))
-          
-          if( req(input$sideVariable) == "default"){ 
+
+          if( req(input$sideVariable) == "default"){
             #with inherited default x (density) or y value
             message("neww2-----------")
             #x side
@@ -313,7 +313,7 @@ sideGraphData <- function(id, side = "x", mainGraph = "none", xyRequire = xyRequ
               graph1 <- geom_xsidedensity(position = req(input$densityPosition), alpha = req(input$alpha), orientation = req(input$densityOrientation))
             }else if(req(input$sideGraphType) == "bar plot"){
               # message(str(req(input$barStat)))
-              graph1 <- geom_xsidebar(aes_string(fill= color, linetype = linetype), 
+              graph1 <- geom_xsidebar(aes_string(fill= color, linetype = linetype),
                                       stat = req(input$barStat), width = req(input$barWidth), #req(input$stat)
                                       position = req(input$barPosition), orientation = req(input$barOrientation))
             }else if(req(input$sideGraphType) == "box plot"){
@@ -323,16 +323,16 @@ sideGraphData <- function(id, side = "x", mainGraph = "none", xyRequire = xyRequ
             }else if(req(input$sideGraphType) == "scatter plot"){
               if( !mainGraph %in% c("none", xyRequire)){
                 #plot for x-axis only
-                graph1 <- geom_xsidepoint(aes_string(color = color), stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
+                graph1 <- geom_xsidepoint(aes_string(color = color), stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"},
                                           size = req(input$pointSize), alpha = req(input$pointAlpha))
               }else if(mainGraph %in% xyRequire){
-                graph1 <- geom_xsidepoint(aes_string(color = color), stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
+                graph1 <- geom_xsidepoint(aes_string(color = color), stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"},
                                           size = req(input$pointSize), alpha = req(input$pointAlpha))
               }
             }else if(!mainGraph %in% c("none", xyRequire) && req(input$sideGraphType) == "frequency"){
               graph1 <- geom_xsidefreqpoly(aes_string(color = color), binwidth = req(input$binwidth))
             }
-            
+
           }else if(req(input$sideVariable) != "default"){
             #choosen side x or y variable
             #x side
@@ -340,33 +340,33 @@ sideGraphData <- function(id, side = "x", mainGraph = "none", xyRequire = xyRequ
               #inherit.aes = TRUE
               graph1 <- geom_xsidedensity(aes_string(x = input$sideVariable), position = req(input$densityPosition), alpha = req(input$alpha), orientation = req(input$densityOrientation))
             }else if(req(input$sideGraphType) == "bar plot"){
-              graph1 <- geom_xsidebar(aes_string(x = input$sideVariable, fill= color, linetype = linetype), 
+              graph1 <- geom_xsidebar(aes_string(x = input$sideVariable, fill= color, linetype = linetype),
                                       stat = req(input$barStat), width = req(input$barWidth), #req(input$stat)
                                       position = req(input$barPosition), orientation = req(input$barOrientation))
-            }else if(req(input$sideGraphType) == "box plot"){ 
+            }else if(req(input$sideGraphType) == "box plot"){
               graph1 <- geom_xsideboxplot(aes_string(y=input$sideVariable, fill = color),outlier.alpha = 0.1, width = req(input$boxWidth),orientation = req(input$boxOrientation))
             }else if(req(input$sideGraphType) == "violin plot"){
               graph1 <- geom_xsideviolin(aes_string(y=input$sideVariable, fill = color), width = req(input$boxWidth),orientation = req(input$boxOrientation))
             }else if(req(input$sideGraphType) == "scatter plot"){
               if( !mainGraph %in% c("none", xyRequire)){
-                #plot with only x-axis 
-                graph1 <- geom_xsidepoint(aes_string(x=input$sideVariable, color = color), stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
+                #plot with only x-axis
+                graph1 <- geom_xsidepoint(aes_string(x=input$sideVariable, color = color), stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"},
                                           size = req(input$pointSize), alpha = req(input$pointAlpha))
               }else if(mainGraph %in% xyRequire){
-                graph1 <- geom_xsidepoint(aes_string(y=input$sideVariable, color = color), stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"}, 
+                graph1 <- geom_xsidepoint(aes_string(y=input$sideVariable, color = color), stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"},
                                           size = req(input$pointSize), alpha = req(input$pointAlpha))
               }
             }else if(!mainGraph %in% c("none", xyRequire) && req(input$sideGraphType) == "frequency"){
               graph1 <- geom_xsidefreqpoly(aes_string(x=input$sideVariable, color = color), binwidth = req(input$binwidth))
             }
-            
+
           }#end of non-default x or y variable
-          
+
         }else if(tolower(side) == "y"){
-          #y side 
-          if( req(input$sideVariable) == "default"){ 
-            
-            
+          #y side
+          if( req(input$sideVariable) == "default"){
+
+
             if(req(input$sideGraphType) == "density"){
               #inherit.aes = TRUE
               graph1 <- geom_ysidedensity(position = req(input$densityPosition), alpha = req(input$alpha), orientation = req(input$densityOrientation))
@@ -379,7 +379,7 @@ sideGraphData <- function(id, side = "x", mainGraph = "none", xyRequire = xyRequ
             }else if(req(input$sideGraphType) == "violin plot"){
               graph1 <- geom_ysideviolin(aes_string(fill = color), width = req(input$boxWidth),orientation = req(input$boxOrientation))
             }else if(req(input$sideGraphType) == "scatter plot"){
-              
+
               if( !mainGraph %in% c("none", xyRequire)){
                 #plot for x-axis only
                 graph1 <- geom_ysidepoint(aes_string(color = color), stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"},
@@ -391,11 +391,11 @@ sideGraphData <- function(id, side = "x", mainGraph = "none", xyRequire = xyRequ
             }else if(!mainGraph %in% c("none", xyRequire) && req(input$sideGraphType) == "frequency"){
               graph1 <- geom_xsidefreqpoly(aes_string(color = color), binwidth = req(input$binwidth))
             }
-            
-            
-          }else if( req(input$sideVariable) != "default"){ 
-            
-            
+
+
+          }else if( req(input$sideVariable) != "default"){
+
+
             if(req(input$sideGraphType) == "density"){
               #inherit.aes = TRUE
               graph1 <- geom_ysidedensity(aes_string(x = input$sideVariable), position = req(input$densityPosition), alpha = req(input$alpha), orientation = req(input$densityOrientation))
@@ -408,7 +408,7 @@ sideGraphData <- function(id, side = "x", mainGraph = "none", xyRequire = xyRequ
             }else if(req(input$sideGraphType) == "violin plot"){
               graph1 <- geom_ysideviolin(aes_string(y = input$sideVariable, fill = color), width = req(input$boxWidth), orientation = req(input$boxOrientation))
             }else if(req(input$sideGraphType) == "scatter plot"){
-              
+
               if( !mainGraph %in% c("none", xyRequire)){
                 #plot for x-axis only
                 graph1 <- geom_ysidepoint(aes_string(x = input$sideVariable, color = color), stat = "count", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"},
@@ -417,17 +417,17 @@ sideGraphData <- function(id, side = "x", mainGraph = "none", xyRequire = xyRequ
                 graph1 <- geom_ysidepoint(aes_string(y = input$sideVariable, color = color), stat = "identity", position = if(req(input$pointPosition) == "yes"){"jitter"}else{"identity"},
                                           size = req(input$pointSize), alpha = req(input$pointAlpha))
               }
-              
+
             }else if(!mainGraph %in% c("none", xyRequire) && req(input$sideGraphType) == "frequency"){
               graph1 <- geom_xsidefreqpoly(aes_string(x = input$sideVariable, color = color), binwidth = req(input$binwidth))
             }
-            
-            
+
+
           }
-          
+
           #end y side
-        }#end of not none  
-        
+        }#end of not none
+
         #add theme to the graph
         if(tolower(side) == "x"){
           sideThemes <- theme(ggside.axis.text.y = element_text(face = "bold", size = req(input$panelTextSize)),
@@ -437,7 +437,7 @@ sideGraphData <- function(id, side = "x", mainGraph = "none", xyRequire = xyRequ
                               ggside.panel.border = element_rect(fill = NA, color = borderColor, linewidth = borderWidth),
                               ggside.panel.grid = element_line(color= gridColor, linewidth = gridlineWidth, linetype = gridLineType)
           )
-          
+
         }else if(tolower(side) == "y"){
           sideThemes <- theme(ggside.axis.text.x = element_text(face = "bold", size = req(input$panelTextSize)),
                               ggside.panel.scale.y = req(input$panelScale),
@@ -445,25 +445,25 @@ sideGraphData <- function(id, side = "x", mainGraph = "none", xyRequire = xyRequ
                               ggside.panel.background = if(panelTheme == "default"){element_rect()}else{element_blank()},
                               ggside.panel.border = element_rect(fill = NA, color = borderColor, linewidth = borderWidth),
                               ggside.panel.grid = element_line(color= gridColor, linewidth = gridlineWidth, linetype = gridLineType)
-          ) 
+          )
         }
-        
-        
+
+
         graph <- list(graph1, sideThemes)
-        
+
       }else{
         graph <- list(NULL,NULL)
       }
-      
-      
+
+
     }, error= function(e){
-      
+
       print("Try resetting side graph")
     })
-    
+
     #return
     graph
-    
+
   })#end module
 }
 
@@ -476,7 +476,7 @@ insetColor <- reactiveVal(NULL)
 "
   arguments:
   inDf = data frame. data for inset
-  oriDf = data frame. original data 
+  oriDf = data frame. original data
   orix = character. original variable of x axis
   insx = character. variable selected for x-axis for the inset. 'default' indicates similar with orix
   oriTextLabel =  character. vector of variable names for labeling x-axis (original graph)
@@ -485,7 +485,7 @@ insetColor <- reactiveVal(NULL)
   shapeLine = character. to apply shape or line or none
   shape = character. variable for shape. default null
   line = character. variable for line. default null
-  
+
   Note: the function will return empty value. necessary output will be saved in the reactive objects
 "
 insetParamFunc <- function(inDf, oriDf, orix, insx = "default", oriTextLabel, finalPlt, color = "none", shape=NULL, line=NULL){
@@ -501,13 +501,13 @@ insetParamFunc <- function(inDf, oriDf, orix, insx = "default", oriTextLabel, fi
   }else{
     message(insx)
     insetXVarName <- unique(as.data.frame(inDf)[,insx]) %>% as.vector() %>% sort()
-    #saved as reactive object 
+    #saved as reactive object
     insetXTextLabels(insetXVarName)
   }
-  
-  
-  
-  
+
+
+
+
   #for color: depend on aesthetic
   if(color != "none"){# && (is.null(shape) && is.null(line))){
     #get original variables of x-axis from the original data
@@ -519,14 +519,14 @@ insetParamFunc <- function(inDf, oriDf, orix, insx = "default", oriTextLabel, fi
     xVarName <- unique(as.data.frame(oriDf)[,shape]) %>% as.vector() %>% sort()
     #get variable name of the inset
     insetXVarName <- unique(as.data.frame(inDf)[,shape]) %>% as.vector() %>% sort()
-    
+
   }else if(color == "none" && !is.null(line)){
     #get original variables of x-axis from the original data
     xVarName <- unique(as.data.frame(oriDf)[,line]) %>% as.vector() %>% sort()
     #get variable name of the inset
-    insetXVarName <- unique(as.data.frame(inDf)[,line]) %>% as.vector() %>% sort() 
+    insetXVarName <- unique(as.data.frame(inDf)[,line]) %>% as.vector() %>% sort()
   }
-  
+
   #get color from the original graph (variables of x axis)
   origColor <- hue_pal()(length(xVarName))
   # origColor <- unique(ggplot_build(finalPlt)$data[[1]][,1]) %>% as.vector()
@@ -545,8 +545,8 @@ insetParamFunc <- function(inDf, oriDf, orix, insx = "default", oriTextLabel, fi
 #   insetXVarName <- unique(as.data.frame(inDf)[,orix]) %>% as.vector() %>% sort()
 #   #filter only the variables  present in inset data and saved as reactive object
 #   insetXTextLabels( oriTextLabel[which(xVarName %in% insetXVarName)] )
-#   
-#   
+#
+#
 #   #for color: depend on aesthetic
 #   if(color != "none"){# && (is.null(shape) && is.null(line))){
 #     #get original variables of x-axis from the original data
@@ -558,14 +558,14 @@ insetParamFunc <- function(inDf, oriDf, orix, insx = "default", oriTextLabel, fi
 #     xVarName <- unique(as.data.frame(oriDf)[,shape]) %>% as.vector() %>% sort()
 #     #get variable name of the inset
 #     insetXVarName <- unique(as.data.frame(inDf)[,shape]) %>% as.vector() %>% sort()
-#     
+#
 #   }else if(color == "none" && !is.null(line)){
 #     #get original variables of x-axis from the original data
 #     xVarName <- unique(as.data.frame(oriDf)[,line]) %>% as.vector() %>% sort()
 #     #get variable name of the inset
-#     insetXVarName <- unique(as.data.frame(inDf)[,line]) %>% as.vector() %>% sort() 
+#     insetXVarName <- unique(as.data.frame(inDf)[,line]) %>% as.vector() %>% sort()
 #   }
-#   
+#
 #   #get color from the original graph (variables of x axis)
 #   origColor <- hue_pal()(length(xVarName))
 #   # origColor <- unique(ggplot_build(finalPlt)$data[[1]][,1]) %>% as.vector()
@@ -582,8 +582,8 @@ insetParamFunc <- function(inDf, oriDf, orix, insx = "default", oriTextLabel, fi
 #   insetXVarName <- unique(as.data.frame(inDf)[,orix]) %>% as.vector() %>% sort()
 #   #filter only the variables  present in inset data and saved as reactive object
 #   insetXTextLabels( oriTextLabel[which(xVarName %in% insetXVarName)] )
-#   
-#   
+#
+#
 #   #for color: depend on aesthetic
 #   if(color != "none"){# && (is.null(shape) && is.null(line))){
 #     #get original variables of x-axis from the original data
@@ -595,14 +595,14 @@ insetParamFunc <- function(inDf, oriDf, orix, insx = "default", oriTextLabel, fi
 #     xVarName <- unique(as.data.frame(oriDf)[,shape]) %>% as.vector() %>% sort()
 #     #get variable name of the inset
 #     insetXVarName <- unique(as.data.frame(inDf)[,shape]) %>% as.vector() %>% sort()
-#     
+#
 #   }else if(color == "none" && !is.null(line)){
 #     #get original variables of x-axis from the original data
 #     xVarName <- unique(as.data.frame(oriDf)[,line]) %>% as.vector() %>% sort()
 #     #get variable name of the inset
-#     insetXVarName <- unique(as.data.frame(inDf)[,line]) %>% as.vector() %>% sort() 
+#     insetXVarName <- unique(as.data.frame(inDf)[,line]) %>% as.vector() %>% sort()
 #   }
-#   
+#
 #   #get color from the original graph (variables of x axis)
 #   origColor <- unique(ggplot_build(finalPlt)$data[[1]][,1]) %>% as.vector()
 #   #filter only the color for the inset variables and save as reactive object
@@ -612,35 +612,35 @@ insetParamFunc <- function(inDf, oriDf, orix, insx = "default", oriTextLabel, fi
 # }
 #old version-----------
 #module for dual y-axis-------------------
-secLine <- reactiveVal(list(NULL, NULL))  
+secLine <- reactiveVal(list(NULL, NULL))
 #generic module for secondary y-axis variable and color
 "argument:
 id = character. Input id.
 df = data frame.
 yPr = character. variable for primary y-axis"
+"module not in use"
 moduleSecVarColor <- function(id, df = NULL, yPr = NULL){
-  ns <- NS(id) 
-  browser() 
+  ns <- NS(id)
+  # browser()
   #variable for secondary y-axis
   #get numeric columns from data
   colList <- lapply(colnames(df), function(x) is.numeric(df[,x])) %>% unlist()
   df_numOnly <- df[, which(colList)]
-  
+
   validate(
     need(nrow(df_numOnly) > 1 & ncol(df_numOnly) >= 2, "Error: data must have at least two numeric columns!")
   )
   #selected default variable from the table
   selCol <- colnames(df_numOnly)[which(colnames(df_numOnly) != yPr)]
-  
+
   tagList(
-    #provide variable option to choose 
+    #provide variable option to choose
     selectInput(inputId = "secVariable", label = "Choose variable", choices = c(colnames(df_numOnly)), selected = selCol[1]),
-    #color 
+    #color
     selectInput(inputId = "secColor", label = "color", choices = sort(c("blue", "green", "red", "black", "grey", "brown")))
   )
-  
-}
 
+}
 
 #module for line
 "arguments:
@@ -651,6 +651,10 @@ moduleLineSecUi <- function(id){
   tagList(
     #ui for variable and color
     # uiOutput(ns("uiVarCol")),
+    {
+      choiceList <- list(tags$span("Yes", style = "font-weight:bold; color:#0099e6"), tags$span("No", style = "font-weight:bold; color:#0099e6"))
+      radioButtons(inputId = ns("secTitleText"), label = "Apply same color to seconday y-axis text?", choiceNames = choiceList, choiceValues = c("yes", "no"), inline = TRUE)
+    },
     #ui for line width
     sliderInput(ns("secLineWidth"), label = "Line width", min = 0.1, max = 10, value = 1),
     #ui line type
@@ -665,40 +669,36 @@ moduleLineSecUi <- function(id){
 arguments:
 id = character. input id
 df = data.frame.
-
-
-pltType = May not require!! character. Type of graph for secondary y-axis.
-
 yPr = character. Column name used in primary y-axis (left). Must be numeric column.
 ySec = character. Column name to be used in secondary y-axis (right).
         It must be numeric columns.
 yCol= character. Color for line.
 titlePr = character. title of primary axis.
+addPoint = character. to add or remove point for the line. Add=='point'; remove != 'point'
+pointSize = numeric. size for point.
+pointAlpha = numeric. control transparency.
+secTitle = character. title for secondary axis.
 
 Return type: list of ggplot object
 "
+# pltType = May not require!! character. Type of graph for secondary y-axis.
 moduleLineSecSer <- function(id, df = NULL, pltType = NULL, yPr= NULL,
-                             titlePr = NULL,
-                             ySec = NULL, yCol = NULL
+                             ySec = NULL, yCol = NULL, titlePr = NULL,
+                             addPoint = "none", pointSize = 1, pointALpha = 0.5,
+                             textSize = 15, textTile = 15, secTitle = "secondary title"
                              ){
   moduleServer(id, function(input, output, session){
-   
+
     req(is.data.frame(df))
-    # #variable and color
-    # output$uiVarCol <- renderUI({
-    #   # moduleSecVarColor(id = NS(id, "secVar"), df= df)
-    #   moduleSecVarColor(id = NS(id, "vaCol"), df= df, yPr = yPr) 
-    # })
-    
+
     tryCatch({
-      
         req(input$secLineType, input$secLineAlpha, input$secLineWidth)
         # browser()
-        
+
         #get the data for yPr and ySec
         yPr_d <- reactiveVal(df[, yPr]) #vector
         ySec_d <- reactiveVal(df[, ySec]) #vector
-        
+
         #checks: both must be numeric
         shiny::validate(
           #this was taken care
@@ -708,61 +708,91 @@ moduleLineSecSer <- function(id, df = NULL, pltType = NULL, yPr= NULL,
         #axis transformation: balance the dual axis
         myp <- max(yPr_d())
         mys <- max(ySec_d())
-         
+
+
         if(myp > mys){
           #primary is greater than sec
           #get multiplier for sec
           mlp <- myp/mys
-          
-          list(
+
+          secDetail <- list(
             #
             geom_line(aes( y = eval(str2expression(ySec)) * mlp, group = 1), color = yCol, linetype = input$secLineType,
                       alpha = input$secLineAlpha, linewidth = input$secLineWidth),
+            #add point to the line
+            if(addPoint == "point"){
+              geom_point(aes( y = eval(str2expression(ySec)) * mlp, group = 1), color = yCol, size = pointSize, alpha = pointALpha)
+            }else{NULL},
+            #scale
             scale_y_continuous(
               #title of primary y-axis
-              name = titlePr, 
+              # name = titlePr,
               #param for sec y-axis
-              sec.axis = sec_axis(trans = ~. / mlp, name = "input$secTitle")
+              sec.axis = sec_axis(trans = ~. / mlp, name = secTitle)
             )
           )
-        
+
         }else if(myp < mys){
           #secondary is greater than primary
           #get divider for sec
           dv <- mys/myp
           #list
-          list(
+          secDetail <- list(
             #
             geom_line(aes( y = eval(str2expression(ySec)) / dv, group = 1), color = yCol, linetype = req(input$secLineType),
                       alpha = req(input$secLineAlpha), linewidth = req(input$secLineWidth)),
+
+            if(addPoint == "point"){
+              geom_point(aes( y = eval(str2expression(ySec)) / dv, group = 1), color = yCol, size = pointSize, alpha = pointALpha)
+            }else{NULL},
+
             scale_y_continuous(
               #title of primary y-axis
-              name = titlePr, 
+              # name = titlePr,
               #param for sec y-axis
-              sec.axis = sec_axis(trans = ~. * dv, name = "input$secTitle")
+              sec.axis = sec_axis(trans = ~. * dv, name = secTitle)
             )
           )
         }else{
-          list(
+          secDetail <- list(
             #no difference in max
             geom_line(aes( y = eval(str2expression(ySec)), group =1 ), color = yCol, linetype = req(input$secLineType),
                       alpha = req(input$secLineAlpha), linewidth = req(input$secLineWidth)),
+
+            if(addPoint == "point"){
+              geom_point(aes( y =  eval(str2expression(ySec)), group = 1), color = yCol, size = pointSize, alpha = pointALpha)
+            }else{NULL},
+
             scale_y_continuous(
               #title of primary y-axis
-              name = titlePr, 
-              #param for sec y-axis 
-              sec.axis = sec_axis(trans = ~., name = "req(input$secTitle)")
+              # name = titlePr,
+              #param for sec y-axis
+              sec.axis = sec_axis(trans = ~., name = secTitle)
             )
           )
         }
-     
+
+
+        #add thhem
+        list(
+          secDetail,
+
+          #theme
+          if(req(input$secTitleText) == "yes"){
+            theme(
+                axis.title.y.right = element_text(color = yCol, size=textTile),
+                axis.text.y.right = element_text(color = yCol, size=textSize)
+            )
+          }else{NULL}
+          )
+
      }, error = function(e){
-       print(e) 
+       print(e)
      })
-     
+
   })
 }
- 
+
 #common module: variable, color, theme -> name of axis title, font size of axis,
 
 #module for dual y-axis-------------------
@@ -771,16 +801,16 @@ moduleLineSecSer <- function(id, df = NULL, pltType = NULL, yPr= NULL,
 arguments
 update = logical. TRUE to update the selectinput and false to reset.
 pltType = character. type of graph
-data = data frame. 
-label = character.  
+data = data frame.
+label = character.
 newId = character. ID for the selectinput
 firchoice = character. 'none' as default first choice
-choice = list of character. 
+choice = list of character.
 selecteds = character. must be present in the choice list"
 selectInputParam <- function(update= TRUE, pltType = "none",
-                       data, label = "Add color", newId = "colorSet", 
+                       data, label = "Add color", newId = "colorSet",
                        firstChoice = "none", choice = "", selecteds = "none",...){
-  # browser()   
+  # browser()
   if(!isTRUE(update)){
     if(!is.data.frame(data) || (is.data.frame(data) && pltType == "none")){
       selectInput(inputId = newId, label = label, choices = list("none"))
@@ -794,14 +824,14 @@ selectInputParam <- function(update= TRUE, pltType = "none",
       message("-===========updating selectInput================")
       updateSelectInput(inputId = newId, label = label, choices = c(firstChoice, choice), selected = selecteds)
     }
-    
+
   }
 }
 
 #remove the below later: when color option is being optimized
 displayAes <- function(update= "no", transform = TRUE, action = FALSE, pltType = "pltType()",#!isTruthy(input$goAction)
                        data, label = "Variable to fill color", newId = "colorSet", firstChoice = "none", choice = colnames(ptable()), selecteds = "none",...){
-  # browser() 
+  # browser()
   if(tolower(update) =="no"){
     if(!is.data.frame(data) || (is.data.frame(data) & isFALSE(transform) & req(pltType) == "none") || (is.data.frame(data) & isTRUE(transform) & isFALSE(action))){
       selectInput(inputId = newId, label = label, choices = list("none"))
@@ -818,7 +848,7 @@ displayAes <- function(update= "no", transform = TRUE, action = FALSE, pltType =
       message(str(selecteds))
       updateSelectInput(inputId = newId, label = label, choices = c(firstChoice, choice), selected = selecteds)
     }
-    
+
   }
 }
 
@@ -831,7 +861,7 @@ data = dataframe.
 "
 #if data.table (fread), it will be integer, instead of numeric
 allNumCharVar <- function(checks = "integer", data = "ptable()"){
-  
+
   #get the data types of the column in the data frame
   varClass <- sapply(data, class)
   #filter the df based on the provided data type
@@ -840,7 +870,7 @@ allNumCharVar <- function(checks = "integer", data = "ptable()"){
   }else{
     var <- data[varClass %in% c("character", "factor")]
   }
-  
+
   colnames(var)
 }
 #variable selector function for in selectInput--------------------
@@ -883,21 +913,21 @@ filterData <- function(df, col, filterType, val){
   #   case 1. case sensitive
   #         i. Character variable -  contain or not contain : each value must be comma separated and bound by double quotes if comma needs to be included
   #         ii. Character variable - equal or not equal : option will be in vector, so apply filter directly.
-  #   case 2. Numeric variable - 
+  #   case 2. Numeric variable -
   #         i. not between - must be of length 1 and must be able to convert to numeric
   #         ii. between - must be able to convert to numeric and must be colon separated. E.g., 1:10 or 20:40
   # browser()
   # message(filterType)
-  #dummy data frame 
+  #dummy data frame
   filtr_df <- NULL
   #detect error: not in use
   erorDetected <- 0
-  
+
   if(filterType %in% c("contain", "not contain")){
-    
+
     #case 1. i.
     inputVal <- str_split(val, ',(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)') %>% unlist()
-    
+
     if(filterType == "contain"){
       filtr_df <- df[ str_detect(df[,col], inputVal, negate = FALSE), , drop = FALSE]
     }else if(filterType == "not contain"){
@@ -907,7 +937,7 @@ filterData <- function(df, col, filterType, val){
         need(nrow(filtr_df) >= 1, "Zero rows. Require at least 1 row")
       )
     }
-    
+
     #end of contain
   }else if(filterType %in% c("equal to", "not equal to")){
     #case 1. ii.
@@ -918,13 +948,13 @@ filterData <- function(df, col, filterType, val){
       filtr_df <- df %>% filter( !.data[[col]] %in% inputVal )
     }
     #end of equal to ...
-    
+
     #End of case 1: character variable
   }else{
     #start case 2: numeric variable
     if(filterType != "between"){
       #case 2. i.
-      
+
       #input must be able to convert to numeric
       validate({
         erorDetected <- 1
@@ -944,7 +974,7 @@ filterData <- function(df, col, filterType, val){
       }else if(filterType == "less than"){
         filtr_df <- df %>% filter( .data[[col]] < numValue)
       }
-      
+
     }else if(filterType == "between"){
       validate({
         erorDetected <- 1
@@ -953,7 +983,7 @@ filterData <- function(df, col, filterType, val){
       filtr_df <- df %>% filter( .data[[col]] >= min(numRange), .data[[col]] <= max(numRange))
     }
   }
-  
+
   if(is.null(filtr_df)){
     #for no data found for the filter: provide null data and proper column
     filtr_df <- as.data.frame(matrix(nrow = 1, ncol = ncol(df)))
@@ -965,9 +995,9 @@ filterData <- function(df, col, filterType, val){
   cl <- lapply(filtr_df, class) %>% unlist()
   if(any(cl == "factor")){
     indx <- which(cl == "factor")
-    filtr_df[,indx] <- as.character(filtr_df[,indx]) 
+    filtr_df[,indx] <- as.character(filtr_df[,indx])
   }
-  
+
   return(filtr_df)
 }
 #function for downloading figure-------------------
@@ -1009,7 +1039,7 @@ Output will be dataframe.
 descriptiveStatFunc <- function(df, xA, yA){
   #unique variables present in x-axis
   uqVarLen <- df %>% distinct(!!!rlang::syms(xA)) %>% nrow()
-  
+
   #check whether sd and se can be determine or not
   # case 1: cannot determine sd and se - unbalanced data and some variables have only one data point
   # case 2: can determine sd and se - variables have more than one data point.
@@ -1021,7 +1051,7 @@ descriptiveStatFunc <- function(df, xA, yA){
       #count
       count = n(),
       #min, Q1, mean, median, Q3, max, sd
-      min = min(.data[[yA]]), Q1 = quantile(.data[[yA]], probs = 0.25), mean = round(mean(.data[[yA]]),3), median = median(.data[[yA]]), 
+      min = min(.data[[yA]]), Q1 = quantile(.data[[yA]], probs = 0.25), mean = round(mean(.data[[yA]]),3), median = median(.data[[yA]]),
       Q3 = quantile(.data[[yA]], probs = 0.75), max = max(.data[[yA]])
     )
   }else if(uqVarLen != nrow(df) && all(ct$n > 1)){
@@ -1030,18 +1060,18 @@ descriptiveStatFunc <- function(df, xA, yA){
       #count
       count = n(),
       #min, Q1, mean, median, Q3, max
-      min = min(.data[[yA]]), Q1 = quantile(.data[[yA]], probs = 0.25), mean = round(mean(.data[[yA]]), 3), median = median(.data[[yA]]), 
+      min = min(.data[[yA]]), Q1 = quantile(.data[[yA]], probs = 0.25), mean = round(mean(.data[[yA]]), 3), median = median(.data[[yA]]),
       Q3 = quantile(.data[[yA]], probs = 0.75), max = max(.data[[yA]]), IQR = IQR(.data[[yA]]),
       #sd
       standard_deviation = round(sd(.data[[yA]]),3)
-    ) %>% mutate(standard_error = round(standard_deviation/sqrt(count),3)) 
-    
+    ) %>% mutate(standard_error = round(standard_deviation/sqrt(count),3))
+
   }else{
     stopAll(1)
     ds_df <- data.frame(NULL)
     # "stop proceeding all the program! Important!!!!!!!!!!!!!!!"
   }
-  
+
   return(ds_df)
 }
 #function for normalization and standardization of data------------------
@@ -1050,48 +1080,48 @@ function for normalization and standardization
 arguments:
 data = data frame.
 ns_method = character. method of transformation
-x = character. variable of x-axis. Require only for box-cox. 
+x = character. variable of x-axis. Require only for box-cox.
 y = chharacter. variable of y-axis.
 "
 ns_func <- function(data, ns_method, x=NULL, y){
-  #remove na: this was supposed to have been taken care in the beginning, if not ,removed it 
+  #remove na: this was supposed to have been taken care in the beginning, if not ,removed it
   # browser()
   data <- na.omit(data)
   #if data has 0 than add +1
   if(any(data[, y] == 0)){
     data[, y] <- data[y]+1
   }
-  
-  
-  if(ns_method == "log2"){ 
-  
+
+
+  if(ns_method == "log2"){
+
     new_df <- data %>% mutate( log2 = log2(.data[[y]]) )
-    
+
   }else if(ns_method == "log10"){
-  
+
     new_df <- data %>% mutate( log10 = log10(.data[[y]]) ) #log10(y)
-    
+
   }else if(ns_method == "square-root"){
-  
+
     new_df <- data %>% mutate( sqrt = sqrt(.data[[y]]) )#sqrt(y)
-    
+
   }else if(ns_method == "box-cox"){
     #determine model
     bc <- with(data, car::boxCox(eval(parse(text = y)) ~ eval(parse(text = x)), plotit = FALSE))
-  
+
     #optimal lambda value
     opt_lba <- bc$x[which.max(bc$y)]
     message("transformed")
     #transform
     new_df <- data %>% mutate( box_cox = ((.data[[y]]^opt_lba-1)/opt_lba) )
-    
+
   }else{
-    
+
     #scale
     new_df <- data %>% mutate( scale = scale(.data[[y]]) )#scale(y)
-    
+
   }
-  
+
   #rename the column
   new_df[, y] <- new_df[, ncol(new_df)]
   new_df <- new_df[, -ncol(new_df)] #remove the duplicate transform column
@@ -1101,23 +1131,23 @@ ns_func <- function(data, ns_method, x=NULL, y){
 "function to compute standard deviation (sd), standard error (se) and confidence interval (ci)
             arguments:
             x = a data frame
-            oName = character or vector of characters to be used in group_by(). If single character, variable names of x-axis, 
+            oName = character or vector of characters to be used in group_by(). If single character, variable names of x-axis,
                     else vector of variable names of x-axis and variable of aesthetic
             yName = character. variable names of y-axis to be used in summarise.
             lineGrp = character. variable use to connect line path.
                     null for scatter plot. It will be use in gorup_by if value is other than 'none' or null
             "
 sdFunc <- function(x, oName, yName, lineGrp = NULL){
-  
+
   #convert the x-axis and other aesthetic to factor
   message("entering factro3")
   nDf <- x %>% mutate(across(c(!!!rlang::syms( oName )), factor))
   message("factor done2")
   #computed sd
   if(lineGrp != "none" || is.null(lineGrp)){
-    
+
     if( lineGrp %in% oName || is.null(lineGrp) ){
-      nDf <- nDf %>% group_by( !!!rlang::syms( oName ) ) %>% 
+      nDf <- nDf %>% group_by( !!!rlang::syms( oName ) ) %>%
         #calculate sd, mean and count
         summarise(sd = sd(.data[[yName]], na.rm = TRUE), newCol = mean(.data[[yName]], na.rm=TRUE), count = n())%>%
         #compute se
@@ -1125,32 +1155,32 @@ sdFunc <- function(x, oName, yName, lineGrp = NULL){
         #ci at 95% confidence level
         mutate(ci = se * qt(0.975, count-1))
     }else{
-      nDf <- nDf %>% group_by( !!!rlang::syms( oName ), .data[[lineGrp]] ) %>% 
+      nDf <- nDf %>% group_by( !!!rlang::syms( oName ), .data[[lineGrp]] ) %>%
         summarise(sd = sd(.data[[yName]], na.rm = TRUE), newCol = mean(.data[[yName]], na.rm=TRUE), count=n()) %>%
         #compute se
         mutate(se = sd/sqrt(count)) %>%
         #ci at 95% confidence level
         mutate(ci = se * qt(0.975, count-1))
     }
-    
-    
+
+
   }else if( lineGrp == "none" ){
-    
-    nDf <- nDf %>% group_by( !!!rlang::syms( oName ) ) %>% 
+
+    nDf <- nDf %>% group_by( !!!rlang::syms( oName ) ) %>%
       summarise(sd = sd(.data[[yName]], na.rm = TRUE), newCol = mean(.data[[yName]], na.rm=TRUE), count=n()) %>%
       #compute se
       mutate(se = sd/sqrt(count)) %>%
       #ci at 95% confidence level
       mutate(ci = se * qt(0.975, count-1))
   }
-  
+
   #If sd cannot be calculated, display message that sd cannot be calculated for the data
   if(is.na(nDf$sd) || is.na(nDf$se) || is.na(nDf$ci)){
     sdError <<- 1
   }else{
     sdError <<- 0
   }
-  
+
   #rename the column
   names(nDf)[ncol(nDf)-3]<- yName #same name as y-axis
   message(glue::glue("ndf heres: colnames(nDf)"))
@@ -1164,11 +1194,11 @@ It will processed the replicates only for one group at a time, not multiple grou
 
 arguments:
 x = dataframe. data with both non-replicate and replicate column i.e. whole data.
-y = dataframe. data with only non-replicate column. 
+y = dataframe. data with only non-replicate column.
 colName = character. Column name. To be used for the  tidied data
 headerNo = numeric. row index of header used in the table. numeric sequence.
 colNo = character. column name for the replicates of each group. It can be vector or range
-stp = numeric. range from 0 to 1. 0 to process and 1 to stop processing 
+stp = numeric. range from 0 to 1. 0 to process and 1 to stop processing
       non-replicate columns
 "
 
@@ -1181,24 +1211,24 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
   #non-replicate column: May not always be in character column when in proper format
   # later some column may have to be converted to numeric
   # and tidied data will be appended to this data
-  
+
   #may not require (updated): check for addition of header by R: V1, V2, .....Vn
   # removed the header if present.
   if(all( str_detect(x[1,], regex("^V[:digit:]")) )){
     x <- x[-1, ]
-    y <- y[-1, ] 
+    y <- y[-1, ]
   }
-  
+
   if(stp == 0){
-    
-    #get column name from the header 
+
+    #get column name from the header
     if(!is_empty(y)){
-      
+
       #get the header
       headr <- y[headerNo, ,drop=FALSE] %>% as.data.frame()
       #removed the header
       y_headRe <- y[-headerNo, ,drop=FALSE] %>% as.data.frame()
-      
+
       message("if statment")
       #arrange proper header name for the non-replicate columns
       if(all(is.na(headr))){
@@ -1206,91 +1236,91 @@ tidyReplicate <- function(x, y, headerNo = 1:2, colName= "column_name", colNo = 
         #if all is na i.e. no header name in the table,
         # generate new column name
         col_n <- ncol(y_headRe)
-        
+
         colnames(y_headRe) <- paste0("variable",1:col_n)
-        
+
       }else{
         message("header present")
         #if header is included in the table, use the name and re-format in proper order
         #run for loop for each columns and check na
         getName <- as.character() #column name collector
-        
+
         for(i in seq_along(headr)){
-          
+
           if(length(headerNo) == 1){
             #one header
             getName[i] <- headr[,i]
           }else{
-            
+
             #multiple header:
             #this works only when data has two header row
             if(any(headr[,i] == "0") ){
               #the first row will always have name, so use that row as column name
               getName <- headr[1, ]
             }else{
-              #no 0;  
-              #   skip row that starts with new_a (added while uploading) or 0 
+              #no 0;
+              #   skip row that starts with new_a (added while uploading) or 0
               for(n in headerNo){
                 if(any( str_detect( headr[n,i], regex("^new_[:alpha:][:digit:]|0") ) )){
                   next
                 }else{
                   #get the name
-                  getName[i] <- headr[n,i] 
+                  getName[i] <- headr[n,i]
                   break #out of the nested loop
                 }
               }
-              
+
             }
           }
-          
+
         }#end of for loop
-        
+
         colnames(y_headRe) <- getName
-        
+
       }
-      
+
       #check wether data needs to be converted back to numeric as it should be in the original data provided
       # by the user
       for(i in seq_len(ncol(y_headRe))){
         if( any( !str_detect( y_headRe[,i],regex('[:alpha:]')) ) ){
           y_headRe[,i] <- as.numeric(y_headRe[, i])
-          
+
         }#end of if digit detected
       }#end of for loop
     }
   }#end of stp==0
-  
-  
+
+
   #process the replicates
   #replicate data: for now, every elements in the data are in character
   # it will execute irrespective of stp
-  
+
   #select only the specified columns
-  x2 <- x[, colNo, drop = FALSE] 
-  #remove the header 
-  x2 <- x2[-c(headerNo),] %>% as.data.frame() 
+  x2 <- x[, colNo, drop = FALSE]
+  #remove the header
+  x2 <- x2[-c(headerNo),] %>% as.data.frame()
   # convert to numeric
   onlyNumeric <- x2 %>% as.data.frame() %>% mutate_if(is.character, as.numeric)  #%>% as_tibble()
-  
+
   #generate and add column names
   nn <- ncol(onlyNumeric)
   colnames(onlyNumeric) <- paste0("Replicate_",1:nn)
-  
+
   #merge the noNumeric (character column) and onlyNumeric (replicate column)
   if(!is_empty(y) && stp == 0){
     newDf <- cbind(y_headRe, onlyNumeric) %>% as.data.frame()
   }else{
-    newDf <- onlyNumeric %>% as.data.frame() 
+    newDf <- onlyNumeric %>% as.data.frame()
   }
-  
+
   message("merge done3")
-  
+
   #Reshape the data: keep replicate row-wise i.e. longer format (pivot_longer())
   newDf2 <- pivot_longer(newDf, cols = colnames(onlyNumeric), names_to = "replicates", values_to = colName)
   rownames(newDf2) <- NULL
-  
+
   return(newDf2)
-  
+
 }
 
 
@@ -1306,20 +1336,20 @@ repNum = numeric. Number of replicates for each variables.
 return one column data frame
 "
 getMeanMedian <- function(x, df, stat='none', grp = NULL, varNum = NULL, repNum = NULL){
-  
+
   #get the columns for which mean and median are to be determine
   df2 <- df[, c(x), drop = FALSE]
   final <- NULL
-  
+
   if(is.null(grp)){
     #user provide no column to group by
     #add unique id to each sample to be used in group by
     df2$newId <- rep(1:varNum, each = repNum)
-    
+
     #group by based on the ID
     if(stat == "mean"){
-      gb_df <- df2 %>% group_by(newId) %>% summarise(mean= mean(.data[[x]])) %>% as.data.frame() 
-      
+      gb_df <- df2 %>% group_by(newId) %>% summarise(mean= mean(.data[[x]])) %>% as.data.frame()
+
       #proper name to calculated stat
       gb_df[, paste0(x,"_mean")] <- gb_df$mean
       final <- gb_df[, paste0(x,"_mean"), drop=FALSE]
@@ -1329,13 +1359,13 @@ getMeanMedian <- function(x, df, stat='none', grp = NULL, varNum = NULL, repNum 
       gb_df[, paste0(x,"_median")] <- gb_df$mean
       final <- gb_df[, paste0(x,"_median"), drop=FALSE]
     }
-    
+
   }else if(!is.null(grp)){
     #user provide column to group by
-    
+
     #group by based on the specified column
     if(stat == "mean"){
-      gb_df <- df %>% group_by( !!!rlang::syms(grp) ) %>% summarise(mean= mean(.data[[x]])) %>% as.data.frame() 
+      gb_df <- df %>% group_by( !!!rlang::syms(grp) ) %>% summarise(mean= mean(.data[[x]])) %>% as.data.frame()
       #proper name for calculated stat
       gb_df[, paste0(x,"_mean")] <- gb_df$mean
       final <- gb_df[, paste0(x,"_mean"), drop=FALSE]
@@ -1345,9 +1375,9 @@ getMeanMedian <- function(x, df, stat='none', grp = NULL, varNum = NULL, repNum 
       gb_df[, paste0(x,"_median")] <- gb_df$mean
       final <- gb_df[, paste0(x,"_median"), drop=FALSE]
     }
-    
+
   }
-  
+
   return(final)
 }
 
@@ -1374,7 +1404,7 @@ grpAddDel <- function(lst = "list()", grp = "givenGrp: the lists", act = "addOrD
         lst[index+1] <- list(grp)
       }
     }
-    
+
   }else if(act == "delete"){
     #delete the group from the list
     lst <- lst[-index] #remove from the last index
@@ -1401,15 +1431,15 @@ getDataVariable <- function(x, nh = 1, re = 1){
   headr_df <- t(headr_df)
   #generate and add column name
   colnames(headr_df) <- paste0("h",nh)
-  
+
   headr_df <- headr_df %>% as.data.frame()
   rownames(headr_df) <- NULL
-  
+
   #dummy table, variable number and name
   getTable <- data.frame(name="empty", number=0)
   getNumber <- 0 #start from zero
   getVar <- "name"
-  
+
   #run for loop for each header
   for(i in nh){
     h <- headr_df[i]
@@ -1417,19 +1447,19 @@ getDataVariable <- function(x, nh = 1, re = 1){
     var <- unique(h[,1])
     # var <- var[!is.na(var)]
     var <- var[var != "0" || var != 0 ]
-    
+
     # if(any(is.na(h[,1]))){
     if(any(h[,1] == "0")){
-      #if 0 is present, then reduce the number of 
+      #if 0 is present, then reduce the number of
       # variable by 1
       len <- len - 1
     }
-    
+
     #add to the dummy table
     getTable[i,1] <- paste(var, collapse=", ")
     getTable[i,2] <- len
-    
-    #Lower number of variable in the header will be the 
+
+    #Lower number of variable in the header will be the
     # actual number of variable for the data
     if(getNumber == 0){
       getNumber <- len
@@ -1439,13 +1469,13 @@ getDataVariable <- function(x, nh = 1, re = 1){
       getVar <- var
     }
   }
-  
+
   if(re == 1){
     return(getNumber)
   }else{
     return(getTable)
   }
-  
+
 }
 
 #function to arrange the input for formula of ANOVA: later it will be converted to expression
@@ -1502,8 +1532,8 @@ computeFuncErrorMsg <- reactiveVal(NULL)
 
 computFunc <- function(data = "data", method = "none", numericVar = "numericVar()",
                        catVar = "catVar()", compRef = "none",
-                       pairedD = "pairedData", anovaType = "anovaType()", 
-                       ttestMethod = FALSE, ssType="I", 
+                       pairedD = "pairedData", anovaType = "anovaType()",
+                       ttestMethod = FALSE, ssType="I",
                        model = "model", cmpGrpList = NULL, rfGrpList=NULL,
                        pAdjust = TRUE, pAdjustMethod='none'){ #switchGrpList = 0,
   # browser()
@@ -1519,16 +1549,16 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
   }else{
     message("formula-deriving")
     message(numericVar)
-    forml <- reformulate(response = glue::glue("{numericVar}"), termlabels = glue::glue("{catVar}")) 
+    forml <- reformulate(response = glue::glue("{numericVar}"), termlabels = glue::glue("{catVar}"))
   }
-  
+
   #get the list for comparison and reference group
   if(method %in% c("t.test", "wilcoxon.test")){
-    
+
     message("312wreference")
     message(glue::glue("referencegr3: {compRef}"))
     ref <- if(compRef == "reference group"){
-      
+
       if(is_empty(rfGrpList)){
         message("empty ref\\")
         NULL
@@ -1537,7 +1567,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
         rfGrpList
       }
     }else { NULL }
-    
+
     cmp <- if(compRef == "comparison"){
       if(!is_empty(cmpGrpList)){
         message("comparing stage--")
@@ -1547,7 +1577,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
         NULL
       }
     }else { NULL }
-    
+
     message("after compRef=================")
     message(glue::glue("compRef: {cmp}, {ref}"))
   }
@@ -1560,21 +1590,21 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     # print(data)
     message(forml)
     message(ttestMethod)
-    message(pAdjustMethod) 
+    message(pAdjustMethod)
     message(pairedD)
     message(cmp)
     test <- rstatix::t_test(data, formula = forml,
-           ref.group = unlist(ref), 
+           ref.group = unlist(ref),
            comparisons = cmp, p.adjust.method = pAdjustMethod,
            paired = pairedD, var.equal = ttestMethod #welch's =FALSE, or student's test = TRUE
     )
-    
+
     message("ttest done2 ")
     #global
     testTable$df <<- test %>% as.data.frame()
-    
+
     return(test)
-    
+
   }else if(method == "wilcoxon.test"){
     message("formlw=-=--")
     message('start')
@@ -1587,9 +1617,9 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     #global
     testTable$df <<- test %>% as.data.frame()
     return(test)
-    
+
   }else if(method == "anova"){
-    
+
     #Conduct ANOVA
     #formula for one-way and two-way is prepared by aovInFunc and reformulate
     message(glue::glue("running anova--=-="))
@@ -1599,191 +1629,191 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     }else{
       anova <- aov(data=data, formula=forml)
     }
-    
-    anovaTable <- parameters::model_parameters(anova) %>% as.data.frame() 
-    
+
+    anovaTable <- parameters::model_parameters(anova) %>% as.data.frame()
+
     #rename the column. Global data
     message(glue::glue("renaming anova table------"))
     #This will be used as summary data and for further analysis
-    # testTable$df <<- rename(anovaTable,"DFn" = "Df", "DFd" = "Df_residual") 
+    # testTable$df <<- rename(anovaTable,"DFn" = "Df", "DFd" = "Df_residual")
     testTable$df <<- anovaTable
-    
+
     message(glue::glue("------catVar: {catVar}-------"))
-    
+
     #conduct post-hoc analysis for one-way and two-way ANOVA
     #one-way anova----------------------------
     if(anovaType == "one"){
-      
+
       message(glue::glue("post hoc test----"))
       #post-hoc test: Tukey HSD test
       tukey_df <- tukey_hsd(data, forml)
       postHoc_table$df <<- tukey_df %>% as.data.frame() #global data to show in stat summary
       message(glue::glue("post hoc test finished: "))
-      
+
       #process further to get multcompletter
       new_tk <- tukey_df %>% mutate(name= paste(tukey_df$group1, tukey_df$group2, sep = "-"))
       message(glue::glue("multcompletter finished-----==="))
-      
+
       #Determine the mean and position for labeling
-      meanLabPos <- data %>% group_by(!!!rlang::syms(catVar)) %>% 
+      meanLabPos <- data %>% group_by(!!!rlang::syms(catVar)) %>%
         summarise(mean = mean(!!!rlang::syms(numericVar)), quantl = quantile(!!!rlang::syms(numericVar), probs =1, na.rm=TRUE))
-      
+
       #add mean to the new_tk and sort it based on the mean: #####not for aov this is require so that letter is in the order of mean (ascending)
       new_tk_join <- left_join(new_tk, meanLabPos, by = c("group1" = unlist(catVar))) #%>% arrange(mean)
       pval <- new_tk_join$p.adj
       names(pval) <- new_tk_join$name
-      
+
       #get multcompletter
       mcl <- multcompLetters(pval)
       mcl2 <- as.data.frame.list(mcl)
-      
-      #convert rowName to variable 
+
+      #convert rowName to variable
       col <- unlist(catVar)
       mcl2[col] <- rownames(mcl2)
-      
+
       #left_join with the computed data for mean and labeling positions
       meanLabPos <- left_join(meanLabPos, mcl2, by = c(col))
       geomTextLabel <- meanLabPos %>% as.data.frame()#use in geom_text
       return(geomTextLabel)
-      
+
     }else if(anovaType == "two"){
-      
+
       #two anova here----------------------------
       #post-hoc analysis
       if(model == "non-additive"){
-        
+
         #non-additive----------
         message("entering non-aditive2))))))")
         #using base aov
-        av <- aov(data=data, formula=forml) 
-        
+        av <- aov(data=data, formula=forml)
+
         #compare the mean: using base TukeyHSD()
-        tukey_df <- TukeyHSD(av) 
+        tukey_df <- TukeyHSD(av)
         #get compact letter
         # check for error: any error in name arguments will occur here (Estimated effects may be unbalanced)
         tryCatch({
           clt <- multcompLetters4(av, tukey_df)
           computeFuncError(0)
-        }, error= function(e){ 
+        }, error= function(e){
           computeFuncError(1)
           computeFuncErrorMsg(e)
           validate(
             need(isolate(computeFuncError()) == 0, glue::glue(e))
           )
-          
+
         })
-        
+
         #Determine the mean and position for labeling: interaction, group1 and group2
         #interaction
-        meanLabPos <- data %>% group_by(!!!rlang::syms(catVar)) %>% 
+        meanLabPos <- data %>% group_by(!!!rlang::syms(catVar)) %>%
           summarise(mean = mean(!!!rlang::syms(numericVar)), quantl = quantile(!!!rlang::syms(numericVar), probs =1, na.rm=TRUE)) %>%
           #sort is descending: one-way is sorted in ascending order
           arrange(desc(mean)) %>%
           #placed the groups in the first column
           select(!!!rlang::syms(catVar), everything())
-        
+
         #group1
-        meanLabPos1 <- data %>% group_by(!!!rlang::syms(catVar[1])) %>% 
+        meanLabPos1 <- data %>% group_by(!!!rlang::syms(catVar[1])) %>%
           summarise(mean = mean(!!!rlang::syms(numericVar)), quantl = quantile(!!!rlang::syms(numericVar), probs =1, na.rm=TRUE)) %>%
           #sort is descending: one-way is sorted in ascending order
           arrange(desc(mean)) %>%
           #placed the groups in the first column
           select(!!!rlang::syms(catVar[1]), everything())
-        
+
         #group2
-        meanLabPos2 <- data %>% group_by(!!!rlang::syms(catVar[2])) %>% 
+        meanLabPos2 <- data %>% group_by(!!!rlang::syms(catVar[2])) %>%
           summarise(mean = mean(!!!rlang::syms(numericVar)), quantl = quantile(!!!rlang::syms(numericVar), probs =1, na.rm=TRUE)) %>%
           #sort is descending: one-way is sorted in ascending order
           arrange(desc(mean)) %>%
           #placed the groups in the first column
           select(!!!rlang::syms(catVar[2]), everything())
-         
-        
+
+
         #global save for additive figure for different groups
         # aovFigure_1_2 <<- av #anova
         postHoc_table$df <<- tukey_df#gloabal: save and display as summary
         aovMeanLabPos <<- meanLabPos #mean table
         aovClt <<- clt #compact letter
-        
-        #get the compact letter 
+
+        #get the compact letter
         clt_n1 <- as.data.frame.list(clt[[1]]) #group1
         clt_n1$lab <- rownames(clt_n1)
         clt_n2 <- as.data.frame.list(clt[[2]]) #group2
         clt_n2$lab <- rownames(clt_n2)
         clt_n3 <- as.data.frame.list(clt[[3]]) #interaction
         clt_n3$lab <- rownames(clt_n3)
-        
+
         message("unlist")
         #add compact letter to the mean table
         #group1
         x <- catVar[1]
         colJ1 <- "lab"
         names(colJ1) <- x
-        
+
         meanLabPos_a <- left_join(meanLabPos1, clt_n1, by=colJ1) %>% select(1:5)
         meanLabPos_a <<- dplyr::rename(meanLabPos_a, tk1=Letters)
-        
+
         #group2
         x <- unlist(catVar[2])
         colJ2 <- "lab"
         names(colJ2) <- x
         meanLabPos_a2 <- left_join(meanLabPos2, clt_n2, by = colJ2) %>% select(1:5)
         meanLabPos_a2 <<- dplyr::rename(meanLabPos_a2, tk2=Letters)
-        
+
         message("non- group2 complete")
-        
+
         #interaction
         meanLabPos_i <- meanLabPos
         meanLabPos_i$tkint <- clt_n3$Letters
         geomTextLabel <- meanLabPos_i %>% as.data.frame()
-        
+
         return(geomTextLabel)
-        
+
       }else if(model == "additive"){
         #additive model---------------------
         message("enter aditive))))))")
         #using base aov
-        av <- aov(data=data, formula=forml) 
-        
+        av <- aov(data=data, formula=forml)
+
         #Determine the mean and position for labeling
         #group1
-        
-        meanLabPos1 <- data %>% group_by(!!!rlang::syms(catVar[1])) %>% 
+
+        meanLabPos1 <- data %>% group_by(!!!rlang::syms(catVar[1])) %>%
           summarise(mean = mean(!!!rlang::syms(numericVar)), quantl = quantile(!!!rlang::syms(numericVar), probs =1, na.rm=TRUE)) %>%
           #sort is descending: one-way is sorted in ascending order
           arrange(desc(mean)) %>%
           #placed the groups in the first column
           select(!!!rlang::syms(catVar[1]), everything())
-        
+
         #group2
-        meanLabPos2 <- data %>% group_by(!!!rlang::syms(catVar[2])) %>% 
+        meanLabPos2 <- data %>% group_by(!!!rlang::syms(catVar[2])) %>%
           summarise(mean = mean(!!!rlang::syms(numericVar)), quantl = quantile(!!!rlang::syms(numericVar), probs =1, na.rm=TRUE)) %>%
           #sort is descending: one-way is sorted in ascending order
           arrange(desc(mean)) %>%
           #placed the groups in the first column
           select(!!!rlang::syms(catVar[2]), everything())
-        
-        
+
+
         #compare the mean: using base TukeyHSD()
         tukey_df <- TukeyHSD(av) #gloabal: save and display as summary
-        
+
         #get compact letter
         clt <- multcompLetters4(av, tukey_df)
-        
+
         #global save for additive figure for different groups
         # aovFigure_1_2 <<- av #anova
         postHoc_table$df <<- tukey_df #tukey test
         aovMeanLabPos1 <<- meanLabPos1 #mean table
         aovMeanLabPos2 <<- meanLabPos2
         aovClt <<- clt #compact letter
-        
+
         #get all the required data for anova figure: interaction, group1, group2
         #add compact letter to the mean table
         clt_n1 <- as.data.frame.list(clt[[1]]) #group1
         clt_n1$lab <- rownames(clt_n1)
         clt_n2 <- as.data.frame.list(clt[[2]]) #group2
         clt_n2$lab <- rownames(clt_n2)
-        
+
         message("unlist")
         #group1: to be used in join
         x <- catVar[1]
@@ -1791,14 +1821,14 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
         names(colJ1) <- x
         meanLabPos_a <- left_join(meanLabPos1, clt_n1, by=colJ1) %>% select(1:4)
         meanLabPos_a <<- dplyr::rename(meanLabPos_a, tk1=Letters)
-        
+
         #group2: to be used in join
         x <- catVar[2]
         colJ2 <- "lab"
         names(colJ2) <- x
         meanLabPos_a2 <- left_join(meanLabPos2, clt_n2, by = colJ2) %>% select(1:4)
         meanLabPos_a2 <<- dplyr::rename(meanLabPos_a2, tk2=Letters)
-        
+
         #two table will be generated
         # This can be confusing:
         # different tables will be used based on user's input for figure
@@ -1807,22 +1837,22 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
         meanLabPos_a #group1
         meanLabPos_a2 #group2
       }
-      
+
     }
-    
-    
+
+
   }else if (method == "kruskal-wallis"){
-    
+
     #Kruskal test------------------
     message("Kruskal test on2")
-    allMean <- data %>% group_by(!!!rlang::syms(catVar)) %>% 
-      summarise(mean = mean(!!!rlang::syms(numericVar)), quantl = quantile(!!!rlang::syms(numericVar), probs =1, na.rm=TRUE)) 
+    allMean <- data %>% group_by(!!!rlang::syms(catVar)) %>%
+      summarise(mean = mean(!!!rlang::syms(numericVar)), quantl = quantile(!!!rlang::syms(numericVar), probs =1, na.rm=TRUE))
     #do the test
     kstat <- rstatix::kruskal_test(data=data, formula = forml)
     message("entering post hoc kruskal")
     #post hoc test
     #global
-    
+
     posthoc <- dunn_test(data=data, formula = forml, p.adjust.method = pAdjustMethod, detailed=FALSE)
     #get compact letter
     if(isTRUE(pAdjust)){
@@ -1830,27 +1860,27 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     }else{
       pval <- posthoc$p
     }
-    
+
     #global
     testTable$df <<- kstat %>% as.data.frame()
     postHoc_table$df <<- posthoc %>% as.data.frame()
-    
+
     message("kruskal post hooooooooooooooooooooooooooooooooooooooooooooooccc")
     #get compLetter
     names(pval) <- paste(posthoc$group1, posthoc$group2, sep="-")
     mcp <- multcompLetters(pval) %>% as.data.frame.list()
-    
+
     #make the name of column equal with the variable used for grouping
     colName <- catVar[1]
     toJoin <- "group"
     names(toJoin) <- colName
-    
+
     mcp$group <- rownames(mcp) #give the column name as "group" (similar name with value of toJoin)
     df_final <- left_join(allMean, mcp, by = toJoin) %>% dplyr::select(1:4)
     return(df_final)
-    
+
   }
-  
+
 }
 
 message("End of computFunc()------------")
@@ -1862,23 +1892,23 @@ v = single or multiple character. column name used in right-hand side of a model
 y = single character. column name to be used in left-hand side of a model formula
 method = character. method name for estimating effect size. eg. cohen
 stat = character. Statistical method - 't.test' or 'anova'
-welchs = logical. TRUE for welch and FALSE for student. require only for t.test. 
+welchs = logical. TRUE for welch and FALSE for student. require only for t.test.
 fa = formula. lm formula - eg. len ~ supp
 ... = additional arguments. can be used to specify paired or unpaired data in t.test
 "
 
 efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, method = "cohen/hedge/glass/eta..", stat = "t.test/anova", welchs = FALSE, partial = TRUE, fa, ...){
-  
+
   if(stat == "t.test"){
-    
+
     dt2 <- dt %>% filter(.data[[v]] %in%  x) %>% as.data.frame()
-    
-    message(colnames(dt2)) 
+
+    message(colnames(dt2))
   }
   # fs <- reformulate(response = y, termlabels = v) #replace fs with proper format
-  # 
+  #
   if(stat == "t.test"){
-    
+
     if(isTRUE(welchs)){
       #hedge will be the default
       efs <- switch(tolower(method),
@@ -1893,7 +1923,7 @@ efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, meth
                     "glass delta" = effectsize::glass_delta(data = dt2, x = fa) %>% as.data.frame()
       )
     }
-    
+
     #properly arrange the column: mimic rstatix output
     efs$y_variable <- as.character(y)
     efs$group1 <- as.vector(x[1])
@@ -1910,15 +1940,15 @@ efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, meth
     }else if(abs(efs2[4]) >= 0.8){
       efs2$magnitude <- "large"
     }
-    
+
     final_df <- efs2
     #end of t.test
   }else if(stat =="anova"){
-    
+
     av <- aov(data = dt, formula = fa) #replace fs with proper format
     anov <- car::Anova(av, type = 3)
-    pav <- parameters::model_parameters(anov) 
-    
+    pav <- parameters::model_parameters(anov)
+
     if(method == "Eta-squared"){
       final_df <- effectsize::eta_squared(pav, partial = FALSE) %>% as.data.frame()
       final_df["magnitude"] <- effectsize::interpret_eta_squared(final_df$Eta2) %>% as.data.frame()
@@ -1949,9 +1979,9 @@ efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, meth
       }
       final_df <- coh
     }#end of cohens_f
-    
+
   }#end of anova
-  
+
   return(final_df)
 }
 
@@ -1960,14 +1990,14 @@ efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, meth
 generateStatData <- function(data = "ptable()", groupStat = "groupStat()", groupVar = "groupStatVarOption()",
                              method = "none", numericVar = "numericVar()",
                              catVar = "catVar()", compRef = "none",
-                             pairedD = "pairedData", pAdjust = TRUE, 
+                             pairedD = "pairedData", pAdjust = TRUE,
                              ttestMethod=FALSE, #welch or student's test
                              model = "model", #model of anova
                              pAdjustMethod = NULL, labelSignif = "labelSt()",
                              cmpGrpList = NULL, rfGrpList = NULL, #switchGrpList = 0, #for ref.group and comparison: global list
                              xVar = "xyAxis()[[1]]", anovaType = "anovaType", ssType ="I"){
-  # browser() 
-  #convert the x-axis or group_by variable to factor.  
+  # browser()
+  #convert the x-axis or group_by variable to factor.
   #converting to factor is necessary for further processing
   message("entering generateStatData()-------------------")
   #for anova, every independent variable has to be a factor
@@ -1977,7 +2007,7 @@ generateStatData <- function(data = "ptable()", groupStat = "groupStat()", group
     # message(glue::glue("catVar: {unlist(catVar)}"))
     data <- data %>% mutate(across(unlist(catVar), factor))
   }else{
-    
+
     if(groupStat == "no"){
       #no nee to convert to factor
       data
@@ -1988,59 +2018,59 @@ generateStatData <- function(data = "ptable()", groupStat = "groupStat()", group
         data <- data %>% mutate(across(c(groupVar,xVar), factor))
       }
     }
-    
+
   }
-  
+
   message("converted to factor------------------------------")
   #apply stat and get the final data
   tryCatch({
     sData1 <- if(groupStat %in% c("no", "do nothing")){
       message(glue::glue("start sData1:--"))
-      data %>% 
+      data %>%
         #choose stat methods and apply
         #formula: independent (numeric) ~ dependent (factor)
-        computFunc(data = ., method = method, numericVar = numericVar, catVar = catVar, compRef = compRef, 
+        computFunc(data = ., method = method, numericVar = numericVar, catVar = catVar, compRef = compRef,
                    paired = pairedD, ttestMethod = ttestMethod,
-                   model = model, anovaType = anovaType, #ssType = ssType, 
+                   model = model, anovaType = anovaType, #ssType = ssType,
                    cmpGrpList = cmpGrpList, rfGrpList = rfGrpList, pAdjust = pAdjust, pAdjustMethod= pAdjustMethod) #switchGrpList = switchGrpList,
-      
+
     }else if(groupStat == "yes"){
       message("running groupby----------")
       data %>% group_by(!!!rlang::syms(groupVar)) %>%
         #choose stat methods and apply
-        computFunc(data = ., method = method, numericVar = numericVar, catVar = catVar, compRef = compRef, 
+        computFunc(data = ., method = method, numericVar = numericVar, catVar = catVar, compRef = compRef,
                    paired = pairedD, ttestMethod = ttestMethod, anovaType = anovaType, pAdjustMethod = pAdjustMethod)
     }
   }, error = function(e){print(e)})
-  
-  
-  
+
+
+
   if(!method %in% c("anova", "kruskal-wallis")){
-    
+
     #add p adjusted value column to the data frame: by default, but user can omit
     pAdj <- if(isTRUE(pAdjust)){
       pAdjustMethod
     }else{"none"}
-      
+
     sData2 <- sData1 %>%
-        #add p adjusted value column 
+        #add p adjusted value column
         adjust_pvalue(method = pAdj) %>%
         #add significance to the data frame column: default - p-adjusted value; user can opt for p-value
         add_significance(p.col = "p.adj") %>%
         #determine and add x and y position for labeling significance
         add_xy_position(x = xVar, dodge = 0.8)
-    
+
     sData2$p.adj <- round(sData2$p.adj, 3)
-    
+
   }#end of stat data for plots other than anova and krukal test
-  
+
   #provide the output as list of computed data and user's choice for label
   if(method %in% c("anova", "kruskal-wallis")){
     list(sData1, NULL)
   }else{
     list(sData2, labelSignif)
   }
-  
+
 }
 
 
@@ -2048,7 +2078,7 @@ generateStatData <- function(data = "ptable()", groupStat = "groupStat()", group
 "Function to plot graph. All basic graph + aesthetic will be included in this function.
 Date: 17/01/23
 arguments:
-data = data frame. 
+data = data frame.
 types = character. sepcify the type of plots to draw - 'box plot'. It can be 'none'.
 geom_type = object. object from ggplot2 to plot the graph specified in the types.
 histLine = object. require for histogram.
@@ -2061,7 +2091,7 @@ scales = character. 'fixed' or 'free' for facet.
 layer = character. type of layer - 'point', 'line'...
 layerSize = numeric. size for the layer.
 barSize = numeric. size for graph.
-xTextLabels = Not in use:::: character. Label name for the variable of x-axis. 
+xTextLabels = Not in use:::: character. Label name for the variable of x-axis.
 xl, yl, fills, colr, shape, linetype, size = aesthetic options.
 autoCust = character. either the color should be auto filled or customize.
 colorTxt = character. color name specified for the variables.
@@ -2072,22 +2102,22 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
                     xl = NULL, yl = NULL, fills = NULL,
                     colr = NULL, shapes = NULL, linetypes = NULL, sizes = NULL,
                     histLine = "meanLine", lineParam = "lineParam",
-                    facet = FALSE, facetType = 'grid_wrap', varRow = NULL, varColumn = NULL, nRow = NULL, nColumn = NULL, scales = "fixed",  
-                    layer = "none", layerSize = "layerSize", layerAlpha = NULL, barSize = 0.2, 
+                    facet = FALSE, facetType = 'grid_wrap', varRow = NULL, varColumn = NULL, nRow = NULL, nColumn = NULL, scales = "fixed",
+                    layer = "none", layerSize = "layerSize", layerAlpha = NULL, barSize = 0.2,
                     xTextLabels = "label",
                     #color aesthetic
                     autoCust, colorTxt, varSet = "none"
                     #, ...
 ){ #if y axis is required specifically mention in function parameter
-  
-  # browser()  
+
+  # browser()
   message(types)
   if(types == "none"){
     break
   }else if(!types %in% c("frequency polygon", "histogram", "inset-histogram")){
     #aesthetics will be filled based on requirement
-    gp <- ggplot(data = data, 
-                 
+    gp <- ggplot(data = data,
+
                  aes_string(
                    x = xl, y = if(!is.null(yl)){ yl }else{ NULL },
                    fill = if(!is.null(fills) && fills != "none"){ fills }else{ NULL },
@@ -2098,7 +2128,7 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
                  )
     )
   }else{
-    gp <- ggplot(data = data, 
+    gp <- ggplot(data = data,
                  aes_string(
                    x = xl,
                    fill = if(!is.null(fills) && fills != "none"){ fills }else{ NULL },
@@ -2109,22 +2139,22 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
                  )
     )
   }
-  
-  
+
+
   if(types == "box plot"){
     #only for plot that require errorbar
-    plt <- gp + 
+    plt <- gp +
       stat_boxplot(geom = "errorbar", width = barSize) +
       geom_type
-    
+
   }else if(types == "histogram"){
     # plt <- gp + geom_type + histLine
     plt <- gp + geom_type + histLine
   }else{
     #other plot
     if(isFALSE(lineParam[[1]])){
-      plt <- gp +geom_type 
-      
+      plt <- gp +geom_type
+
     }else{
       #if TRUE, than it is for line, bar graph, etc, which require sd computed data
       plt <- gp + geom_type +
@@ -2132,8 +2162,8 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
         lineParam[[3]]
     }
   }
-  
-  
+
+
   # #add layer
   # if(layer != "none"){
   #   cal <- ifelse(types %in% c("box plot", "violin plot"), "median", "mean")
@@ -2163,7 +2193,7 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
       }
     }else{plt}
   }
-  
+
   #add color here: so that anova (interaction) can be added
   if( varSet != "none" ){
     message("color provided")
@@ -2177,25 +2207,25 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
       message(glue::glue("colorTxt : colorTxt"))
       #get number of variables
       countVar <- length(unique(data[[varSet]]))
-      
+
       editC <- if(colorTxt == "noneProvided"){
         "not provided" #if no color is provided
       }else{
-        
+
         #process the given color input by removing space and comma
         message("Processing color")
         inputC <- strsplit(str_trim(gsub(" |,", " ", colorTxt))," +")[[1]]
-        #Select only the required number of colors if user provide more than 
+        #Select only the required number of colors if user provide more than
         #the required number.
         message(glue::glue("end of processing color: {inputC}"))
         message(glue::glue("length of inputC: {length(inputC)}"))
         message(glue::glue("countVar: {countVar}"))
-        
+
         if(length(inputC) > countVar){
           inputC[1:countVar]
         }else{ inputC }
       }
-      
+
       message(glue::glue("edit length: {length(editC)}"))
       if(editC != "not provided" && length(editC) < countVar){
         #display the color of the global plot
@@ -2214,19 +2244,19 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
       }
     }#end of customizing color
   }#end for color setting
-  
+
   #return
   plt
   # message(xTextLabels)
   #change variable name of x-axis
-  
+
   # if(types %in% c("line", "frequency polygon", "scatter plot")){
-  # if(is.numeric(data[,xl])){ 
-  #   plt  
+  # if(is.numeric(data[,xl])){
+  #   plt
   # }else{
-  #   plt + scale_x_discrete(labels = xTextLabels ) 
+  #   plt + scale_x_discrete(labels = xTextLabels )
   # }
-  
+
 }#end
 
 
@@ -2262,7 +2292,7 @@ axisLabs <- function(x =xyLable[[1]], y = xyLable[[2]]){
 date: 17/01/23
   Function to add more advance settings:
   arguments:
-    plt = object of ggplot2. It will be derived from plotFig. 
+    plt = object of ggplot2. It will be derived from plotFig.
     methodSt = character. statistical method.
     removeBracket = logical. remove bracket for annotating statistical significance
     statData = Data frame. To be used for annotating statistical significane
@@ -2279,19 +2309,19 @@ advancePlot <- function(data, plt,
                         aovX=aovX,
                         plabelSize = 7
 ){
-  # browser() 
+  # browser()
   message(str(statData))
   # advance settings
   message("display advance")
-  
+
   #statistics annotation: computed data will be provided as arguments
   if(methodSt != "none"){
-    
+
     if(!methodSt %in% c("anova", "kruskal-wallis")){
-      
+
       message("not anova------")
       plt <- plt + stat_pvalue_manual(statData[[1]], label = statData[[2]], tip.length = 0.01, remove.bracket = removeBracket, bracket.size = 0.4, step.increase = 0.1, bracket.nudge.y = 0.01, inherit.aes=FALSE, fontface = "bold", size = plabelSize)
-      
+
     }else if(methodSt == "anova"){
       message("Anova stat method 2====")
       #get the details for labeling the plot
@@ -2300,7 +2330,7 @@ advancePlot <- function(data, plt,
       message(colnames(textData))
       col <- colnames(textData)
       message(glue::glue("inner function col: {col}"))
-      
+
       x_name <- col[1]
       if(anovaType == "one"){
         y_name <- col[3]
@@ -2308,7 +2338,7 @@ advancePlot <- function(data, plt,
         plt <- plt + coord_cartesian(clip="off") + geom_text(data=textData, aes(x=eval(str2expression(x_name)), y = eval(str2expression(y_name)),
                                                                                 label = eval(str2expression(letr))), size = plabelSize, vjust=-0.5, na.rm = TRUE)
       }else{
-        
+
         message(glue::glue("aovX:{str(aovX)}, {is.null(aovX)}"))
         #get the position from the table
         if(aovX == "Interaction"){
@@ -2325,17 +2355,17 @@ advancePlot <- function(data, plt,
           message(y_name)
           letr <- col[4]
         }
-        # browser(). 
+        # browser().
         plt <- plt + coord_cartesian(clip="off") + geom_text(data=textData, aes(x=eval(str2expression(x_name)), y = eval(str2expression(y_name)),
                                                                                 label = eval(str2expression(letr))), position= position_dodge2(0.9), size = plabelSize, vjust=-0.25, na.rm = TRUE)
       }#end of two-way anova
       #end of anova
     }else if(methodSt == "kruskal-wallis"){
-      
+
       message("entering Kruskal test=00000000")
       textData <- statData[[1]] %>% as.data.frame()
       col <- colnames(textData)
-      
+
       x_name <- col[1]
       y_name <- col[3]
       letr <- col[4]
@@ -2344,13 +2374,13 @@ advancePlot <- function(data, plt,
       plt <- plt + coord_cartesian(clip="off") + geom_text(data=textData, aes(x=eval(str2expression(x_name)), y = eval(str2expression(y_name)),
                                                                               label = eval(str2expression(letr))), position= position_dodge2(0.9), size = plabelSize, vjust=-0.25, na.rm = TRUE)
     }#end of Kruskal test
-    
+
   }#end of statistics
-  
+
   message("after condition:inner")
-  
-  plt 
-  
+
+  plt
+
 }#end of inner function
 
 
