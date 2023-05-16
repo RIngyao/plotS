@@ -1,7 +1,7 @@
 
 source("global.R", local = TRUE)
 #link: https://plots-application.shinyapps.io/plots/
-
+# git log --graph --pretty=oneline --abbrev-commit
 #about---------
 aboutSection <- div(
   HTML('
@@ -723,12 +723,15 @@ mainSection <- div(
                                  ),
 
                                  #layer for dual y-axis
-                                selectInput(inputId = "dualAxis", label = "Additional layer with dual y-axis", choices = c("none", sort(c("line", "box plot", "bar plot", "scatter plot"))), selected = "none"),
+                                selectInput(inputId = "dualAxis", label = "Additional layer with secondary y-axis", choices = c("none", sort(c("line", "box plot", "bar plot", "scatter plot"))), selected = "none"),
                                 conditionalPanel(condition = "input.dualAxis != 'none'",
                                                  uiOutput("uiVarCol")
                                                  ),
                                 conditionalPanel(condition = "input.dualAxis == 'line'",
                                                  moduleLineSecUi(id = "secondaryLine")
+                                                 ),
+                                conditionalPanel(condition = "input.dualAxis == 'box plot'",
+                                                 moduleBoxSecUi(id = "secondaryBox") 
                                                  )
                                )#end of div for additional layer
                               )#end of conditional panel for additional layer
@@ -1355,7 +1358,13 @@ server <- function(input, output, session){
       #provide variable option to choose
       selectInput(inputId = "secVariable", label = "Choose variable", choices = allCol),
       #color
-      selectInput(inputId = "secColor", label = "color", choices = sort(c("blue", "green", "red", "black", "grey", "brown")))
+      if(input$dualAxis == "line"){
+        colourpicker::colourInput(inputId = "secColor", label = "Color", value = "black",
+                                  showColour = "both")
+      }else{NULL}
+      
+      # colourpicker::colourPicker()
+      # selectInput(inputId = "secColor", label = "color", choices = sort(c("blue", "green", "red", "black", "grey", "brown")))
     )
   })
 
@@ -1363,12 +1372,14 @@ server <- function(input, output, session){
   observe({
     req(input$dualAxis != "none")
     updateTextInput(inputId = "yLable", label = "Enter title for primary Y-axis")
+    colourpicker::updateColourInput(session, inputId = "secColor", label = "color", value = "black",
+                              showColour = "both")
   })
 
   #additional layer with dual y-axis-------
   observe({
     # req(ptable(),  input$plotType,input$yAxis, input$dualAxis, input$secVariable, input$secColor)
-    req(ptable(), input$yAxis, input$dualAxis != "none", input$secVariable, input$secColor)
+    req(ptable(), input$yAxis, input$dualAxis, input$secVariable)
     req(input$yAxis %in% colnames(ptable()))
 
     #get y label
@@ -1377,11 +1388,22 @@ server <- function(input, output, session){
     }else{
       secTitle <- reactive(input$secVariable)
     }
-    secLine(moduleLineSecSer(id = "secondaryLine", df = ptable(),  yPr= req(input$yAxis),
-                     titlePr = "primary y-axis", ySec = input$secVariable, yCol = input$secColor,
-                     addPoint = req(input$addLayer), pointSize = req(input$layerSize), pointALpha = req(input$layerAlpha),
-                     textSize = req(input$textSize), textTile = req(input$titleSize), secTitle = secTitle(),
-                     ))
+    
+    if(input$dualAxis == "line"){
+      req(input$secColor)
+      secLine(moduleLineSecSer(id = "secondaryLine", df = ptable(),  yPr= req(input$yAxis),
+                               titlePr = "primary y-axis", ySec = input$secVariable, yCol = input$secColor,
+                               addPoint = req(input$addLayer), pointSize = req(input$layerSize), pointALpha = req(input$layerAlpha),
+                               textSize = req(input$textSize), textTile = req(input$titleSize), secTitle = secTitle()
+      ))
+    }else if(input$dualAxis == "box plot"){
+      secLine(moduleBoxSecSer(
+        id = "secondaryBox", df = ptable(), yPr = req(input$yAxis),
+        ySec = input$secVariable, primaryCol = NULL,
+        textSize = req(input$textSize), textTile = req(input$titleSize), secTitle = secTitle()
+      ))
+    }
+    
   })
   #reset secLine
   observe({
@@ -3096,7 +3118,7 @@ server <- function(input, output, session){
 
   output$UiErrorBarColor <- renderUI({
     if(req(pltType() %in% c("line", "bar plot", "scatter plot", "violin plot")) && req(isTruthy(input$lineErrorBar)) ){
-      selectInput( inputId = "errorBarColor", label = "Error bar color", choices = c("default", sort(c("black", "red", "blue", "green"))), selected = "default")
+      colourpicker::colourInput( inputId = "errorBarColor", label = "Error bar color", showColour = "both", value = "black")
     }
   })
   #error bar size
