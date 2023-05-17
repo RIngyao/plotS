@@ -366,7 +366,7 @@ mainSection <- div(
                      uiOutput("UiFreqPolySize"),
                      #control transparency of scatter plot
                      conditionalPanel(condition = "input.plotType == 'scatter plot'",
-                                      sliderInput(inputId = "scatterAlpha", label = "Transparency", min = 0.1, max = 1, value = 1)
+                                      sliderInput(inputId = "scatterAlpha", label = "Transparency", min = 0.01, max = 1, value = 1)
                      ),
                      #Ui to select variable to connect the path
                      uiOutput("UiLineConnectPath"),
@@ -713,7 +713,7 @@ mainSection <- div(
                                    ),
 
                                    conditionalPanel(condition = "input.addLayer == 'point' | input.addLayer == 'jitter'",
-                                                    sliderInput(inputId = "layerAlpha", label = "Transparency",min = 0, max = 1, value = 0.5)
+                                                    sliderInput(inputId = "layerAlpha", label = "Transparency",min = 0.01, max = 1, value = 0.5)
                                    ),
                                    conditionalPanel(condition = "input.addLayer == 'smooth'",
                                                     checkboxInput(inputId = "addLayerCI", label = "Confidence interval", value = TRUE),
@@ -732,7 +732,10 @@ mainSection <- div(
                                                  ),
                                 conditionalPanel(condition = "input.dualAxis == 'box plot'",
                                                  moduleBoxSecUi(id = "secondaryBox") 
-                                                 )
+                                                 ),
+                                conditionalPanel(condition = "input.dualAxis == 'bar plot'",
+                                                 moduleBarSecUi(id = "secondaryBar") 
+                                )
                                )#end of div for additional layer
                               )#end of conditional panel for additional layer
               ) #end of 2nd column
@@ -1025,20 +1028,22 @@ mainSection <- div(
                 conditionalPanel(condition = "input.dualAxis != 'none'",
                      fluidRow(column(6, textAreaInput(inputId = "secYLable", label = "Enter title for secondary Y-axis", height = "35px")))
                 ),
-
-                #ui for legend
-                 fluidRow(
-                   #position
-                   column(3, selectInput(inputId = "legendPosition", label = "Legend position", choices = c("none","bottom","left","right","top"), selected = "right")),
-                   conditionalPanel(condition = "input.legendPosition != 'none'",
-                                    #direction
-                                    column(3, selectInput(inputId = "legendDirection", label = "Legend direction", choices = c("horizontal","vertical"), selected = "vertical")),
-                                    #font size
-                                    column(3, sliderInput(inputId = "legendSize", label = "Legend size", min = 10, max = 50, value = 15)),
-                                    #Legend title on & off
-                                    column(3, checkboxInput(inputId = "legendTitle", label = span("Remove legend title", style = "font-weight:bold; color:cornflowerblue")))
-                   )
-                 ),
+                
+                conditionalPanel(condition = "input.colorSet != 'none'",
+                                 #ui for legend
+                                 fluidRow(
+                                   #position
+                                   column(3, selectInput(inputId = "legendPosition", label = "Legend position", choices = c("none","bottom","left","right","top"), selected = "right")),
+                                   conditionalPanel(condition = "input.legendPosition != 'none'",
+                                                    #direction
+                                                    column(3, selectInput(inputId = "legendDirection", label = "Legend direction", choices = c("horizontal","vertical"), selected = "vertical")),
+                                                    #font size
+                                                    column(3, sliderInput(inputId = "legendSize", label = "Legend size", min = 10, max = 50, value = 15)),
+                                                    #Legend title on & off
+                                                    column(3, checkboxInput(inputId = "legendTitle", label = span("Remove legend title", style = "font-weight:bold; color:cornflowerblue")))
+                                   )
+                                 )
+                                 ),
 
                 fluidRow(
                   # uiOutput("UiPlabelSize"),
@@ -1402,6 +1407,11 @@ server <- function(input, output, session){
         ySec = input$secVariable, primaryCol = NULL,
         textSize = req(input$textSize), textTile = req(input$titleSize), secTitle = secTitle()
       ))
+    }else if(input$dualAxis == "bar plot"){
+      secLine(moduleBarSecSer(id = "secondaryBar", df = ptable(), yPr = req(input$yAxis), 
+                      ySec = input$secVariable,
+                      textSize = req(input$textSize), textTile = req(input$titleSize), secTitle = secTitle()) 
+      )
     }
     
   })

@@ -259,10 +259,10 @@ sideGraphUi <- function(id,side = "X", sideVar = "default"){
                        column(6,
                               tagList(
                                 conditionalPanel(ns=ns,condition = "input.sideGraphType == 'scatter plot'",
-                                                 sliderInput(inputId = ns("pointAlpha"), label = "Transparency", min = 0, max = 1, value = 0.5)),
+                                                 sliderInput(inputId = ns("pointAlpha"), label = "Transparency", min = 0.01, max = 1, value = 0.5)),
                                 conditionalPanel(ns=ns, condition = "input.sideGraphType == 'density'",
                                                  #transparency
-                                                 sliderInput(inputId = ns("alpha"), label = "Transparency", min = 0, max=1, value=0.5),
+                                                 sliderInput(inputId = ns("alpha"), label = "Transparency", min = 0.01, max=1, value=0.5),
                                                  bsTooltip(id = ns("alpha"), title = "Effects depend on the main graph", placement = "top", trigger = "hover",
                                                            options = list(container = "body")))
                               )#end taglist
@@ -868,13 +868,13 @@ moduleBoxSecSer <- function(id, df = NULL, pltType = NULL, yPr= NULL,
           #graph
           if( req(input$secBoxColorOpt) == "yes"){ 
             list(
-              stat_boxplot(aes( y = eval(str2expression(ySec)) * mlp), geom='errorbar', width = req(input$secBoxWidth)), #, color = primaryCol
+              stat_boxplot(aes( y = eval(str2expression(ySec)) * mlp), geom='errorbar', linetype = req(input$secLineType), width = req(input$secBoxWidth)), #, color = primaryCol
               geom_boxplot(aes( y = eval(str2expression(ySec)) * mlp, fill = primaryCol), linetype = req(input$secLineType), width = req(input$secBoxWidth))
               
             )
           }else{
             list(
-              stat_boxplot(aes( y = eval(str2expression(ySec)) * mlp), geom='errorbar', width = req(input$secBoxWidth)), #, color = req(input$secBoxColorOne)
+              stat_boxplot(aes( y = eval(str2expression(ySec)) * mlp), geom='errorbar', linetype = req(input$secLineType), width = req(input$secBoxWidth)), #, color = req(input$secBoxColorOne)
               geom_boxplot(aes( y = eval(str2expression(ySec)) * mlp), fill = req(input$secBoxColorOne), linetype = req(input$secLineType),  width = req(input$secBoxWidth))
               
             )
@@ -899,13 +899,13 @@ moduleBoxSecSer <- function(id, df = NULL, pltType = NULL, yPr= NULL,
           
           if(req(input$secBoxColorOpt) == "yes"){
             list(
-              stat_boxplot(aes( y = eval(str2expression(ySec)) / dv), geom='errorbar', width = req(input$secBoxWidth)), #, color = primaryCol
+              stat_boxplot(aes( y = eval(str2expression(ySec)) / dv), geom='errorbar', linetype = req(input$secLineType), width = req(input$secBoxWidth)), #, color = primaryCol
               geom_boxplot(aes( y = eval(str2expression(ySec)) / dv, fill = primaryCol), linetype = req(input$secLineType), width = req(input$secBoxWidth))
               
             )
           }else{
             list(
-              stat_boxplot(aes( y = eval(str2expression(ySec)) / dv), geom='errorbar', width = req(input$secBoxWidth)), #, color = req(input$secBoxColorOne)
+              stat_boxplot(aes( y = eval(str2expression(ySec)) / dv), geom='errorbar', linetype = req(input$secLineType), width = req(input$secBoxWidth)), #, color = req(input$secBoxColorOne)
               geom_boxplot(aes( y = eval(str2expression(ySec)) / dv), fill = req(input$secBoxColorOne), linetype = req(input$secLineType), width = req(input$secBoxWidth))
               
             )
@@ -923,13 +923,13 @@ moduleBoxSecSer <- function(id, df = NULL, pltType = NULL, yPr= NULL,
           
           if(req(input$secBoxColorOpt) == "yes"){
             list(
-              stat_boxplot(aes( y = eval(str2expression(ySec))), geom='errorbar', width = req(input$secBoxWidth)), #color = primaryCol
+              stat_boxplot(aes( y = eval(str2expression(ySec))), geom='errorbar', linetype = req(input$secLineType), width = req(input$secBoxWidth)), #color = primaryCol
               geom_boxplot(aes( y = eval(str2expression(ySec)), fill = primaryCol), linetype = req(input$secLineType), width = req(input$secBoxWidth))
               
             )
           }else{
             list(
-              stat_boxplot(aes( y = eval(str2expression(ySec))),  geom='errorbar', width = req(input$secBoxWidth)), #color = req(input$secBoxColorOne),
+              stat_boxplot(aes( y = eval(str2expression(ySec))),  geom='errorbar', linetype = req(input$secLineType), width = req(input$secBoxWidth)), #color = req(input$secBoxColorOne),
               geom_boxplot(aes( y = eval(str2expression(ySec))), fill = req(input$secBoxColorOne), linetype = req(input$secLineType), width = req(input$secBoxWidth))
             )
           },
@@ -947,7 +947,6 @@ moduleBoxSecSer <- function(id, df = NULL, pltType = NULL, yPr= NULL,
       #add thhem
       list(
         secDetail,
-        
         #theme
         if(req(input$secTitleText) == "yes"){
           if(req(input$secBoxColorOpt) == "yes"){
@@ -969,6 +968,96 @@ moduleBoxSecSer <- function(id, df = NULL, pltType = NULL, yPr= NULL,
       print(e)
     })#end try catch
     
+  })
+}
+
+#module for bar
+moduleBarSecUi <- function(id){
+  ns <- NS(id)
+
+  tagList(
+    
+    #box width
+    sliderInput(inputId = ns("secBarWidth"), label = "Bar width", min = 0.01, max = 2, value = 0.5),
+    #color option 
+    colourpicker::colourInput(inputId = ns("secBarCol"), label = "Box color", value = "grey", showColour = "both"),
+    #transparency
+    sliderInput(inputId = ns("secBarAlpha"), label = "Bar transparency", min = 0.01, max = 1, value = 1),
+    #color for y-axis
+    {
+      choiceList <- list(tags$span("Yes", style = "font-weight:bold; color:#0099e6"), tags$span("No", style = "font-weight:bold; color:#0099e6"))
+      radioButtons(inputId = ns("secTitleText"), label = "Apply color to seconday y-axis label?", choiceNames = choiceList, choiceValues = c("yes", "no"), inline = TRUE)
+    }
+  )
+}
+
+#bar sever
+moduleBarSecSer <- function(id, df = NULL, ySec = NULL, yPr = NULL, 
+                            textSize = 15, textTile = 15, secTitle = "secondary title"){
+  moduleServer(id, function(input, output, session){
+    req(is.data.frame(df))
+    
+    tryCatch({
+      
+      #get the data for yPr and ySec
+      yPr_d <- reactiveVal(df[, yPr]) #vector
+      ySec_d <- reactiveVal(df[, ySec]) #vector
+      
+      #checks: both must be numeric
+      shiny::validate(
+        #this was taken care
+        need(all(is.numeric(yPr_d())), "Error: primary y-axis is non-numeric. Provide numeric column!"),
+        need(all(is.numeric(ySec_d())), "Error: secondary y-axis is non-numeric. Provide numeric column!")
+      )
+      #axis transformation: balance the dual axis
+      myp <- max(yPr_d())
+      mys <- max(ySec_d())
+      
+      if(myp > mys){
+        #primary is greater than sec
+        #get multiplier for sec
+        mlp <- myp/mys
+        
+        barList <- list(
+          geom_bar(aes(y = eval(str2expression(ySec)) * mlp), alpha = req(input$secBarAlpha), stat = "identity", fill = req(input$secBarCol), width = req(input$secBarWidth)),
+          
+          scale_y_continuous(
+            #param for sec y-axis
+            sec.axis = sec_axis(trans = ~. / mlp, name = secTitle)
+          )
+        )
+        
+      }else if(myp < mys){
+        #secondary is greater than primary
+        #get divider for sec
+        dv <- mys/myp
+        
+        barList <- list(
+          geom_bar(aes(y = eval(str2expression(ySec)) / dv), alpha = req(input$secBarAlpha), stat = "identity", fill = req(input$secBarCol), width = req(input$secBarWidth)),
+           
+          scale_y_continuous(
+            #param for sec y-axis
+            sec.axis = sec_axis(trans = ~. * dv, name = secTitle)
+          )
+        )
+      }
+      
+      #add thhem
+      list(
+        barList,
+        #theme
+        if(req(input$secTitleText) == "yes"){
+          theme(
+            axis.title.y.right = element_text(color = req(input$secBarCol), size=textTile),
+            axis.text.y.right = element_text(color = req(input$secBarCol), size=textSize)
+          )
+        }else{NULL}
+         
+      )
+      
+    }, error = function(e){
+      print(e)
+    })
   })
 }
 #end module for dual y-axis-------------------
