@@ -537,81 +537,7 @@ insetParamFunc <- function(inDf, oriDf, orix, insx = "default", oriTextLabel, fi
   return("")
 }
 
-#old version--------------
-# insetParamFunc <- function(inDf, oriDf, orix, oriTextLabel, finalPlt, color = "none", shape=NULL, line=NULL){
-#   # for name: depend only on x-axis
-#   #get original variables of x-axis from the original data
-#   xVarName <- unique(as.data.frame(oriDf)[,orix]) %>% as.vector() %>% sort()
-#   #get variable name of the inset
-#   insetXVarName <- unique(as.data.frame(inDf)[,orix]) %>% as.vector() %>% sort()
-#   #filter only the variables  present in inset data and saved as reactive object
-#   insetXTextLabels( oriTextLabel[which(xVarName %in% insetXVarName)] )
-#
-#
-#   #for color: depend on aesthetic
-#   if(color != "none"){# && (is.null(shape) && is.null(line))){
-#     #get original variables of x-axis from the original data
-#     xVarName <- unique(as.data.frame(oriDf)[,color]) %>% as.vector() %>% sort()
-#     #get variable name of the inset
-#     insetXVarName <- unique(as.data.frame(inDf)[,color]) %>% as.vector() %>% sort()
-#   }else if(color == "none" && !is.null(shape)){
-#     #get original variables of x-axis from the original data
-#     xVarName <- unique(as.data.frame(oriDf)[,shape]) %>% as.vector() %>% sort()
-#     #get variable name of the inset
-#     insetXVarName <- unique(as.data.frame(inDf)[,shape]) %>% as.vector() %>% sort()
-#
-#   }else if(color == "none" && !is.null(line)){
-#     #get original variables of x-axis from the original data
-#     xVarName <- unique(as.data.frame(oriDf)[,line]) %>% as.vector() %>% sort()
-#     #get variable name of the inset
-#     insetXVarName <- unique(as.data.frame(inDf)[,line]) %>% as.vector() %>% sort()
-#   }
-#
-#   #get color from the original graph (variables of x axis)
-#   origColor <- hue_pal()(length(xVarName))
-#   # origColor <- unique(ggplot_build(finalPlt)$data[[1]][,1]) %>% as.vector()
-#   #filter only the color for the inset variables and save as reactive object
-#   insetColor(origColor[which(xVarName %in% insetXVarName)])
-#   #return empty
-#   return("")
-# }
-# insetParamFunc <- function(inDf, oriDf, orix, oriTextLabel, finalPlt, color = "none", shape=NULL, line=NULL){
-#   # for name: depend only only on x-axis
-#   #get original variables of x-axis from the original data
-#   xVarName <- unique(as.data.frame(oriDf)[,orix]) %>% as.vector() %>% sort()
-#   #get variable name of the inset
-#   insetXVarName <- unique(as.data.frame(inDf)[,orix]) %>% as.vector() %>% sort()
-#   #filter only the variables  present in inset data and saved as reactive object
-#   insetXTextLabels( oriTextLabel[which(xVarName %in% insetXVarName)] )
-#
-#
-#   #for color: depend on aesthetic
-#   if(color != "none"){# && (is.null(shape) && is.null(line))){
-#     #get original variables of x-axis from the original data
-#     xVarName <- unique(as.data.frame(oriDf)[,color]) %>% as.vector() %>% sort()
-#     #get variable name of the inset
-#     insetXVarName <- unique(as.data.frame(inDf)[,color]) %>% as.vector() %>% sort()
-#   }else if(color == "none" && !is.null(shape)){
-#     #get original variables of x-axis from the original data
-#     xVarName <- unique(as.data.frame(oriDf)[,shape]) %>% as.vector() %>% sort()
-#     #get variable name of the inset
-#     insetXVarName <- unique(as.data.frame(inDf)[,shape]) %>% as.vector() %>% sort()
-#
-#   }else if(color == "none" && !is.null(line)){
-#     #get original variables of x-axis from the original data
-#     xVarName <- unique(as.data.frame(oriDf)[,line]) %>% as.vector() %>% sort()
-#     #get variable name of the inset
-#     insetXVarName <- unique(as.data.frame(inDf)[,line]) %>% as.vector() %>% sort()
-#   }
-#
-#   #get color from the original graph (variables of x axis)
-#   origColor <- unique(ggplot_build(finalPlt)$data[[1]][,1]) %>% as.vector()
-#   #filter only the color for the inset variables and save as reactive object
-#   insetColor(origColor[which(xVarName %in% insetXVarName)])
-#   #return empty
-#   return("")
-# }
-#old version-----------
+
 #module for dual y-axis-------------------
 secLine <- reactiveVal(list(NULL, NULL))
 #generic module for secondary y-axis variable and color
@@ -972,17 +898,17 @@ moduleBoxSecSer <- function(id, df = NULL, pltType = NULL, yPr= NULL,
 }
 
 #module for bar
-moduleBarSecUi <- function(id){
+moduleBarPointSecUi <- function(id, label1 = "Bar width", label2 = "bar color", label3= "Bar transparency"){
   ns <- NS(id)
 
   tagList(
     
     #box width
-    sliderInput(inputId = ns("secBarWidth"), label = "Bar width", min = 0.01, max = 2, value = 0.5),
+    sliderInput(inputId = ns("secWidth"), label = label1, min = 0.01, max = 2, value = 0.5),
     #color option 
-    colourpicker::colourInput(inputId = ns("secBarCol"), label = "Box color", value = "grey", showColour = "both"),
+    colourpicker::colourInput(inputId = ns("secCol"), label = label2, value = "grey", showColour = "both"),
     #transparency
-    sliderInput(inputId = ns("secBarAlpha"), label = "Bar transparency", min = 0.01, max = 1, value = 1),
+    sliderInput(inputId = ns("secAlpha"), label = label3, min = 0.01, max = 1, value = 1),
     #color for y-axis
     {
       choiceList <- list(tags$span("Yes", style = "font-weight:bold; color:#0099e6"), tags$span("No", style = "font-weight:bold; color:#0099e6"))
@@ -1019,7 +945,7 @@ moduleBarSecSer <- function(id, df = NULL, ySec = NULL, yPr = NULL,
         mlp <- myp/mys
         
         barList <- list(
-          geom_bar(aes(y = eval(str2expression(ySec)) * mlp), alpha = req(input$secBarAlpha), stat = "identity", fill = req(input$secBarCol), width = req(input$secBarWidth)),
+          geom_bar(aes(y = eval(str2expression(ySec)) * mlp), alpha = req(input$secAlpha), stat = "identity", fill = req(input$secCol), width = req(input$secWidth)),
           
           scale_y_continuous(
             #param for sec y-axis
@@ -1033,7 +959,7 @@ moduleBarSecSer <- function(id, df = NULL, ySec = NULL, yPr = NULL,
         dv <- mys/myp
         
         barList <- list(
-          geom_bar(aes(y = eval(str2expression(ySec)) / dv), alpha = req(input$secBarAlpha), stat = "identity", fill = req(input$secBarCol), width = req(input$secBarWidth)),
+          geom_bar(aes(y = eval(str2expression(ySec)) / dv), alpha = req(input$secAlpha), stat = "identity", fill = req(input$secCol), width = req(input$secWidth)),
            
           scale_y_continuous(
             #param for sec y-axis
@@ -1048,8 +974,8 @@ moduleBarSecSer <- function(id, df = NULL, ySec = NULL, yPr = NULL,
         #theme
         if(req(input$secTitleText) == "yes"){
           theme(
-            axis.title.y.right = element_text(color = req(input$secBarCol), size=textTile),
-            axis.text.y.right = element_text(color = req(input$secBarCol), size=textSize)
+            axis.title.y.right = element_text(color = req(input$secCol), size=textTile),
+            axis.text.y.right = element_text(color = req(input$secCol), size=textSize)
           )
         }else{NULL}
          
@@ -1060,6 +986,78 @@ moduleBarSecSer <- function(id, df = NULL, ySec = NULL, yPr = NULL,
     })
   })
 }
+
+#module point server
+modulePointSecSer <- function(id, df = NULL, ySec = NULL, yPr = NULL, 
+                            textSize = 15, textTile = 15, secTitle = "secondary title"){
+  moduleServer(id, function(input, output, session){
+    req(is.data.frame(df))
+    
+    tryCatch({
+      
+      #get the data for yPr and ySec
+      yPr_d <- reactiveVal(df[, yPr]) #vector
+      ySec_d <- reactiveVal(df[, ySec]) #vector
+      
+      #checks: both must be numeric
+      shiny::validate(
+        #this was taken care
+        need(all(is.numeric(yPr_d())), "Error: primary y-axis is non-numeric. Provide numeric column!"),
+        need(all(is.numeric(ySec_d())), "Error: secondary y-axis is non-numeric. Provide numeric column!")
+      )
+      #axis transformation: balance the dual axis
+      myp <- max(yPr_d())
+      mys <- max(ySec_d())
+      
+      if(myp > mys){
+        #primary is greater than sec
+        #get multiplier for sec
+        mlp <- myp/mys
+        
+        barList <- list(
+          geom_point(aes(y = eval(str2expression(ySec)) * mlp), alpha = req(input$secAlpha), color = req(input$secCol), size = req(input$secWidth)),
+          
+          scale_y_continuous(
+            #param for sec y-axis
+            sec.axis = sec_axis(trans = ~. / mlp, name = secTitle)
+          )
+        )
+        
+      }else if(myp < mys){
+        #secondary is greater than primary
+        #get divider for sec
+        dv <- mys/myp
+        
+        barList <- list(
+          geom_point(aes(y = eval(str2expression(ySec)) / dv), alpha = req(input$secAlpha), color = req(input$secCol), size = req(input$secWidth)),
+          
+          scale_y_continuous(
+            #param for sec y-axis
+            sec.axis = sec_axis(trans = ~. * dv, name = secTitle)
+          )
+        )
+      }
+      
+      #add thhem
+      list(
+        barList,
+        #theme
+        if(req(input$secTitleText) == "yes"){
+          theme(
+            axis.title.y.right = element_text(color = req(input$secCol), size=textTile),
+            axis.text.y.right = element_text(color = req(input$secCol), size=textSize)
+          )
+        }else{NULL}
+        
+      )
+      
+    }, error = function(e){
+      print(e)
+    })
+  })
+}
+
+
 #end module for dual y-axis-------------------
 #function to create input and update options: mainly for color options
 "date: 2/3/23

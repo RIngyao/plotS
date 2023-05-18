@@ -483,8 +483,15 @@ mainSection <- div(
                        #ui for entering color
                        # uiOutput("UiColorAdd"),
                        conditionalPanel(condition = "input.colorSet !== 'none' && input.autoCustome == 'customize'",
-                                        textAreaInput(inputId = "colorAdd", label = "Enter colors",
-                                                      placeholder = "comma or space separated. \nE.g. red, #cc0000, BLUE")
+                                        fluidRow(
+                                          style = "padding: 0",
+                                          column(9, textAreaInput(inputId = "colorAdd", label = "Enter colors",
+                                                                  placeholder = "comma or space separated. \nE.g. red, #cc0000, BLUE", width='100%')
+                                                 ),
+                                          column(3, colourpicker::colourInput(inputId = "customePick", label = "click", showColour = "background"),
+                                                 bsTooltip(id="customePick", title = "Choose color", placement = 'top'))
+                                        )
+                                        
                        ),
                        #UI for positioning of density and alpha
                        conditionalPanel(condition = "input.plotType === 'density' && input.colorSet !== 'none'",
@@ -698,44 +705,52 @@ mainSection <- div(
                      # conditionalPanel(condition = "input.plotType != 'histogram' && input.plotType != 'density'",
                                div(
                                  # style = "padding: 10px; border-top:dotted 1px; border-bottom:dotted 1px;",
-                                 style= "padding-top: 10px; border-top:dotted 1px; border-bottom:dotted 1px;
-                                                  background-image:linear-gradient(rgba(206,247,250, 0.3), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5))",
+                                 style= "padding-top: 10px; background-image:linear-gradient(rgba(206,247,250, 0.3), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5))",
+                                 selectInput(inputId = "layerType", label = "Additional layer", choices = c("None", "With secondary y-axis", "Without secondary y-axis")),
+                                 bsTooltip(id= "layerType", title = "Add a layer with or without secondary y-axis on the right side of the graph", placement = "top"),
+                                 
                                  div(
-                                   style= "border-bottom: dotted 1px; margin-bottom:20px",
-
-                                   {
-                                     layerChoice <- c("line", "smooth", "point", "jitter")
-                                     selectInput(inputId = "addLayer", label = "Additional layer", choices = c("none", sort(layerChoice)), selected = "none")
-                                   },
-
-                                   conditionalPanel(condition = "input.addLayer != 'none'",
-                                                    sliderInput(inputId = "layerSize", label = "Adjust size", min = 1, max = 10, value = 1)
-                                   ),
-
-                                   conditionalPanel(condition = "input.addLayer == 'point' | input.addLayer == 'jitter'",
-                                                    sliderInput(inputId = "layerAlpha", label = "Transparency",min = 0.01, max = 1, value = 0.5)
-                                   ),
-                                   conditionalPanel(condition = "input.addLayer == 'smooth'",
-                                                    checkboxInput(inputId = "addLayerCI", label = "Confidence interval", value = TRUE),
-                                                    selectizeInput(inputId = "smoothMethod", label = "Method", choices = list(`Linear regression model (LM)` = "lm",`Generalized LM` = "glm", `Generalized additive model` = "gam", `LOESS` = "loess")),
-                                                    selectizeInput(inputId = "addLayerColor", label = "Line color", choices = sort(c("blue","red","black", "brown")), selected = "blue")
-                                   )
-                                 ),
-
-                                 #layer for dual y-axis
-                                selectInput(inputId = "dualAxis", label = "Additional layer with secondary y-axis", choices = c("none", sort(c("line", "box plot", "bar plot", "scatter plot"))), selected = "none"),
-                                conditionalPanel(condition = "input.dualAxis != 'none'",
-                                                 uiOutput("uiVarCol")
-                                                 ),
-                                conditionalPanel(condition = "input.dualAxis == 'line'",
-                                                 moduleLineSecUi(id = "secondaryLine")
-                                                 ),
-                                conditionalPanel(condition = "input.dualAxis == 'box plot'",
-                                                 moduleBoxSecUi(id = "secondaryBox") 
-                                                 ),
-                                conditionalPanel(condition = "input.dualAxis == 'bar plot'",
-                                                 moduleBarSecUi(id = "secondaryBar") 
-                                )
+                                   # style= "border-bottom: dotted 1px; margin-bottom:20px",
+                                   
+                                   conditionalPanel(condition = "input.layerType == 'Without secondary y-axis'",
+                                                    {
+                                                      layerChoice <- c("line", "smooth", "point", "jitter")
+                                                      selectInput(inputId = "addLayer", label = "Type", choices = c("none", sort(layerChoice)), selected = "none")
+                                                    },
+                                                    
+                                                    conditionalPanel(condition = "input.addLayer != 'none'",
+                                                                     sliderInput(inputId = "layerSize", label = "Adjust size", min = 1, max = 10, value = 1)
+                                                    ),
+                                                    
+                                                    conditionalPanel(condition = "input.addLayer == 'point' | input.addLayer == 'jitter'",
+                                                                     sliderInput(inputId = "layerAlpha", label = "Transparency",min = 0.01, max = 1, value = 0.5)
+                                                    ),
+                                                    conditionalPanel(condition = "input.addLayer == 'smooth'",
+                                                                     checkboxInput(inputId = "addLayerCI", label = "Confidence interval", value = TRUE),
+                                                                     selectizeInput(inputId = "smoothMethod", label = "Method", choices = list(`Linear regression model (LM)` = "lm",`Generalized LM` = "glm", `Generalized additive model` = "gam", `LOESS` = "loess")),
+                                                                     selectizeInput(inputId = "addLayerColor", label = "Line color", choices = sort(c("blue","red","black", "brown")), selected = "blue")
+                                                    ))
+                                                    ), #end without secondary y-axis
+                                   conditionalPanel(condition = "input.layerType == 'With secondary y-axis'",
+                                                    #layer for dual y-axis
+                                                    selectInput(inputId = "dualAxis", label = "Type", choices = c("none", sort(c("line", "box plot", "bar plot", "scatter plot"))), selected = "none"),
+                                                    conditionalPanel(condition = "input.dualAxis != 'none'",
+                                                                     uiOutput("uiVarCol")
+                                                    ),
+                                                    conditionalPanel(condition = "input.dualAxis == 'line'",
+                                                                     moduleLineSecUi(id = "secondaryLine")
+                                                    ),
+                                                    conditionalPanel(condition = "input.dualAxis == 'box plot'",
+                                                                     moduleBoxSecUi(id = "secondaryBox") 
+                                                    ),
+                                                    conditionalPanel(condition = "input.dualAxis == 'bar plot'",
+                                                                     moduleBarPointSecUi(id = "secondaryBar", label1 = "Bar width", label2 = "bar color", label3= "Bar transparency") 
+                                                    ),
+                                                    conditionalPanel(condition = "input.dualAxis == 'scatter plot'",
+                                                                     moduleBarPointSecUi(id = "secondaryPoint", label1 = "Point size", label2 = "Point color", label3 = "Point transparency") 
+                                                    )
+                                                    ), #end with secondary 
+                                 
                                )#end of div for additional layer
                               )#end of conditional panel for additional layer
               ) #end of 2nd column
@@ -1412,6 +1427,12 @@ server <- function(input, output, session){
                       ySec = input$secVariable,
                       textSize = req(input$textSize), textTile = req(input$titleSize), secTitle = secTitle()) 
       )
+    }else if(input$dualAxis == "scatter plot"){
+      secLine(modulePointSecSer(
+        id = "secondaryPoint", df = ptable(), yPr = req(input$yAxis), 
+        ySec = input$secVariable,
+        textSize = req(input$textSize), textTile = req(input$titleSize), secTitle = secTitle()
+      ))
     }
     
   })
@@ -2811,7 +2832,7 @@ server <- function(input, output, session){
   #update plot
   observe({
     req(is.data.frame(cleanData())) #use cleanData so that applying filter doesnot effect it
-    updateSelectInput(inputId = "plotType", label = "Choose type of plot",
+    updateSelectInput(inputId = "plotType", label = "Choose type of graph",
                       choices = c("none",sort(plotList)), selected = "none")
   })
 
@@ -3004,8 +3025,8 @@ server <- function(input, output, session){
       varName <- unique(as.data.frame(ptable())[,input$xAxis]) %>% as.vector() %>% sort()
       #get name of variables user want to change
       userChoice <- if(req(input$xTextLabelChoice) == "All" || "All" %in% req(input$xTextLabelChoice)){
-        varName
-      }else{req(input$xTextLabelChoice)}
+                      varName
+                    }else{req(input$xTextLabelChoice)}
       #get number of variables choosen by user
       varLen <- length(userChoice)
       #user given name
@@ -3022,7 +3043,8 @@ server <- function(input, output, session){
       }
     }else{
       #display the original name
-      unique(req(as.data.frame(ptable())[,input$xAxis])) %>% as.vector() %>% sort()
+      req(ptable())
+      unique(as.data.frame(ptable())[,input$xAxis]) %>% as.vector() %>% sort()
     }
 
   })
