@@ -93,8 +93,7 @@ mainSection <- div(
 
             # selectInput(inputId = "pInput", label = "Input data", choices = list("example","upload data"), selected = ""),
             #ui for uploading the data,
-            uiOutput(outputId = "pUpload"), #ok
-
+            uiOutput(outputId = "pUpload"),
             #ui for alerting invalid file type
             uiOutput(outputId = "UiUploadInvalid"),
             #ui for na
@@ -208,26 +207,20 @@ mainSection <- div(
             #ui output for choosing columns to transform the data
             #for names
             uiOutput(outputId = "trName"),
-            # uiOutput(outputId = "trNameMsg"),
+            
             #variable message for reshape
             conditionalPanel(condition = "input.transform == 'Yes'",
                              helpText("Choosen variables will be the independent variable. The values associated with the variables will be the dependent variable and will be placed in a separate column named 'value'.", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")
             ),
-
-            # conditionalPanel(condition = "input.transform == 'Yes'",
-            #                  helpText("Choose the multiple variables to transpose and compare", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")),
-            #for value
-
+            
             #Name to be used as column name for the reshaped
-            # uiOutput(outputId = "trValue"),
+            
             conditionalPanel(condition = "input.transform == 'Yes'",
                              #this should be compulsory, so that user understand the transformation
                              textInput(inputId = "enterName", label = "Enter a name for the reshaped column")
             ),
 
-            # conditionalPanel(condition = "input.enterName",
-            #                  helpText("Above choosen variables will be placed under this given column name.", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")
-            # ),
+           
             #error message for reshape
             conditionalPanel(condition = "input.transform == 'Yes' & input.enterName == 'value'",
                              helpText("Provide a different name, not 'value'.",
@@ -307,11 +300,12 @@ mainSection <- div(
           # jqui_resizable(div(
           sidebarPanel(
             width = 5,
-            style="margin:0; background-image:linear-gradient(to right, #F2F0EF, #FEFEFE)",
+            style="margin-top:5px; background-image:linear-gradient(to right, #F2F0EF, #FEFEFE);",# box-shadow:0px 1px 7px 0px;",
+            # style="margin-top:5px; background-image:linear-gradient(to left, #BCC6CC, #FEFEFE); box-shadow:0px 1px 7px 0px inset;",
             # style = "border:dotted 1px #9cd4fc; border-radius: 5px; padding:10px;
             #           background-image:linear-gradient(to right, rgba(103, 188, 250, 0.15), white);",
 
-            #rgba(56, 168, 249, 0.15)
+            
             h3("", br(), align = "center", style = "color:green"),
             #two column
             fluidRow(
@@ -352,10 +346,7 @@ mainSection <- div(
                      #ui for bin width of histogram
                      fluidRow(column(8, uiOutput("uiBinWidth"))),
                      # #Ui color and fill for histogram
-                     # fluidRow(
-                     #   column(6, uiOutput("UiHistBarColor")),
-                     #   column(6, uiOutput("UiHistBarFill"))
-                     # ),
+                    
                      conditionalPanel(condition = "input.plotType == 'histogram' && input.colorSet == 'none'",
                                       fluidRow(
                                         column(6, textInput(inputId = "histBarColor", label = "Bar color", placeholder = "red or #ff0000")),
@@ -421,10 +412,7 @@ mainSection <- div(
                      ),
                      uiOutput("UiHistMeanSize"),
                      #ui for density
-                     # fluidRow(
-                     #   column(6, uiOutput("UiDensityKernel")),
-                     #   column(6, uiOutput("UiDensityStat"))
-                     # ),
+                     
                      conditionalPanel(condition = "input.plotType === 'density'",
                                       fluidRow(
                                         column(6, {
@@ -451,21 +439,11 @@ mainSection <- div(
                                       ),
                      ),
 
-                     # fluidRow(
-                     #   column(6, uiOutput("UiDensityBandwidth")),
-                     #   column(6, uiOutput("UiDensityAdjust")),
-                     # ),
-
-                     #option for theme
-                     # uiOutput("UiTheme"),
-                     conditionalPanel(condition = "input.plotType !== 'none'",
-                                      selectInput(inputId = "theme", label = "Background theme", choices = c("default", sort(c( "dark","grey", "white", "white with grid lines","blank", "minimal"))), selected = "default")
-                     ),
-
                      #Aesthetic setting
                      div(
-                       style= "border-top:dotted 1px; border-bottom:dotted 1px; margin-bottom:10px;
-                             background-image:linear-gradient(to top, #F2F4F5,#FBFBFB)",##F2F0EF
+                       # style= "border-top:dotted 1px; border-bottom:dotted 1px; margin-bottom:10px;
+                       #       background-image:linear-gradient(to top, #F2F4F5,#FBFBFB)",##F2F0EF
+                       style = "border:solid rgba(3,201,181,0.3) 2px; padding:5px; border-radius:5px;",
                        helpText(
                          list(tags$p("Aesthetic options", style = "text-align:center; margin-top: 5px; margin-bottom: 0; font-weight:bold;"),
                               tags$p("Customize color, shape, line type and compare between variables", style = "margin-top:0; text-align:center"))
@@ -493,6 +471,7 @@ mainSection <- div(
                                         )
                                         
                        ),
+                        
                        #UI for positioning of density and alpha
                        conditionalPanel(condition = "input.plotType === 'density' && input.colorSet !== 'none'",
                                         fluidRow(
@@ -502,10 +481,6 @@ mainSection <- div(
                                           }),
                                           column(6, sliderInput(inputId = "alpha", label = "Transparency", min = 0.01, max = 1, value = 1))
                                         )),
-                       # fluidRow(
-                       #   column(6, uiOutput("UiDensityPosition")),
-                       #   column(6, uiOutput("UiAlpha"))
-                       # ),
 
                        #ui for adding shape and linetype
                        # uiOutput("UiShapeLine"),
@@ -527,8 +502,7 @@ mainSection <- div(
               column(6,
                      #setting for statistical computing
                      #ui for stat method
-                     #blankUi("forSignif", 4)
-                     # uiOutput("UiStatMethod"),
+                     
                      selectInput(inputId = "stat", label = "Statistical method", choices = "none"),
                      #ui alert message for t-test
                      uiOutput("UiTtestAlert"),
@@ -700,64 +674,60 @@ mainSection <- div(
                      ), #end of conditional panel facet
 
                      #Div for additional layer
-                     # uiOutput("UiLayer"),
-                     conditionalPanel(condition = "input.plotType != 'histogram' && input.plotType != 'frequency polygon' && input.plotType != 'density'",
-                     # conditionalPanel(condition = "input.plotType != 'histogram' && input.plotType != 'density'",
-                               div(
-                                 # style = "padding: 10px; border-top:dotted 1px; border-bottom:dotted 1px;",
-                                 style= "padding-top: 10px; background-image:linear-gradient(rgba(206,247,250, 0.3), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5))",
-                                 selectInput(inputId = "layerType", label = "Additional layer", choices = c("None", "With secondary y-axis", "Without secondary y-axis")),
-                                 bsTooltip(id= "layerType", title = "Add a layer with or without secondary y-axis on the right side of the graph", placement = "top"),
-                                 
-                                 div(
-                                   # style= "border-bottom: dotted 1px; margin-bottom:20px",
-                                   
-                                   conditionalPanel(condition = "input.layerType == 'Without secondary y-axis'",
-                                                    {
-                                                      layerChoice <- c("line", "smooth", "point", "jitter")
-                                                      selectInput(inputId = "addLayer", label = "Type", choices = c("none", sort(layerChoice)), selected = "none")
-                                                    },
-                                                    
-                                                    conditionalPanel(condition = "input.addLayer != 'none'",
-                                                                     sliderInput(inputId = "layerSize", label = "Adjust size", min = 1, max = 10, value = 1)
-                                                    ),
-                                                    
-                                                    conditionalPanel(condition = "input.addLayer == 'point' | input.addLayer == 'jitter'",
-                                                                     sliderInput(inputId = "layerAlpha", label = "Transparency",min = 0.01, max = 1, value = 0.5)
-                                                    ),
-                                                    conditionalPanel(condition = "input.addLayer == 'smooth'",
-                                                                     checkboxInput(inputId = "addLayerCI", label = "Confidence interval", value = TRUE),
-                                                                     selectizeInput(inputId = "smoothMethod", label = "Method", choices = list(`Linear regression model (LM)` = "lm",`Generalized LM` = "glm", `Generalized additive model` = "gam", `LOESS` = "loess")),
-                                                                     selectizeInput(inputId = "addLayerColor", label = "Line color", choices = sort(c("blue","red","black", "brown")), selected = "blue")
-                                                    ))
-                                                    ), #end without secondary y-axis
-                                   conditionalPanel(condition = "input.layerType == 'With secondary y-axis'",
-                                                    #layer for dual y-axis
-                                                    selectInput(inputId = "dualAxis", label = "Type", choices = c("none", sort(c("line", "box plot", "bar plot", "scatter plot"))), selected = "none"),
-                                                    conditionalPanel(condition = "input.dualAxis != 'none'",
-                                                                     uiOutput("uiVarCol")
-                                                    ),
-                                                    conditionalPanel(condition = "input.dualAxis == 'line'",
-                                                                     moduleLineSecUi(id = "secondaryLine")
-                                                    ),
-                                                    conditionalPanel(condition = "input.dualAxis == 'box plot'",
-                                                                     moduleBoxSecUi(id = "secondaryBox") 
-                                                    ),
-                                                    conditionalPanel(condition = "input.dualAxis == 'bar plot'",
-                                                                     moduleBarPointSecUi(id = "secondaryBar", label1 = "Bar width", label2 = "bar color", label3= "Bar transparency") 
-                                                    ),
-                                                    conditionalPanel(condition = "input.dualAxis == 'scatter plot'",
-                                                                     moduleBarPointSecUi(id = "secondaryPoint", label1 = "Point size", label2 = "Point color", label3 = "Point transparency") 
-                                                    )
-                                                    ), #end with secondary 
-                                 
-                               )#end of div for additional layer
-                              )#end of conditional panel for additional layer
+                     div(
+                       style = "border:solid rgba(3,201,181,0.3) 1px; padding:5px; border-radius:5px;",
+                       conditionalPanel(condition = "input.plotType != 'histogram' && input.plotType != 'frequency polygon' && input.plotType != 'density'",
+                                        {
+                                          layerChoice <- c("line", "smooth", "point", "jitter")
+                                          selectInput(inputId = "addLayer", label = "Add layer without secondary y-axis", choices = c("none", sort(layerChoice)), selected = "none")
+                                        },
+                                        conditionalPanel(condition = "input.addLayer != 'none'",
+                                                         div(
+                                                           style= "border-top: dotted 1px; border-bottom: dotted 1px; margin-top: 1px; margin-bottom: 15px; background-image:linear-gradient(rgba(206,247,250, 0.4), rgba(254, 254, 254, 0), rgba(206,247,250, 0.8))",
+                                                           
+                                                           sliderInput(inputId = "layerSize", label = "Adjust size", min = 1, max = 10, value = 1),
+                                                           
+                                                           conditionalPanel(condition = "input.addLayer == 'point' | input.addLayer == 'jitter'",
+                                                                            sliderInput(inputId = "layerAlpha", label = "Transparency",min = 0.01, max = 1, value = 0.5)
+                                                           ),
+                                                           conditionalPanel(condition = "input.addLayer == 'smooth'",
+                                                                            checkboxInput(inputId = "addLayerCI", label = "Confidence interval", value = TRUE),
+                                                                            selectizeInput(inputId = "smoothMethod", label = "Method", choices = list(`Linear regression model (LM)` = "lm",`Generalized LM` = "glm", `Generalized additive model` = "gam", `LOESS` = "loess")),
+                                                                            selectizeInput(inputId = "addLayerColor", label = "Line color", choices = sort(c("blue","red","black", "brown")), selected = "blue")
+                                                           )
+                                                         )
+                                        ),#without sec y-axis: end of conditional panel
+                                        
+                                        #layer for dual y-axis
+                                        selectInput(inputId = "dualAxis", label = "Add layer with secondary y-axis", choices = c("none", sort(c("line", "box plot", "bar plot", "scatter plot"))), selected = "none"),
+                                        conditionalPanel(condition = "input.dualAxis != 'none'",
+                                                         div(
+                                                           style= "border-top: dotted 1px; border-bottom: dotted 1px; margin-top: 1px; background-image:linear-gradient(rgba(206,247,250, 0.3), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5))",
+                                                           
+                                                           uiOutput("uiVarCol"),
+                                                           
+                                                           conditionalPanel(condition = "input.dualAxis == 'line'",
+                                                                            moduleLineSecUi(id = "secondaryLine")
+                                                           ),
+                                                           conditionalPanel(condition = "input.dualAxis == 'box plot'",
+                                                                            moduleBoxSecUi(id = "secondaryBox") 
+                                                           ),
+                                                           conditionalPanel(condition = "input.dualAxis == 'bar plot'",
+                                                                            moduleBarPointSecUi(id = "secondaryBar", label1 = "Bar width", label2 = "bar color", label3= "Bar transparency") 
+                                                           ),
+                                                           conditionalPanel(condition = "input.dualAxis == 'scatter plot'",
+                                                                            moduleBarPointSecUi(id = "secondaryPoint", label1 = "Point size", label2 = "Point color", label3 = "Point transparency") 
+                                                           )
+                                                         )#with secondary y-axis: end of div
+                                        ), #with secondary y-axis: end of conditional panel 
+                       )#end of conditional panel for additional layer
+                     )
+                     
               ) #end of 2nd column
             )
 
           ) %>% tagAppendAttributes(class="figureSidebarPanel"), #end of figure sidebar panel
-          # )),#end sidebarpanel resizable jqui_resizable(div(
+          
           # end of sidbar---------------
           mainPanel(
             width = 7,
@@ -1064,9 +1034,16 @@ mainSection <- div(
                   # uiOutput("UiPlabelSize"),
                   div(
                     style = "padding-left: 10px",
-                  conditionalPanel(condition = "input.plotType != 'none' && input.stat != 'none'",
-                                     sliderInput(inputId = "plabelSize", label = "Adjust p-value label size", min = 1, max = 15, value = 7),
-                  ),
+                    fluidRow(
+                      column(6, #option for theme
+                             # uiOutput("UiTheme"),
+                             conditionalPanel(condition = "input.plotType !== 'none'",
+                                              selectInput(inputId = "theme", label = "Background theme", choices = c("default", sort(c( "dark","grey", "white", "white with grid lines","blank", "minimal"))), selected = "default")
+                             )),
+                      column(6, conditionalPanel(condition = "input.plotType != 'none' && input.stat != 'none'",
+                                                 sliderInput(inputId = "plabelSize", label = "Adjust p-value label size", min = 1, max = 15, value = 7))
+                      )
+                    ),
 
                   #Miscellaneous setting for graph
                   conditionalPanel(condition = "input.plotType != 'none'",
@@ -4325,9 +4302,9 @@ server <- function(input, output, session){
     reqPlot <- c("none",  "box plot","line", "scatter plot", "violin plot")
 
     if(input$plotType %in% reqPlot || isTRUE(needYAxis())){
-      updateSelectInput(inputId = "addLayer", label = "Additional layer", choices = c("none", sort(layerChoice)), selected = "none")
+      updateSelectInput(inputId = "addLayer", label = "Add layer without secondary y-axis", choices = c("none", sort(layerChoice)), selected = "none")
     }else{# if(isTruthy(input$xAxis) | isTruthy(input$yAxis)){
-      updateSelectInput(inputId = "addLayer", label = "Additional layer", choices = c("none"))
+      updateSelectInput(inputId = "addLayer", label = "Add layer without secondary y-axis", choices = c("none"))
     }
   })
 
