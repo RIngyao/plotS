@@ -300,7 +300,7 @@ mainSection <- div(
           # jqui_resizable(div(
           sidebarPanel(
             width = 5,
-            style="margin-top:5px; background-image:linear-gradient(to right, #F2F0EF, #FEFEFE);",# box-shadow:0px 1px 7px 0px;",
+            style="margin-top:5px; background-image:linear-gradient(to right, #F2F0EF, #FEFEFE); box-shadow:0px 2px 20px -15px inset;",# box-shadow:0px 1px 7px 0px;",
             # style="margin-top:5px; background-image:linear-gradient(to left, #BCC6CC, #FEFEFE); box-shadow:0px 1px 7px 0px inset;",
             # style = "border:dotted 1px #9cd4fc; border-radius: 5px; padding:10px;
             #           background-image:linear-gradient(to right, rgba(103, 188, 250, 0.15), white);",
@@ -464,9 +464,10 @@ mainSection <- div(
                                         fluidRow(
                                           style = "padding: 0",
                                           column(9, textAreaInput(inputId = "colorAdd", label = "Enter colors",
-                                                                  placeholder = "comma or space separated. \nE.g. red, #cc0000, BLUE", width='100%')
+                                                                  placeholder = "comma or space separated. \nE.g. red, #cc0000, BLUE", width='100%'),
+                                                 bsTooltip( id = "colorAdd", title = "comma or space separated. \nE.g. red, #cc0000, BLUE",placement = "bottom")
                                                  ),
-                                          column(3, colourpicker::colourInput(inputId = "customePick", label = "click", showColour = "background"),
+                                          column(3, colourpicker::colourInput(inputId = "customePick", label = "click", showColour = "background",value = "red"),
                                                  bsTooltip(id="customePick", title = "Choose color", placement = 'top'))
                                         )
                                         
@@ -573,8 +574,11 @@ mainSection <- div(
                                                          radioButtons("anovaAutoCust", label = "Color", choices = c("auto filled","customize"), selected = "auto filled")
                                         ),
                                         #ui for adding color
-                                        uiOutput("UiAnovaAddColor"),
-
+                                        fluidRow(
+                                          column(9, uiOutput("UiAnovaAddColor")),
+                                          column(3, uiOutput("uiAovColorPick"))
+                                        ),
+                                        
                                         #Ui for padjusted value,
                                         fluidRow(
                                           id = "pAdjustRow",
@@ -3381,6 +3385,45 @@ server <- function(input, output, session){
           updateRadioButtons(inputId = "autoCustome", label = NULL, choices = c("auto filled","customize"), selected = "auto filled")
         }
   })
+  
+  #color input from picker
+  costumePick <- reactiveVal(NULL)
+  observeEvent(isTruthy(input$customePick), {
+    req(input$plotType != "none", input$colorSet %in% colnames(ptable()))
+    # browser()
+    #count number of variables
+    countVar <- ptable() %>% distinct(.data[[input$colorSet]], .keep_all = T) %>% nrow()
+
+    if(!is.null(costumePick())){
+      #get length of collection
+      costumeLen <- strsplit(str_trim(gsub(" |,", " ", input$colorAdd))," +")[[1]]
+      #check: no need to add if sufficient color is provided
+      req(length(costumeLen) < countVar )
+      costumePick(paste0(input$colorAdd,",",input$customePick))
+    }else{
+      costumePick(input$customePick)
+      # costumePick(paste0(req(input$colorAdd),","))
+    }
+
+  })
+  
+  #another event to update the customePick when user delete the list
+  observeEvent(isTruthy(input$colorAdd),{
+    req(!is.null(costumePick()))
+    costumeLen <- strsplit(str_trim(gsub(" |,", " ", costumePick()))," +")[[1]]
+    shownLen <- strsplit(str_trim(gsub(" |,", " ", input$colorAdd))," +")[[1]]
+    if(length(costumeLen) > length(shownLen)){
+      #then, it has deleted some choice
+      #update with colorAdd
+      costumePick(input$colorAdd)
+    }
+  })
+  
+  #reset costumePick
+  observe({
+    req(input$colorSet, input$autoCustome)
+    costumePick(NULL)
+  })
   #update color customization
   observe({
     req(input$autoCustome == "customize", is.data.frame(ptable()), input$colorSet %in% colnames(ptable()))
@@ -3388,9 +3431,10 @@ server <- function(input, output, session){
     countVar <- ptable() %>%
       #count number of variables
       distinct(.data[[input$colorSet]], .keep_all = T) %>% nrow()
-
-    updateTextAreaInput(inputId = "colorAdd", label = glue::glue("Enter {countVar} colors"), value= character(0),
+    # browser()
+    updateTextAreaInput(inputId = "colorAdd", label = glue::glue("Enter {countVar} colors"), value= if(is.null(costumePick())){character(0)} else req(costumePick()),
                   placeholder = "comma or space separated. \nE.g. red, #cc0000, BLUE")
+    addTooltip(session, id = "colorAdd", title = "comma or space separated. \nE.g. red, #cc0000, BLUE",placement = "bottom")
 
   })
 
@@ -3851,19 +3895,6 @@ server <- function(input, output, session){
         #Choosing the variable may require to update the aesthetic parameters
         #So, update the aethetic paramters again.
   })
-  # output$UiTwoAovVar <- renderUI({
-  #   req(refresh_2(), ptable(), pltType() != "none", input$stat == "anova", input$pairedData == "two")
-  #   #default variable for computing two-way anova: must not be equal with the variable of x-axis
-  #   varSel <- selectedVar2(data = ptable(), check = "character", index=2)
-  #   #get the variable list from the table other than the variables of x- and y-axis
-  #   colList <- ptable()[!colnames(ptable()) %in% c(colnames(yVar()), colnames(xVar()))]
-  #
-  #   selectInput(inputId = "twoAovVar", label = "Choose the other independent variable",
-  #               choices = colnames(colList), selected = varSel)
-  #   #Choosing the variable may require to update the aesthetic parameters
-  #   #So, update the aethetic paramters again.
-  # })
-
 
   #anova Figure--------------------
   output$UiAnovaFigure <- renderUI({
@@ -3878,6 +3909,7 @@ server <- function(input, output, session){
   })
 
   #Anova color----------------------
+  
   #option to provide color
   #provide option to auto fill the color or customize it
   observe({
@@ -3900,11 +3932,56 @@ server <- function(input, output, session){
         distinct(.data[[input$anovaFigure]], .keep_all = T) %>% nrow()
 
       textAreaInput(inputId = "anovaAddColor", label = glue::glue("Enter {countVar} colors"),
+                    value = if(is.null(aovCustomePick())){character(0)}else aovCustomePick(),
                     placeholder = "comma or space separated. \nE.g. red, #cc0000, BLUE")
     }
   })#end of renderUI
-
-
+  
+  output$uiAovColorPick <- renderUI({
+    req(input$anovaAutoCust)
+    customize <- reactive(input$anovaAutoCust)
+    if(req(input$anovaFigure) != "Interaction" & customize() == "customize"){
+      colourpicker::colourInput(inputId = "aovCustomePick",
+                                label = "Click", value = "red", showColour = "background")
+    }
+  })
+  #color input from picker
+  aovCustomePick <- reactiveVal(NULL)
+  observeEvent(isTruthy(input$aovCustomePick), {
+    req(input$anovaFigure, input$twoAovVar %in% colnames(ptable())) #input$anovaFigure != "Interaction", input$anovaAutoCust == "customize", 
+    #count number of variables
+    countVar <- ptable() %>% distinct(.data[[input$anovaFigure]], .keep_all = T) %>% nrow()
+    
+    if(!is.null(aovCustomePick())){
+      #get length of collection
+      costumeLen <- strsplit(str_trim(gsub(" |,", " ", req(input$anovaAddColor)))," +")[[1]]
+      #check: no need to add if sufficient color is provided
+      req(length(costumeLen) < countVar )
+      aovCustomePick(paste0(input$anovaAddColor,",",input$aovCustomePick))
+    }else{
+      aovCustomePick(input$aovCustomePick)
+      # costumePick(paste0(req(input$colorAdd),","))
+    }
+    
+  })
+  
+  #another event to update the customePick when user delete the list
+  observeEvent(isTruthy(input$anovaAddColor),{
+    req(!is.null(aovCustomePick()))
+    costumeLen <- strsplit(str_trim(gsub(" |,", " ", aovCustomePick()))," +")[[1]]
+    shownLen <- strsplit(str_trim(gsub(" |,", " ", req(input$anovaAddColor)))," +")[[1]]
+    if(length(costumeLen) > length(shownLen)){
+      #then, it has deleted some choice
+      #update with colorAdd
+      aovCostumePick(input$anovaAddColor)
+    }
+  })
+  
+  #reset costumePick
+  observe({
+    req(input$anovaAutoCust)
+    aovCustomePick(NULL)
+  })
 
   #update aesthetic-------------------------
 

@@ -2510,15 +2510,6 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
 
   #return
   plt
-  # message(xTextLabels)
-  #change variable name of x-axis
-
-  # if(types %in% c("line", "frequency polygon", "scatter plot")){
-  # if(is.numeric(data[,xl])){
-  #   plt
-  # }else{
-  #   plt + scale_x_discrete(labels = xTextLabels )
-  # }
 
 }#end
 
