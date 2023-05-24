@@ -64,6 +64,9 @@ library(shinyWidgets)
 # library(shinyauthr)
 
 #Objects necessary to create---------------
+#tags list
+yesNoTag <- list(tags$span("Yes", style = "font-weight:bold; color:#0099e6"),
+                 tags$span("No", style = "font-weight:bold; color:#0099e6"))
 #error objects
 uploadError <- reactiveVal(0) #1: stop; 0 continue
 uploadMsg <- reactiveVal(NULL)
@@ -529,8 +532,8 @@ insetParamFunc <- function(inDf, oriDf, orix, insx = "default", oriTextLabel, fi
   }
 
   #get color from the original graph (variables of x axis)
-  origColor <- hue_pal()(length(xVarName))
-  # origColor <- unique(ggplot_build(finalPlt)$data[[1]][,1]) %>% as.vector()
+  # origColor <- scales::hue_pal()(length(xVarName)) 
+  origColor <- unique(ggplot_build(finalPlt)$data[[1]][,1]) %>% as.vector()
   #filter only the color for the inset variables and save as reactive object
   insetColor(origColor[which(xVarName %in% insetXVarName)])
   #return empty
@@ -2426,17 +2429,6 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
     }
   }
 
-
-  # #add layer
-  # if(layer != "none"){
-  #   cal <- ifelse(types %in% c("box plot", "violin plot"), "median", "mean")
-  #   plt <- switch(layer,
-  #                 "line" = plt + stat_summary(fun = cal, geom = 'line', aes(group = 1), size = layerSize),
-  #                 "smooth" = plt + geom_smooth(size = layerSize),
-  #                 "point" = plt + geom_point(size = layerSize, alpha = layerAlpha),
-  #                 "jitter" = plt + geom_jitter(size = layerSize, alpha = layerAlpha)
-  #   )
-  # }
   #facet
   if(isTRUE(facet)){
     if(facetType == "grid"){
@@ -2470,33 +2462,35 @@ plotFig <- function(data, types = "reactive(input$plotType)", geom_type = "geom_
       message(glue::glue("colorTxt : colorTxt"))
       #get number of variables
       countVar <- length(unique(data[[varSet]]))
-
+       
       editC <- if(colorTxt == "noneProvided"){
         "not provided" #if no color is provided
       }else{
-
+        
         #process the given color input by removing space and comma
         message("Processing color")
         inputC <- strsplit(str_trim(gsub(" |,", " ", colorTxt))," +")[[1]]
         #Select only the required number of colors if user provide more than
         #the required number.
-        message(glue::glue("end of processing color: {inputC}"))
-        message(glue::glue("length of inputC: {length(inputC)}"))
-        message(glue::glue("countVar: {countVar}"))
-
         if(length(inputC) > countVar){
           inputC[1:countVar]
-        }else{ inputC }
+        }else{ 
+          #get original color
+          oriCol <- scales::hue_pal()(countVar)
+          #remove first few color(s) from original based on the number of chosen color
+          oriCol2 <- oriCol[-(1:length(inputC))]
+          
+          #combine the choosen and original color
+          c(inputC,oriCol2)
+          }
       }
 
       message(glue::glue("edit length: {length(editC)}"))
+      
       if(editC != "not provided" && length(editC) < countVar){
         #display the color of the global plot
-        message(glue::glue("editC less number : {editC}"))
-        message(glue::glue("edit length: {length(editC)}"))
         newPlt
       }else if(length(editC) == countVar){
-        message(glue::glue("editC final color: {editC}"))
         #add color to the plot
         if(types %in% c("line", "frequency polygon", "scatter plot")){
           plt <- plt + scale_color_manual(values = tolower(editC))

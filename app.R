@@ -80,7 +80,7 @@ mainSection <- div(
             useShinyjs(),
 
             width=3,
-
+            style="margin-top:5px; background-image:linear-gradient(to right, #F2F0EF, #FEFEFE); box-shadow:0px 2px 20px -15px inset;",# box-shadow:0px 1px 7px 0px;",
             #panel for input parameters of table
             #This parameter will have option for choosing the data
             h3("", br(), align = "center", style = "color:green"), #just in case if i want to add text
@@ -445,7 +445,7 @@ mainSection <- div(
                        #       background-image:linear-gradient(to top, #F2F4F5,#FBFBFB)",##F2F0EF
                        style = "border:solid rgba(3,201,181,0.3) 2px; padding:5px; border-radius:5px;",
                        helpText(
-                         list(tags$p("Aesthetic options", style = "text-align:center; margin-top: 5px; margin-bottom: 0; font-weight:bold;"),
+                         list(tags$p("Aesthetic options", style = "color:#0099e6; text-align:center; margin-top: 5px; margin-bottom: 0; font-weight:bold;"),
                               tags$p("Customize color, shape, line type and compare between variables", style = "margin-top:0; text-align:center"))
                        ),
                        #ui for color
@@ -468,7 +468,7 @@ mainSection <- div(
                                                  bsTooltip( id = "colorAdd", title = "comma or space separated. \nE.g. red, #cc0000, BLUE",placement = "bottom")
                                                  ),
                                           column(3, colourpicker::colourInput(inputId = "customePick", label = "click", showColour = "background",value = "red"),
-                                                 bsTooltip(id="customePick", title = "Choose color", placement = 'top'))
+                                                 bsTooltip(id="customePick", title = "Choose color", placement = 'bottom'))
                                         )
                                         
                        ),
@@ -576,7 +576,8 @@ mainSection <- div(
                                         #ui for adding color
                                         fluidRow(
                                           column(9, uiOutput("UiAnovaAddColor")),
-                                          column(3, uiOutput("uiAovColorPick"))
+                                          column(3, uiOutput("uiAovColorPick"),
+                                                 bsTooltip(id = "uiAovColorPick", title = "Choose color"))
                                         ),
                                         
                                         #Ui for padjusted value,
@@ -704,6 +705,7 @@ mainSection <- div(
                                         
                                         #layer for dual y-axis
                                         selectInput(inputId = "dualAxis", label = "Add layer with secondary y-axis", choices = c("none", sort(c("line", "box plot", "bar plot", "scatter plot"))), selected = "none"),
+                                        bsTooltip(id = "dualAxis", title = "Require at least one additional variables other than the variables provided in x- and y-axis", placement = "top"),
                                         conditionalPanel(condition = "input.dualAxis != 'none'",
                                                          div(
                                                            style= "border-top: dotted 1px; border-bottom: dotted 1px; margin-top: 1px; background-image:linear-gradient(rgba(206,247,250, 0.3), rgba(254, 254, 254, 0), rgba(206,247,250, 0.5))",
@@ -737,10 +739,11 @@ mainSection <- div(
             width = 7,
             title = "Figure",
 
-            #div for download
+            #div for download 
             div(
               #download button
-              style = "margin:0px",
+              # style = "margin:0px",
+              style="margin-top:5px; margin-botom:0;  box-shadow:0px 2px 20px -15px;",# box-shadow:0px 1px 7px 0px;",
               fluidRow(
                 column(5,
                        div(
@@ -774,7 +777,7 @@ mainSection <- div(
               width = 12,
               # style= "position:fixed;width:inherit",
               height = '400px',
-
+              
               plotOutput(outputId = "figurePlot",
                        hover = hoverOpts(id = "hover_info", delay = 0, nullOutside = FALSE),
                        click = clickOpts(id = "click_info"),
@@ -784,12 +787,11 @@ mainSection <- div(
               conditionalPanel(condition = "input.plotType != 'none'",
                                div(
                                  class = "preViewDiv", #not only for preView...
-                                 style = "border-top:solid #9cd4fc;  padding:10px; background-image:linear-gradient(rgba(56, 168, 249, 0.15), white 17%);",
+                                 style = "border-top:solid #9cd4fc; border-radius:5px; padding:10px; background-image:linear-gradient(rgba(56, 168, 249, 0.15), white 17%); box-shadow:0px 2px 20px -15px;",
                                  fluidRow(
                                    column(2,
                                           actionBttn(inputId = "previewFigure", label = tags$b("Preview", style = "color:#C622FA"),
                                                      style = "float", size = "sm"),
-                                          # actionButton(inputId = "previewFigure", label = tags$b("Preview", style = "color:#C622FA")),
                                           bsModal(id ="previewFigureModel", "Preview",trigger = "previewFigure", size = "large",
                                                   jqui_draggable(jqui_resizable(plotOutput("previewOutput")))
                                                   )
@@ -797,13 +799,12 @@ mainSection <- div(
                                    column(3,
                                           fluidRow(
                                             dropdownButton(inputId = "filterData", label = tags$b("Filter", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Filter the input data", placement = "bottom"), icon = icon("sliders"),
-                                            # dropdown(inputId = "filterData",  label = tags$b("Filter", style="color:#C622FA"), circle = FALSE, size = "sm", tooltip = tooltipOptions(title = "Filter the input data", placement = "bottom"), icon = icon("sliders"),
 
                                                      jqui_draggable(
                                                              div(
                                                                class = "filterDataDiv",
                                                                id = "filterDataDivID",
-                                                               style = "text-align:center; overflow-y:auto; min-height:200px; max-height: 300px",
+                                                               style = "text-align:center; overflow-y:auto; min-height:200px; max-height: 300px; box-shadow:0px 2px 20px -15px inset;",
                                                                h4("Apply filter", align = "center", style = "color:green; margin-bottom:5px"),
                                                                #UI option for variable selection
                                                                # uiOutput("UiVarFilterOpts"),
@@ -845,7 +846,7 @@ mainSection <- div(
                                                                             div(
                                                                               class = "insetDoprdownDiv",
                                                                               id = "insetDoprdownDivID",
-                                                                              style = "overflow-y:auto; max-height: 300px",
+                                                                              style = "overflow-y:auto; max-height: 300px; box-shadow:0px 2px 20px -15px inset;",
                                                                               h4("Inset parameters", align = "center", style = "color:green; margin-bottom:5px"),
 
                                                                               helpText( tags$p("To add an inset, select more than one data point in the graph. Click and drag the mouse across the graph's data points of interest."), style = "text-align:center"),
@@ -899,7 +900,7 @@ mainSection <- div(
                                                                                                # sliderInput(inputId = "insetExpandMarkedArea", label = "Expand the marked area", min = 1, max = 20, value = 3)
 
                                                                               ), #end of condition parameter
-                                                                              helpText( tags$p("** Does not support for two-way ANOVA"), style = "text-align:center"),
+                                                                              helpText( tags$p("** Does not support for two-way ANOVA and secondary y-axis"), style = "text-align:center"),
                                                                             )#end of inset
                                                                           ),#end of draggable inset
                                                                           bsTooltip(id= "insetDoprdownDivID", title = "Click and drag the panel", placement = "top")
@@ -909,14 +910,13 @@ mainSection <- div(
                                    column(2,
                                           conditionalPanel(condition = "input.pairedData !== 'two'",
                                                            #sude graph
-                                                           dropdownButton( inputId = "sideDropdownButton", right = TRUE, width="550px", label = tags$b("Side graph", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Add or remove side graph", placement = "bottom"), icon = icon("sliders"),
+                                                           dropdownButton(inputId = "sideDropdownButton", right = TRUE, width="550px", label = tags$b("Side graph", style="color:#C622FA"), circle = FALSE, size = "default", tooltip = tooltipOptions(title = "Add or remove side graph", placement = "bottom"), icon = icon("sliders"),
                                                                            jqui_draggable(
                                                                              div(
                                                                                class = "sideDropdownDiv",
                                                                                id= "sideDropdownDivID",
-                                                                               style = "text-align:center; overflow-y:auto; max-height: 300px",
+                                                                               style = "text-align:center; overflow-y:auto; max-height: 300px; box-shadow:0px 2px 20px -15px inset;",
                                                                                h4("Add graph on the x- and y-sides of the main graph.", align = "center", style = "color:green; margin-bottom:20px"),
-                                                                               # helpText( tags$p("Some functions will apply on both the sides"), style = "text-align:center; margin-bottom: 7px"),
                                                                                #option to add side graph
                                                                                #updating from module create issue so condition applied outside module
                                                                                #x side
@@ -927,7 +927,6 @@ mainSection <- div(
                                                                                    uiOutput("UiXside")
                                                                                  )),
                                                                                  #y side
-                                                                                 # column(6, sideGraphUi(id = "yside", side = "Y")) #sideGraphUi(id = "xside", side = "X")
                                                                                  column(6, uiOutput("UiYside"))
                                                                                ),
                                                                                div(
@@ -1037,18 +1036,21 @@ mainSection <- div(
                 fluidRow(
                   # uiOutput("UiPlabelSize"),
                   div(
-                    style = "padding-left: 10px",
-                    fluidRow(
-                      column(6, #option for theme
-                             # uiOutput("UiTheme"),
-                             conditionalPanel(condition = "input.plotType !== 'none'",
-                                              selectInput(inputId = "theme", label = "Background theme", choices = c("default", sort(c( "dark","grey", "white", "white with grid lines","blank", "minimal"))), selected = "default")
-                             )),
-                      column(6, conditionalPanel(condition = "input.plotType != 'none' && input.stat != 'none'",
-                                                 sliderInput(inputId = "plabelSize", label = "Adjust p-value label size", min = 1, max = 15, value = 7))
+                    style = "padding-left: 10px; text-align:center;",
+                    conditionalPanel(condition = "input.plotType !== 'none'",
+                      fluidRow(
+                        column(6, #option for theme
+                               selectInput(inputId = "theme", label = "Background theme", choices = c("default", sort(c( "dark","grey", "white", "white with grid lines","blank", "minimal"))), selected = "default")
+                               ),
+                        # column(4, radioButtons(inputId = "sampleSize", label = "Label sample size in x-axis?", choiceNames = yesNoTag, choiceValues = c("yes", "no"), inline = TRUE)),
+                        column(6, conditionalPanel(condition = "input.stat != 'none'",
+                                                   sliderInput(inputId = "plabelSize", label = "Adjust p-value label size", min = 1, max = 15, value = 7))
+                        )
                       )
+                    )
                     ),
-
+                  div(
+                    style = "padding-left: 10px;",
                   #Miscellaneous setting for graph
                   conditionalPanel(condition = "input.plotType != 'none'",
                                      dropdownButton(
@@ -1063,12 +1065,13 @@ mainSection <- div(
                                        tooltip = tooltipOptions(title = "Click"),
                                        div(
                                          class = "miscDiv",
-                                         {lch <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"),
-                                                      tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
-
+                                         style = "text-align:center",
+                                         #y-limit
                                          radioButtons(inputId = "Ylimit", label = "Set lower limit of y-axis to 0?",
-                                                      choiceNames = lch, choiceValues = c("no", "yes"), inline = TRUE)},
-
+                                                      choiceNames = yesNoTag, choiceValues = c("no", "yes"), inline = TRUE),
+                                         #include label in sample size
+                                         radioButtons(inputId = "sampleSize", label = "Label sample size in x-axis?", choiceNames = yesNoTag, choiceValues = c("yes", "no"), inline = TRUE),
+                                         #remove bracket of statistic label
                                          uiOutput("UiRemoveBracket"),
                                          uiOutput("UiStripBackground")
 
@@ -1340,6 +1343,7 @@ server <- function(input, output, session){
   observe({
     req(ptable(), input$plotType)
     updateSelectInput(inputId = "dualAxis", choices = c("none", sort(c("line", "box plot", "bar plot", "scatter plot"))), selected = "none")
+    addTooltip(session, id = "dualAxis", title = "Require at least one additional variable other than the variables provided in x- and y-axis", placement = "top")
   })
   #variable and color for sec y-axis
   # uiOutput(ns("uiVarCol"))
@@ -2969,7 +2973,6 @@ server <- function(input, output, session){
     # req(!xVarType()[1] %in% c("integer", "numeric", "double"))
     #get number of variables in x-axis
     x <- req(input$xAxis)
-    # cVar <- ptable() %>% distinct(.data[[x]]) %>% as.data.frame() %>% as.vector()
     cVar <- if(!xVarType()[1] %in% c("integer", "numeric", "double")){
       c(All="All", ptable() %>% distinct(.data[[x]]) %>% as.data.frame() %>% as.vector())
     }else{
@@ -2979,16 +2982,11 @@ server <- function(input, output, session){
     #update option
     updateSelectInput(inputId = "xTextLabelChoice", label = "Change name for", choices = c(cVar), selected = "ALL")
     # addTooltip(session, id = "xTextLabelChoice", title = "Applicable only when the x-axis is non-numeric",  trigger = "hover", options = list(container = "body"))
-    # addTooltip(session, id = "xTextLabelChoice", title = "Applicable only when the x-axis is non-numeric",  trigger = "hover", options = list(container = "body"))
     output$uiXAxisTextLabel <- renderUI({
-
       #x-axis must not be numeric
       req(!xVarType()[1] %in% c("integer", "numeric", "double"))
 
       if( req(input$plotType) != "none" ){
-        # browser()
-        # message(str(input$xTextLabelChoice))
-        # message(str(cVar))
         if(req(input$xTextLabelChoice) == "All" || "All" %in% req(input$xTextLabelChoice)){
           nVar <- ptable() %>% distinct(.data[[x]]) %>% as.data.frame() %>% nrow() #nrow(cVar)
         }else{
@@ -2998,37 +2996,94 @@ server <- function(input, output, session){
       }
     })
   })
-  #get the input name and passed it to the figure function
+  #get the input name and passed it to the figure function: add sample size to the label
   xTextLabel <- reactive({
-
+    #no need to proceed for numeric x-axis. It has no impact on labeling
+    req(!xVarType() %in% c("numeric", "double", "integer"))
     if(isTruthy(input$xTextLabel) && isTruthy(input$xTextLabelChoice) && !xVarType()[1] %in% c("integer", "numeric", "double")){
+      
       #get name of variables in x-axis
       varName <- unique(as.data.frame(ptable())[,input$xAxis]) %>% as.vector() %>% sort()
+      varCount <- plyr::count(ptable(), vars = input$xAxis)$freq
+      
       #get name of variables user want to change
       userChoice <- if(req(input$xTextLabelChoice) == "All" || "All" %in% req(input$xTextLabelChoice)){
-                      varName
-                    }else{req(input$xTextLabelChoice)}
+        varName
+      }else{req(input$xTextLabelChoice)}
       #get number of variables choosen by user
       varLen <- length(userChoice)
       #user given name
       givenName <- strsplit(str_trim(gsub(" |,", " ", input$xTextLabel))," +") %>% unlist()
-
+      
       #Use the name based on the user's input
       if(length(givenName) != varLen){
         #show the original name
-        return(varName)
+        if(req(input$sampleSize) == "yes"){
+          #paste name and count for final label
+          labl <- lapply(1:length(varName), function(x, varName, varCount){glue::glue("{varName[x]}\n(n={varCount[x]})")}, varName = varName, varCount = varCount) %>% unlist()
+        }else{
+          labl <- varName
+        }
+        return(name_Count)
       }else if(length(givenName) == varLen){
         varName[which(varName %in% userChoice)] <- as.vector(givenName)
         #new name
-        return(varName)
+        if(req(input$sampleSize) == "yes"){
+          newName <- lapply(1:length(varName), function(x, varName, varCount){glue::glue("{varName[x]}\n(n={varCount[x]})")}, varName = varName, varCount = varCount) %>% unlist()
+        }else{
+          newName <- varName
+        }
+        return(newName)
       }
     }else{
       #display the original name
       req(ptable())
-      unique(as.data.frame(ptable())[,input$xAxis]) %>% as.vector() %>% sort()
+      
+      varName <- unique(as.data.frame(ptable())[,input$xAxis]) %>% as.vector() %>% sort()
+      if(req(input$sampleSize) == "yes"){
+        varCount <- plyr::count(ptable(), vars = input$xAxis)$freq
+        #paste name and count
+        lapply(1:length(varName), function(x, varName, varCount){glue::glue("{varName[x]}\n(n={varCount[x]})")}, varName = varName, varCount = varCount) %>% unlist()
+      }else{
+        varName
+      }
+      
     }
-
+    
   })
+  # xTextLabel <- reactive({
+  # 
+  #   if(isTruthy(input$xTextLabel) && isTruthy(input$xTextLabelChoice) && !xVarType()[1] %in% c("integer", "numeric", "double")){
+  #     #get name of variables in x-axis
+  #     varName <- unique(as.data.frame(ptable())[,input$xAxis]) %>% as.vector() %>% sort()
+  #     varCount <- plyr::count(ToothGrowth, vars = "supp")$freq
+  #     #paste name and count 
+  #     nameCount <- lapply(1:length(varName), function(x, varName, varCount){glue::glue("{varName[x]}\n({varCount[x]})")}, varName = varName, varCount = varCount) %>% unlist()
+  #     #get name of variables user want to change
+  #     userChoice <- if(req(input$xTextLabelChoice) == "All" || "All" %in% req(input$xTextLabelChoice)){
+  #                     varName
+  #                   }else{req(input$xTextLabelChoice)}
+  #     #get number of variables choosen by user
+  #     varLen <- length(userChoice)
+  #     #user given name
+  #     givenName <- strsplit(str_trim(gsub(" |,", " ", input$xTextLabel))," +") %>% unlist()
+  # 
+  #     #Use the name based on the user's input
+  #     if(length(givenName) != varLen){
+  #       #show the original name
+  #       return(varName)
+  #     }else if(length(givenName) == varLen){
+  #       varName[which(varName %in% userChoice)] <- as.vector(givenName)
+  #       #new name
+  #       return(varName)
+  #     }
+  #   }else{
+  #     #display the original name
+  #     req(ptable())
+  #     unique(as.data.frame(ptable())[,input$xAxis]) %>% as.vector() %>% sort()
+  #   }
+  # 
+  # })
 
 
   #Line graph settings---------------
@@ -3128,10 +3183,9 @@ server <- function(input, output, session){
   lineComputeSd <- reactive({req(input$lineComputeSd)})
 
   #color option for error bar
-
   output$UiErrorBarColor <- renderUI({
     if(req(pltType() %in% c("line", "bar plot", "scatter plot", "violin plot")) && req(isTruthy(input$lineErrorBar)) ){
-      colourpicker::colourInput( inputId = "errorBarColor", label = "Error bar color", showColour = "both", value = "black")
+      selectInput( inputId = "errorBarColor", label = "Error bar color", choices = c("default", sort(c("black", "red", "blue", "green"))), selected = "default")
     }
   })
   #error bar size
@@ -3812,23 +3866,15 @@ server <- function(input, output, session){
     req(input$stat)
     updateRadioButtons(inputId = "ttestMethod", label = "Test method", choiceNames = choices, choiceValues = c("welch", "student"))
   })
-  # output$UiTtestMethod <- renderUI({
-  #   req(input$stat == "t.test")
-  #   choices <- list(tags$span("Welch's test", style = "font-weight:bold; color:#0099e6"),
-  #                   tags$span("Student's test", style = "font-weight:bold; color:#0099e6"))
-  #   if(input$stat == "t.test"){
-  #     radioButtons(inputId = "ttestMethod", label = "Test method", choiceNames = choices, choiceValues = c("welch", "student"), inline = FALSE)
-  #   }
-  #
-  # })
+  
   #data (paired or unpaired) and ANOVA type (one-way or two-way)
   unpaired_stopTest <- reactiveVal("no") #no means data is unpaired, but user used as paired. So stop executing the t-test
   observe({
-    req( refresh_2(), pltType(), !input$stat %in% c("none", "kruskal-wallis") )
-
+    # req( refresh_2(), pltType(), !input$stat %in% c("none", "kruskal-wallis") )
+    req( refresh_2(), pltType(), input$stat != "kruskal-wallis" )
     statMethod <- reactive(input$stat)
     #update paired data option for t.test and wilcoxon and type for anova
-    if(statMethod() %in% c("t.test", "wilcoxon.test")){
+    if(statMethod() %in% c("none","t.test", "wilcoxon.test")){ #none is require to display inset and side-graph after two way anova
       updateRadioButtons(inputId = "pairedData", label = "Paired data", inline = TRUE, choiceNames = dataTypeList, choiceValues = list("no", "yes"))
     }else if(input$stat == "anova"){
       lst <- list(tags$span("One-way", style = "font-weight:bold; color:#0099e6"),
@@ -3874,7 +3920,8 @@ server <- function(input, output, session){
     })
 
   })
-
+  
+  
   #update additive and non-additive
   observe({
     req(input$plotType, input$stat, input$pairedData)
@@ -3916,10 +3963,7 @@ server <- function(input, output, session){
     req(input$stat == "anova", input$pairedData)
     updateRadioButtons(inputId = "anovaAutoCust", label = "Color", choices = c("auto filled","customize"), selected = "auto filled")
   })
-  # output$UiAnovaAutoCust <- renderUI(
-  #   if(req(input$stat == "anova") && req(input$pairedData == "two") && req(input$anovaFigure) != "Interaction"){
-  #     radioButtons("anovaAutoCust", label = "Color", choices = c("auto filled","customize"), selected = "auto filled")
-  #   })
+  
   #if customize is selected than provide option to add colors
   output$UiAnovaAddColor <- renderUI({
     req(input$anovaAutoCust)
@@ -3973,7 +4017,7 @@ server <- function(input, output, session){
     if(length(costumeLen) > length(shownLen)){
       #then, it has deleted some choice
       #update with colorAdd
-      aovCostumePick(input$anovaAddColor)
+      aovCustomePick(input$anovaAddColor)
     }
   })
   
@@ -5489,9 +5533,6 @@ server <- function(input, output, session){
 
       }
     })
-
-    # #ylim
-    # ylimit <- reactive(ifelse(input$Ylimit == "yes", TRUE, FALSE))
     #for color setting
     # autoCust <- reactive(if(varSet() != "none") input$autoCustome)
     autoCust <- reactive(ifelse(varSet() != "none", input$autoCustome, "none"))
@@ -5509,20 +5550,11 @@ server <- function(input, output, session){
     model <- reactive(if(anovaType() == "two") input$anovaModel)
 
     #themes and other related paramters
-    # textSize <- reactive(req(input$textSize))
-    # titleSize <- reactive(req(input$titleSize))
-    # themes <- reactive(req(input$theme))
     varSet <- reactive(req(input$colorSet))
-    # xTextLabels <- reactive({
-    #   req(figType() != 'none', input$xAxis %in% colnames(ptable()))
-    #   xTextLabel()
-    # })
+   
     #bar graph
     stackDodge <- reactive(if(figType() %in% c("bar plot", "histogram")) req(input$stackDodge))
     #param for histogram (removed this param from bar)
-    # useValueAsIs <- reactive({ifelse(input$countIdentity == "count", FALSE, TRUE)
-    #   #TRUE: provide y-axis and use the value as is
-    # })
     #bin width
     binwd <- reactive(input$binWidth)
     #histogram color
@@ -6128,6 +6160,7 @@ server <- function(input, output, session){
         }else{ #if(figType %in% c("line", "scatter plot")){
           message("-------------2. Reminder: check the factor of x and y axis---------------------")
           data
+          # data[[xyAxis()[[1]]]] <- as.factor(data[[xyAxis()[[1]]]])
         }
 
         #basic graph is built here:----------------------------
@@ -6576,9 +6609,12 @@ server <- function(input, output, session){
           insetPlt()[[1]] + insetPlt()[[2]]
 
         #add x label if requested
-        if(!is.numeric(xVar())){
+        if(!xVarType() %in% c("numeric", "double", "integer") ){
           dispFinalPlt <- finalPlt + scale_x_discrete(labels = xTextLabels() )
+        }else{
+          dispFinalPlt <- finalPlt
         }
+        
         # save it for download option
         saveFigure(dispFinalPlt + secLine())
         #return
@@ -6626,44 +6662,7 @@ server <- function(input, output, session){
     sideGraphy(NULL)
     sideGraphx(NULL)
   })
-  #old version--------------------------
-  # sideGraphx <- reactive({
-  #   # browser()
-  #   if(!isTruthy(input$sideDropdownButton)){
-  #     list(NULL, NULL)
-  #   }else{
-  #     color <- if(req(input$colorSet) != "none"){ input$colorSet }else{ NULL }
-  #     shape <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Shape"){ input$shapeSet}else{NULL}
-  #     line <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Line type"){ input$lineSet}else{NULL}
-  #
-  #     sideGraphData(id="xside", side = "x", xyRequire = xyRequire, sideVar = colnames(ptable()), mainGraph = req(input$plotType), color = color, linetype = line, shape = shape,
-  #                   borderWidth = req(input$panelBorderWidth), borderColor = req(input$panelBorderColor), panelTheme = req(input$panelBackground),
-  #                   gridColor = req(input$panelGridColor), gridlineWidth = req(input$panelGridLineWidth), gridLineType = req(input$panelGridLineType))
-  #   }
-  #
-  #   })
-  # sideGraphy <- reactive({
-  #   # browser()
-  #   if(!isTruthy(input$sideDropdownButton)){
-  #     list(NULL, NULL)
-  #   }else{
-  #     color <- if(req(input$colorSet) != "none"){ input$colorSet }else{ NULL }
-  #     shape <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Shape"){ input$shapeSet}else{NULL}
-  #     line <- if(isTruthy(input$shapeLine) && req(input$shapeLine) == "Line type"){ input$lineSet}else{NULL}
-  #     # tryCatch({
-  #     sideGraphData(id="yside", side = "Y", xyRequire = xyRequire, sideVar = colnames(ptable()), mainGraph = req(input$plotType), color = color, linetype = line, shape = shape,
-  #                   borderWidth = req(input$panelBorderWidth), borderColor = req(input$panelBorderColor), panelTheme = req(input$panelBackground),
-  #                   gridColor = req(input$panelGridColor), gridlineWidth = req(input$panelGridLineWidth), gridLineType = req(input$panelGridLineType))
-  #     #   sideError(0)
-  #     #   #return
-  #     #   sdgy
-  #     # }, error = function(e){
-  #     #   sideError(1)
-  #     # })
-  #   }
-  #
-  # })
-  #old version--------------------------
+  
 
   #inset-------
   #it will return a list of two elements
@@ -6671,12 +6670,12 @@ server <- function(input, output, session){
     # browser()
     #inset in the figure------------------
     value <- list(NULL, NULL) #to be return as reactive value
-    if(req(input$stat) != "anova" || (req(input$stat) == "anova" && req(input$pairedData) == "one")){
-
-      # if(nrow(clickBrush_df()) > 1 && isTruthy(input$brush_info) && req(input$inset) == "yes"){
+    
+    #cannot add with sceondary y-axis
+    if( (req(input$stat) != "anova" || (req(input$stat) == "anova" && req(input$pairedData) == "one") ) && req(input$dualAxis) == "none"){
+      
       if(isTruthy(input$brush_info) && nrow(brush_df()) > 1 && req(input$inset) == "yes"){
         #currently inset and side together not supported
-        # req(is.null(sideGraphx()[[1]]))
         req(insetGeomType())
 
         message(req(input$xAxis))
@@ -6715,15 +6714,11 @@ server <- function(input, output, session){
           }else if(req(input$insetPlotType) == "histogram"){ NULL}
 
         })
-        # insetParamFunc(inDf, oriDf, orix, oriTextLabel, finalPlt, color = "none", shape=NULL, line=NULL)
-        # browser()
-        # insetParamFunc(inDf= clickBrush_df(), oriDf = ptable(), orix = xyAxis()[[1]], oriTextLabel = xTextLabels(), finalPlt = finalPlt, color = varSet(), shape=shapeSet(), line=lineSet())
-        # insetParamFunc(inDf= clickBrush_df(), oriDf = ptable(), orix = req(input$xAxis), insx = req(input$insetXAxis), oriTextLabel = xTextLabels(), color = req(input$colorSet), shape=shapeSet(), line=lineSet())
-        insetParamFunc(inDf= brush_df(), oriDf = ptable(), orix = req(input$xAxis), insx = req(input$insetXAxis), oriTextLabel = xTextLabels(), color = req(input$colorSet), shape=shapeSet(), line=lineSet())
+        
+        insetParamFunc(inDf= brush_df(), oriDf = ptable(), orix = req(input$xAxis), insx = req(input$insetXAxis), oriTextLabel = xTextLabels(), finalPlt = forFinalPlt(), color = req(input$colorSet), shape=shapeSet(), line=lineSet())
 
         #reactive value: insetXTextLabels() - in insetPlt & insetColor() - to be used in inset_df
         #generate inset graph
-        # browser()
         if(!req(input$insetPlotType) %in% c("line", "scatter plot")){
           insetPlt <- plotFig(data = req(brush_df()), types = insetPltTypes(), geom_type = insetGeomType(),
                               xTextLabels = insetXTextLabels(),
