@@ -21,9 +21,10 @@ aboutSection <- div(
                         <p>
                         Data can be either all numerical or a combination of numerical and categorical variables. For comparisons between variables, it is recommended that data be in a long format rather than a wide format. If it doesn\'t, use the reshape option to reshape it. More information can be found in the <strong>Help</strong> section.
                         </p>
-
+                        
+                        <br></br>
                         <p>
-                        The list of graphs currently available for plotting:
+                        <b>The list of graphs currently available for plotting:
                         <ul>
                           <li>Bar plot</li>
                           <li>Box plot</li>
@@ -34,8 +35,19 @@ aboutSection <- div(
                           <li>Scatter plot</li>
                           <li>Violin plot</li>
                         </ul>
+                        </b>
                         </p>
-
+                        
+                        <p><b>Additional features useful for data analysis:
+                        <ul>
+                        <li>Inset graphs</li>
+                        <li>Side graphs</li>
+                        <li>Additonal layer with secondary y-axis</li>
+                        </ul>
+                        </b>
+                        </p>
+                        
+                        <br></br>
                         <p>
                         For statistical analysis, we have included the most commonly used parametric and non-parametric methods:
                         <ul>
@@ -207,10 +219,11 @@ mainSection <- div(
             #ui output for choosing columns to transform the data
             #for names
             uiOutput(outputId = "trName"),
-            
+            # bsTooltip(id = "trName", title = "Choosen column name will be the independent variable and transposed as row. The values associated with the columns will be the dependent variable and will be placed in a new column called 'value'."),
             #variable message for reshape
             conditionalPanel(condition = "input.transform == 'Yes'",
-                             helpText("Choosen variables will be the independent variable. The values associated with the variables will be the dependent variable and will be placed in a separate column named 'value'.", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")
+                             helpText("Choosen column name will be the independent variable and transposed as row. The values associated with the columns will be the dependent variable and will be placed in a new column called 'value'.", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")
+                             # helpText("Choosen variables will be the independent variable. The values associated with the variables will be the dependent variable and will be placed in a separate column named 'value'.", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")
             ),
             
             #Name to be used as column name for the reshaped
@@ -1071,6 +1084,7 @@ mainSection <- div(
                                                       choiceNames = yesNoTag, choiceValues = c("no", "yes"), inline = TRUE),
                                          #include label in sample size
                                          radioButtons(inputId = "sampleSize", label = "Label sample size in x-axis?", choiceNames = yesNoTag, choiceValues = c("yes", "no"), inline = TRUE),
+                                         bsTooltip(id="sampleSize", title = "May not work with numeric variable", placement = "bottom"),
                                          #remove bracket of statistic label
                                          uiOutput("UiRemoveBracket"),
                                          uiOutput("UiStripBackground")
@@ -3004,7 +3018,8 @@ server <- function(input, output, session){
       
       #get name of variables in x-axis
       varName <- unique(as.data.frame(ptable())[,input$xAxis]) %>% as.vector() %>% sort()
-      varCount <- plyr::count(ptable(), vars = input$xAxis)$freq
+      # varCount <- plyr::count(ptable(), vars = input$xAxis)$freq
+      varCount <- dplyr::count(as.data.frame(ptable()), .data[[input$xAxis]])$n
       
       #get name of variables user want to change
       userChoice <- if(req(input$xTextLabelChoice) == "All" || "All" %in% req(input$xTextLabelChoice)){
@@ -6072,7 +6087,7 @@ server <- function(input, output, session){
         )
         #check: y-axis variable must be numeric
         #this is very important when data has multiple header rows (with replicates)
-        if(figType() %in% xyRequire) validate(need(is.numeric(ptable()[, input$yAxis]), "Error: non-numeric data. Provide numeric column to y-axis"))
+        if(figType() %in% xyRequire) validate(need(is.numeric(as.data.frame(ptable())[, input$yAxis]), "Error: non-numeric data. Provide numeric column to y-axis"))
 
         #check for x and y-axis
         if(pltType() %in% xyRequire){
@@ -6778,32 +6793,36 @@ server <- function(input, output, session){
   #hover info for the plot
   observe({
     req(ptable(), pltType(), input$hover_info)
-    #add checks
-    req(c(input$xAxis, input$yAxis) %in% colnames(ptable()))
-
-    df <- nearPoints(ptable(), input$hover_info, xvar = req(input$xAxis), yvar = req(input$yAxis) )
-
-    output$hover_display <- renderPrint({
-      if(nrow(df) != 0){
-        #display only x and y variables
-        #include aesthetic if choosen
-        if(req(input$colorSet) == "none" && !isTruthy(input$shapeLine)){
-          ds <- df %>% select(.data[[input$xAxis]], .data[[input$yAxis]]) %>% as.data.frame()
-        }else if(req(input$colorSet) != "none"){
-          #override other aes by color
-          ds <- df %>% select(.data[[input$xAxis]], .data[[input$colorSet]], .data[[input$yAxis]]) %>% as.data.frame()
-        }else if(isTruthy(input$shapeLine)){
-          if(req(input$shapeLine) == "Shape"){
-            ds <- df %>% select(.data[[input$xAxis]], .data[[input$shapeSet]], .data[[input$yAxis]]) %>% as.data.frame()
-          }else{
-            ds <- df %>% select(.data[[input$xAxis]], .data[[input$lineSet]], .data[[input$yAxis]]) %>% as.data.frame()
+    tryCatch({
+      output$hover_display <- renderPrint({
+        
+          #add checks
+          req(c(input$xAxis, input$yAxis) %in% colnames(ptable()))
+          df <- nearPoints(ptable(), input$hover_info, xvar = req(input$xAxis), yvar = req(input$yAxis) )
+          if(nrow(df) != 0){
+            #display only x and y variables
+            #include aesthetic if choosen
+            if(req(input$colorSet) == "none" && !isTruthy(input$shapeLine)){
+              ds <- df %>% select(.data[[input$xAxis]], .data[[input$yAxis]]) %>% as.data.frame()
+            }else if(req(input$colorSet) != "none"){
+              #override other aes by color
+              ds <- df %>% select(.data[[input$xAxis]], .data[[input$colorSet]], .data[[input$yAxis]]) %>% as.data.frame()
+            }else if(isTruthy(input$shapeLine)){
+              if(req(input$shapeLine) == "Shape"){
+                ds <- df %>% select(.data[[input$xAxis]], .data[[input$shapeSet]], .data[[input$yAxis]]) %>% as.data.frame()
+              }else{
+                ds <- df %>% select(.data[[input$xAxis]], .data[[input$lineSet]], .data[[input$yAxis]]) %>% as.data.frame()
+              }
+            }
+            
+            return(head(ds))
+            # as.data.frame(df)
           }
-        }
-
-        return(head(ds))
-        # as.data.frame(df)
-      }
-
+        
+  
+      })
+    }, error = function(e){
+      print(e)
     })
   })
 
