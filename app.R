@@ -459,7 +459,7 @@ mainSection <- div(
                        #       background-image:linear-gradient(to top, #F2F4F5,#FBFBFB)",##F2F0EF
                        style = "border:solid rgba(3,201,181,0.3) 2px; padding:5px; border-radius:5px;",
                        helpText(
-                         list(tags$p("Aesthetic options", style = "color:#0099e6; text-align:center; margin-top: 5px; margin-bottom: 0; font-weight:bold;"),
+                         list(tags$p(""Aesthet"xic options", style = "color:#0099e6; text-align:center; margin-top: 5px; margin-bottom: 0; font-weight:bold;"),
                               tags$p("Customize color, shape, line type and compare between variables", style = "margin-top:0; text-align:center"))
                        ),
                        #ui for color
