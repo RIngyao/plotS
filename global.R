@@ -1109,9 +1109,7 @@ displayAes <- function(update= "no", transform = TRUE, action = FALSE, pltType =
       updateSelectInput(inputId = newId, label = label, choices = list("none"))
     }else{#} if(is.data.frame(data)){
       message("-===========updating selectInput================")
-      message(str(firstChoice))
-      message(str(choice))
-      message(str(selecteds))
+      
       updateSelectInput(inputId = newId, label = label, choices = c(firstChoice, choice), selected = selecteds)
     }
 
@@ -1852,13 +1850,6 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     message("forml=-=--")
     message("ttestMethod complete33")
     # browser()
-    # message(str(data))
-    # print(data)
-    message(forml)
-    message(ttestMethod)
-    message(pAdjustMethod)
-    message(pairedD)
-    message(cmp)
     test <- rstatix::t_test(data, formula = forml,
            ref.group = unlist(ref),
            comparisons = cmp, p.adjust.method = pAdjustMethod,
@@ -2194,7 +2185,6 @@ efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, meth
     efs$y_variable <- as.character(y)
     efs$group1 <- as.vector(x[1])
     efs$group2 <- as.vector(x[2])
-    message(str(efs))
     efs2 <- efs %>% dplyr::select(y_variable, group1, group2, everything())
     #determine magnitude
     if(abs(efs2[4]) < 0.2){
@@ -2212,7 +2202,8 @@ efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, meth
   }else if(stat =="anova"){
 
     av <- aov(data = dt, formula = fa) #replace fs with proper format
-    anov <- car::Anova(av, type = 3)
+    # anov <- car::Anova(av, type = 3)
+    anov <- car::Anova(av)
     pav <- parameters::model_parameters(anov)
 
     if(method == "Eta-squared"){
@@ -2558,7 +2549,6 @@ advancePlot <- function(data, plt,
                         plabelSize = 7
 ){
   # browser()
-  message(str(statData))
   # advance settings
   message("display advance")
 

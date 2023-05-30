@@ -1754,11 +1754,13 @@ server <- function(input, output, session){
           req( eval(str2expression(paste0("input$Variable",.x))) ), regex("[:alnum:]")
         ) )
       ) )
-    #check that variables name are not the same
+    #check that variables name are not the same and replicate or replicates is not given (to avoid confusion and crash)
     varName <- lapply(1:varNum, function(x) eval(str2expression( paste0("input$Variable",x)) )) %>% unlist()
     validate(
-      need(length(unique(varName)) == length(varName), "Error: must not provide same group/variable name!")
+      need(length(unique(varName)) == length(varName), "Error: must not provide same group/variable name!"),
+      need(all(!c("replicate", "replicates") %in% tolower(varName)), "Error: must not provide 'replicate'/'replicates' as variable name!")
     )
+    
     #all replicate columns provided?
     rCol <- all(
       unlist(
@@ -1784,13 +1786,12 @@ server <- function(input, output, session){
     #check that the column can be converted as numeric
     #get
     numericCheck_df <- pInputTable$data[-c(1:as.numeric(input$headerNumber)), ] %>% select(!!!rlang::syms(unlist(repDetails))) #%>% mutate(across(.cols = everything(), as.numeric))
-    # browser()
-    message(str(numericCheck_df))
+    
     #check
     validate(
-      need( all(lapply(numericCheck_df, str_detect, pattern = "^[:digit:]*$") %>% unlist()), "Error: must select only numeric columns!")
+      need( all(lapply(as.data.frame(numericCheck_df), str_detect, pattern = "^\\d*\\.?\\d*$") %>% unlist()), "Error: must select only numeric columns!")
     )
-
+    
     #count the replicates for each group
     repCount <- lapply(repDetails, length)
 
@@ -2132,14 +2133,13 @@ server <- function(input, output, session){
 
     #count the replicates for each group
     # repCount <- lapply(repDetails, length)
-
     #unlist and convert to numeric (it's a list of index number for columns)
     # repCol <- repDetails %>% unlist() %>% as.numeric()
 
 
     tryCatch({
       #get non-replicate data [if any (not all data will have variables other than replicates)]
-      noRep_df <- data %>% select(-repDetails) %>% as.data.frame()
+      noRep_df <- data %>% select(-all_of(repDetails)) %>% as.data.frame()
       #dummy data frame to collect the replicates data after iteration and processing for each variable.
       mergeData <- data.frame()
       #stopwatch for processing columns other than replicates (inside the function: tidyReplicate())
@@ -6569,10 +6569,6 @@ server <- function(input, output, session){
       finalPlt_settings <- forFinalPlt()
 
       # browser()
-      # message(str(finalPltErrorMsg()))
-      # message(str(finalPltErrorMsg()[[1]]))
-      # message(str(finalPltErrorMsg()$message))
-      # sj <- 2
       if(pltType() == "none"){
         NULL
       }else if(is.null(forFinalPlt()) | !is.null(finalPltErrorMsg()$message)){
@@ -7162,11 +7158,6 @@ server <- function(input, output, session){
         plt <- if(!is.null(saveFigure())){
           saveFigure()
         }else{ NULL}
-
-        message(str(rdpi))
-        message(rdpi)
-        message(str(heights))
-        message(str(widths))
         ggsave(file, plot = plt, device = pDev, height = heights, width = widths, dpi = rdpi, units = "in")
       }
     )
