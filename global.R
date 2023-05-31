@@ -67,6 +67,8 @@ library(shinyWidgets)
 #tags list
 yesNoTag <- list(tags$span("Yes", style = "font-weight:bold; color:#0099e6"),
                  tags$span("No", style = "font-weight:bold; color:#0099e6"))
+noYesTag <- list(tags$span("No", style = "font-weight:bold; color:#0099e6"),
+                 tags$span("Yes", style = "font-weight:bold; color:#0099e6"))
 #error objects
 uploadError <- reactiveVal(0) #1: stop; 0 continue
 uploadMsg <- reactiveVal(NULL)
