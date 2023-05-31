@@ -1193,7 +1193,7 @@ filterData <- function(df, col, filterType, val){
 
     #case 1. i.
     inputVal <- str_split(val, ',(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)') %>% unlist()
-
+    
     if(filterType == "contain"){
       filtr_df <- df[ str_detect(df[,col], inputVal, negate = FALSE), , drop = FALSE]
     }else if(filterType == "not contain"){
