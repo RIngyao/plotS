@@ -3822,28 +3822,32 @@ server <- function(input, output, session){
         }
 
       }
-
-      req(countVar > 2)
-      shinyalert(
-        inputId = "tw_alert",
-        title = "Message", #tags$b("Alert!", style = "color:red"),
-        html = TRUE,
-        text = tagList(tags$b("Data has more than 2 variables to compare. ANOVA may be more appropriate.", style = "color:red;"),
-                # Continue anyway (may be slow)?", style = "color:red;"),
-                       tags$p(tags$b("Continue anyway (may be slow)?", style = "color:red;")),
-                       tags$p("If yes, it will reset aesthetic options", style = "font:italic")
-                       ),
-        type = "warning",
-        closeOnClickOutside = TRUE,
-        showCancelButton = TRUE,
-        showConfirmButton = TRUE,
-        confirmButtonText = "No", #value : TRUE
-        confirmButtonCol = "#04D252",
-        cancelButtonText = "Yes", #value : FALSE
-        # cancelButtonCol = "#EE2B04",
-        animation = "pop",
-        immediate = TRUE
-      )
+      
+      if(countVar > 2){
+        shinyalert(
+          inputId = "tw_alert",
+          title = "Message", #tags$b("Alert!", style = "color:red"),
+          html = TRUE,
+          text = tagList(tags$b("Data has more than 2 variables to compare. ANOVA may be more appropriate.", style = "color:red;"),
+                         # Continue anyway (may be slow)?", style = "color:red;"),
+                         tags$p(tags$b("Continue anyway (may be slow)?", style = "color:red;")),
+                         tags$p("If yes, it will reset aesthetic options", style = "font:italic")
+          ),
+          type = "warning",
+          closeOnClickOutside = TRUE,
+          showCancelButton = TRUE,
+          showConfirmButton = TRUE,
+          confirmButtonText = "No", #value : TRUE
+          confirmButtonCol = "#04D252",
+          cancelButtonText = "Yes", #value : FALSE
+          # cancelButtonCol = "#EE2B04",
+          animation = "pop",
+          immediate = TRUE
+        )
+      }else if(countVar <= 2){
+        stopTest(0)
+      }
+      
     })
 
   observeEvent(input$tw_alert,{
@@ -3856,20 +3860,10 @@ server <- function(input, output, session){
 
   #reset the stopTest to default
   observe({
-    req(input$plotType, input$stat)
+    req(input$plotType, !input$stat %in% c("t.test", "wilcoxon.test"))
     stopTest(1)
   })
-  # observeEvent(req(isTRUE(input$tw_alert)),{
-  #   updateSelectInput(inputId = "stat", choices = c("none",statMethods), selected = "none")
-  # })
-  #
-  # observeEvent(req(isFALSE(input$tw_alert)),{
-  #   stopTest(0)
-  # })
-
-  # observeEvent(input$stat, {
-  #   stopTest(1) #default is stop processing
-  # })
+  
   # #update stat method--------------------------------
   #update stat if input parameters for data changed
   observe({
@@ -6325,17 +6319,12 @@ server <- function(input, output, session){
         #advance graph setting-------------------------
         #get parameters require for plotting
         #compute statistic
-
-        # if(figType() != "none" && methodSt() != "none"){
         # if(figType() != "none" && ( !methodSt() %in% c("t.test", "wilcoxon.test", "none") || (methodSt() %in% c("t.test", "wilcoxon.test") && stopTest() == 0) ) ){
         if(figType() != "none" && ( !methodSt() %in% c("t.test", "wilcoxon.test", "none") || (methodSt() %in% c("t.test", "wilcoxon.test") && stopTest() == 0) ) ){
           message(glue::glue("method2: {methodSt()}"))
           message(catVar())
           message("input$compareOrReference")
           #necessary for t.test and wilcoxon test: ..??
-          message(compareOrReference())
-          # browser()
-          message(varSet())
           #compute statistic only when requested
           #make it global (can't use as reactiveVal)
           statData <<- reactive({
