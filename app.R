@@ -1082,7 +1082,7 @@ mainSection <- div(
                                          style = "text-align:center",
                                          #y-limit
                                          radioButtons(inputId = "Ylimit", label = "Set lower limit of y-axis to 0?",
-                                                      choiceNames = yesNoTag, choiceValues = c("no", "yes"), inline = TRUE),
+                                                      choiceNames = noYesTag, choiceValues = c("no", "yes"), inline = TRUE),
                                          #include label in sample size
                                          radioButtons(inputId = "sampleSize", label = "Label sample size in x-axis?", choiceNames = yesNoTag, choiceValues = c("yes", "no"), inline = TRUE),
                                          bsTooltip(id="sampleSize", title = "May not work with numeric variable", placement = "bottom"),
