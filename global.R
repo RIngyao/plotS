@@ -496,12 +496,14 @@ insetColor <- reactiveVal(NULL)
 "
 insetParamFunc <- function(inDf, oriDf, orix, insx = "default", oriTextLabel, finalPlt, color = "none", shape=NULL, line=NULL){
   # for name: depend only on x-axis
-  # browser()
   #get original variables of x-axis from the original data
   xVarName <- unique(as.data.frame(oriDf)[,orix]) %>% as.vector() %>% sort()
   #get variable name of the inset
   if(insx == "default"){
     insetXVarName <- unique(as.data.frame(inDf)[,orix]) %>% as.vector() %>% sort()
+    message(str(oriTextLabel))
+    message(str(insetXVarName)) 
+    message(oriTextLabel[which(xVarName %in% insetXVarName)])
     #filter only the variables  present in inset data and saved as reactive object
     insetXTextLabels( oriTextLabel[which(xVarName %in% insetXVarName)] )
   }else{

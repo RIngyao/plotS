@@ -3028,8 +3028,9 @@ server <- function(input, output, session){
   })
   #get the input name and passed it to the figure function: add sample size to the label
   xTextLabel <- reactive({
-    #no need to proceed for numeric x-axis. It has no impact on labeling
-    req(!xVarType() %in% c("numeric", "double", "integer"))
+    # #no need to proceed for numeric x-axis. It has no impact on labeling
+    # req(!xVarType() %in% c("numeric", "double", "integer"))
+    #require to proceed even if x-axis is numeric, else inset wouldn't work.
     if(isTruthy(input$xTextLabel) && isTruthy(input$xTextLabelChoice) && !xVarType()[1] %in% c("integer", "numeric", "double")){
       
       #get name of variables in x-axis
@@ -3071,12 +3072,18 @@ server <- function(input, output, session){
       req(ptable())
       
       varName <- unique(as.data.frame(ptable())[,input$xAxis]) %>% as.vector() %>% sort()
-      if(req(input$sampleSize) == "yes"){
-        varCount <- plyr::count(ptable(), vars = input$xAxis)$freq
-        #paste name and count
-        lapply(1:length(varName), function(x, varName, varCount){glue::glue("{varName[x]}\n(n={varCount[x]})")}, varName = varName, varCount = varCount) %>% unlist()
-      }else{
+      if(!xVarType() %in% c("numeric", "double", "integer")){
         varName
+      }else{
+       
+        if(req(input$sampleSize) == "yes"){
+          varCount <- plyr::count(ptable(), vars = input$xAxis)$freq
+          #paste name and count
+          lapply(1:length(varName), function(x, varName, varCount){glue::glue("{varName[x]}\n(n={varCount[x]})")}, varName = varName, varCount = varCount) %>% unlist()
+        }else{
+          varName
+        }
+        
       }
       
     }
@@ -4390,37 +4397,41 @@ server <- function(input, output, session){
 
   observe({
     req(refresh_2(), ptable(), is.data.frame(ptable()), pltType() != 'none', input$facet != "none")
-
+    
     output$UiVar_1 <- renderUI({
-
+      
       #select variables to be used as selected: only string type
       var <- selectedVar(data = ptable())
-
+      
       if(input$plotType == "none"){
         gridWrapInput(choice = NULL)
       }else{
-        gridWrapInput(choice = col(), selected = var)
+        req(input$yAxis %in% colnames(ptable()))
+        #provide only variables that has less than 50 unique row
+        varRowCol <- lapply( col()[col() != req(input$yAxis)], function(x, df){if(length( unique(df[,x, drop = T]) ) < 30) x}, df = ptable()) %>% unlist()
+        gridWrapInput(choice = varRowCol, selected = ifelse(var %in% varRowCol, var, character(0)))
       }
     })
-
+    
     #input for column facet_grid
     output$UiVar_2 <- renderUI({
       #get next variables to be used as selected for column: only string type
       varC <- selectedVar2(data = ptable(), )
-
+      
       if(req(input$facet) == "grid"){
         if(input$plotType == "none"){
           gridWrapInput(id = "varColumn", label = list("Facet column"), type = "grid", choice = NULL)
         }else{
-          # #checks: aded in processing graph
-          # validate(
-          #   need(length(col()) > 1 && req(input$varRow) != varC, "choose different variables")
-          # )
-          gridWrapInput(id = "varColumn", label = list("Facet column"), type = "grid", choice = col(), selected = varC)
+          #checks: aded in processing graph
+          req(input$yAxis %in% colnames(ptable()))
+          #provide only variables that has less than 50 unique row
+          varRowCol <- lapply( col()[col() != req(input$yAxis)], function(x, df){if(length( unique(df[,x, drop = T]) ) < 30) x}, df = ptable()) %>% unlist()
+          
+          gridWrapInput(id = "varColumn", label = list("Facet column"), type = "grid", choice = varRowCol, selected = ifelse(varC %in% varRowCol, varC, character(0)))
         }
       }
     })
-
+    
   })
 
   observe({
@@ -6749,7 +6760,6 @@ server <- function(input, output, session){
         })
         
         insetParamFunc(inDf= brush_df(), oriDf = ptable(), orix = req(input$xAxis), insx = req(input$insetXAxis), oriTextLabel = xTextLabels(), finalPlt = forFinalPlt(), color = req(input$colorSet), shape=shapeSet(), line=lineSet())
-
         #reactive value: insetXTextLabels() - in insetPlt & insetColor() - to be used in inset_df
         #generate inset graph
         if(!req(input$insetPlotType) %in% c("line", "scatter plot")){
