@@ -3031,6 +3031,7 @@ server <- function(input, output, session){
     # #no need to proceed for numeric x-axis. It has no impact on labeling
     # req(!xVarType() %in% c("numeric", "double", "integer"))
     #require to proceed even if x-axis is numeric, else inset wouldn't work.
+    # browser()
     if(isTruthy(input$xTextLabel) && isTruthy(input$xTextLabelChoice) && !xVarType()[1] %in% c("integer", "numeric", "double")){
       
       #get name of variables in x-axis
@@ -3056,7 +3057,7 @@ server <- function(input, output, session){
         }else{
           labl <- varName
         }
-        return(name_Count)
+        return(labl)
       }else if(length(givenName) == varLen){
         varName[which(varName %in% userChoice)] <- as.vector(givenName)
         #new name
@@ -3072,7 +3073,7 @@ server <- function(input, output, session){
       req(ptable())
       
       varName <- unique(as.data.frame(ptable())[,input$xAxis]) %>% as.vector() %>% sort()
-      if(!xVarType() %in% c("numeric", "double", "integer")){
+      if(xVarType() %in% c("numeric", "double", "integer")){
         varName
       }else{
        
