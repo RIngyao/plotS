@@ -854,7 +854,7 @@ mainSection <- div(
                                                                    column(6, uiOutput("UiApplyFilter")),
                                                                    column(6, uiOutput("UiClearAllFilter"))
                                                                  ),
-                                                                 uiOutput("UiFilterMsg")
+                                                                 uiOutput("UiFilterSignal")
                                                                )#end filter data div
                                                              ),#end draggable
                                                              
@@ -1548,7 +1548,8 @@ server <- function(input, output, session){
   observe({
     req(input$pInput, input$pFile)
     #reset the filter msg
-    filterMsg(NULL)
+   filterSignal(NULL)
+   filterMsg(NULL)
     #get data based on users input
     if(req(input$pInput) == "upload data"){
       #initial data is null
@@ -1970,14 +1971,12 @@ server <- function(input, output, session){
   })
 
   
-  
   #apply and reset button for filter
   observe({
     req(input$varFilterOpts)
-
-    # browser()
+    
     validate(
-      need( (is.null(filterMsg()) || filterMsg() == 0) && input$varFilterOpts %in% colnames(cleanData()) && is.data.frame(cleanData()), "")
+      need( (is.null(filterSignal()) || filterSignal() == 0) && input$varFilterOpts %in% colnames(cleanData()) && is.data.frame(cleanData()), "")
     )
 
     #don't provide apply and clear all option until all parameters are provided
@@ -1998,8 +1997,8 @@ server <- function(input, output, session){
 
 
   #filter the data base on input
-  filterMsg <- reactiveVal(NULL) #msg for filter
-
+ filterSignal <- reactiveVal(NULL) #signal for filter error
+ filterMsg <- reactiveVal(NULL) #msg for filter
   observeEvent(req(isTruthy(input$applyFilter)),{
     # browser()
     #user's choice of variable for filter: this is necessary to get the correct input ID
@@ -2010,117 +2009,125 @@ server <- function(input, output, session){
 
     # filter the data
     tryCatch({
-      browser()
+      # browser()
       for(i in seq_along(df_coln)){
         # isTruthy(eval(str2expression(paste0("input$",df_coln[i]))))
         req(isTruthy(eval(str2expression(paste0("input$filterVal_",df_coln[i])))))
         flTy <- eval(str2expression(paste0("input$Ftype_",df_coln[i])))
         flVal <- eval(str2expression(paste0("input$filterVal_",df_coln[i])))
+        
+        #first check the validity of data for numeric
+        if(!flTy %in% c("contain", "not conatain", "equal to", "not equal to")){
+          checkNum <- as.numeric(flVal)
+          validate(
+            need(!is.na(checkNum), "Error: cannot convert to numeric!")
+          )
+        }
+          
         #first check how many variables were requested for filter
         # case 1: only one variables: apply filter and no need to check conditions
-        # case 2: more than one variables: check for logical 
+        # case 2: more than one variables. Proceed for the first filter then start for logical 
         #       case i: And - 
-        #             case a: data must have more than 1 row from first filter else break
+        #             case a: data must have more than 1 row from first filter
         #             case b: must present both, i.e. increase in data row
         #       case ii: OR - data can have 0 or more row from first filter and may or may not increase row
         
         if(length(df_coln) == 1){
           #case 1
+          
           data <- filterData(df = as.data.frame(cleanData()), col = df_coln[i], filterType = flTy, val = flVal)
         }else{
-          #case 2: more than one variable and logical has applied
-          if( eval( str2expression(paste0("input$filterLogical", i-1)) ) == "AND" ){
-            #case i: AND logical
-            if(nrow(data) == 1){
-              #begin filter
-              data <- filterData(df = as.data.frame(cleanData()), col = df_coln[i], filterType = flTy, val = flVal)
-              #check
-              if(nrow(data) < 1){
-                #AND must have at least one row
-                break
-              }
-            }else{
-              #get the row 
-              df_previous <- nrow(data)
-              #next filter
-              data <- filterData(df = data, col = df_coln[i], filterType = flTy, val = flVal)
-              #AND row must be greater than previous row
-              if(nrow(data) <= df_previous){
-                #No value match for AND
-                #provide null to the data and break
-                data <- as.data.frame(matrix(nrow = 1, ncol = ncol(cleanData())))
-                names(data) <- colnames(cleanData())
-                break
-              }
-            }
-            
-            
+          #case 2: more than one variable
+          if(nrow(data) == 1 && all(is.na(data))){
+            #proceed for the first filter
+            data <- filterData(df = as.data.frame(cleanData()), col = df_coln[i], filterType = flTy, val = flVal)
+            #no value match will return 0 row: useful for AND
           }else{
-            
+            #start logical filter
+            if( eval( str2expression(paste0("input$filterLogical", i-1)) ) == "AND" ){
+              #case i: AND logical - filtered data must have at least one non-empty row
+              if(all(!is.na(data)) && nrow(data) >= 1){
+                #next filter
+                data <- filterData(df = data, col = df_coln[i], filterType = flTy, val = flVal)
+              }
+              
+            }else{ #for OR logical
+              
+              if(nrow(data) <= 1){ 
+                #begin filtering
+                data <- filterData(df = as.data.frame(cleanData()), col = df_coln[i], filterType = flTy, val = flVal)
+              }else if(nrow(data) > 1){
+                
+                #provide the original data
+                df <- filterData(df = as.data.frame(cleanData()), col = df_coln[i], filterType = flTy, val = flVal)
+                
+                #retain similar data for previous and present filter
+                df_similar <- semi_join(data, df)
+                #present only in the new filter
+                df_present <- anti_join(df, data)
+                #present only in the earlier filter data
+                df_previous <- anti_join(data, df)
+                #merge all and update the data
+                data <- rbind(df_similar, df_previous, df_present)
+              }
+            }#end of OR logical
           }
-        }
+          
+        }#end of case 2
         
-        if(nrow(data) <= 1){ #<1 is necessary for processing the OR options
-          #begin filtering
-          data <- filterData(df = as.data.frame(cleanData()), col = df_coln[i], filterType = flTy, val = flVal)
-        }else if(nrow(data) > 1){
-          #check for logical and provide different data
-
-          #-message(i)
-          if( eval( str2expression(paste0("input$filterLogical", i-1)) ) == "AND" ){
-            data <- filterData(df = data, col = df_coln[i], filterType = flTy, val = flVal)
-          }else{
-            #provide the original data
-            df <- filterData(df = cleanData(), col = df_coln[i], filterType = flTy, val = flVal)
-
-            #retain similar data for previous and present filter
-            df_similar <- semi_join(data, df)
-            #present only in the new filter
-            df_present <- anti_join(df, data)
-            #present only in the earlier filter data
-            df_previous <- anti_join(data, df)
-            #merge all and update the data
-            data <- rbind(df_similar, df_previous, df_present)
-
-          }
-
-        }
+      }#end of for loop
+      
+      # #Reset: for no other error
+      filterMsg(NULL)
+      
+      if( nrow(data) == 0 || (nrow(data) == 1 && all(is.na(data))) ){
+        filterSignal(1)
+        validate(
+          need(filterSignal() == 0, "")
+        )
+      }else{
+        filterSignal(0)
       }
-
+      
+      rownames(data) <- NULL
+      # ptable(data)
     }, error = function(e){
-      print(e)
+      filterMsg(e)
+      filterSignal(1)
     })
-
-    if( nrow(data) == 0 || (nrow(data) == 1 && all(is.na(data))) ){
-      filterMsg(1)
-      validate(
-        need(filterMsg() == 0, "")
-      )
-    }else{
-      filterMsg(0)
-    }
+    # #Reset: for no other error
+    # filterMsg(NULL)
+    # 
+    # if( nrow(data) == 0 || (nrow(data) == 1 && all(is.na(data))) ){
+    #  filterSignal(1)
+    #   validate(
+    #     need(filterSignal() == 0, "")
+    #   )
+    # }else{
+    #  filterSignal(0)
+    # }
     #null row name
     #-message(str(data))
-    rownames(data) <- NULL
+    # rownames(data) <- NULL
     ptable(data)
   })
 
   #Info for filter being applied
   observe({
-    req(filterMsg())
+    req(filterSignal())
     # isTruthy(input$applyFilter) &&
     output$UiAppliedFilterInfo <- renderUI({
-      if(!is.null(filterMsg()) && filterMsg() == 0){
+      if(!is.null(filterSignal()) && filterSignal() == 0){
         helpText("Filter applied!", style = "color:red; font-weight:bold")
       }
     })
   })
 
-  output$UiFilterMsg <- renderUI({
-    if( !is.null(req(filterMsg())) ){
-      if(filterMsg() == 0){
+  output$UiFilterSignal <- renderUI({
+    if( !is.null(req(filterSignal())) ){
+      if(filterSignal() == 0){
         helpText(list(tags$p("Filter applied!"), tags$p("Clear all to return to the original data")), style = "color:green; font-weight:bold")
-      }else if(filterMsg() == 1){
+      }else if(filterSignal() == 1){
 
         helpText(list(tags$p("Filtered: no value match!")), style = "color:red; font-weight:bold") #, tags$p("Clear all to return to the original data")
       }
@@ -2134,11 +2141,18 @@ server <- function(input, output, session){
     #update the list of variables to none if user click 'clear all'
     #option for the user to choose the variable for filter
     updateSelectInput(inputId = "varFilterOpts", label = "Choose variable(s)", choices = coln)
+    filterSignal(NULL)
     filterMsg(NULL)
     #update the data if user clear all the filter
     ptable(cleanData())
   })
-
+  
+  #RESET filterSignal
+  observe({
+    req(input$plotType)
+    filterSignal(NULL)
+    filterMsg(NULL)
+  })
 
   #error setting-------------------------------------------
   #Message to display for various type of errors
@@ -6196,6 +6210,10 @@ server <- function(input, output, session){
         #data must have atleast two row
         validate(
           need(nrow(ptable()) > 1, "Error: data must have at least two rows!")
+        )
+        #check for filter
+        validate(
+          need(is.null(filterMsg()), filterMsg()$message)
         )
         #check: y-axis variable must be numeric
         #this is very important when data has multiple header rows (with replicates)

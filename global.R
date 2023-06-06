@@ -1174,6 +1174,8 @@ arguments:
   col = character. Column name to apply the filter
   filterType = character. Type of filter to apply - 'contain', 'equal', 'greater than', etc
   val = character. apply filterType on this given value
+
+Return: data frame. 0 row if no value match
 "
 
 filterData <- function(df, col, filterType, val){
@@ -1190,7 +1192,7 @@ filterData <- function(df, col, filterType, val){
   filtr_df <- NULL
   #detect error: not in use
   erorDetected <- 0
-
+   
   if(filterType %in% c("contain", "not contain")){
 
     #case 1. i.
@@ -1222,13 +1224,17 @@ filterData <- function(df, col, filterType, val){
     #start case 2: numeric variable
     if(filterType != "between"){
       #case 2. i.
-
+      # browser()
+      message(str(val)) 
+      message(as.numeric(val)) 
+      
       #input must be able to convert to numeric
-      validate({
-        erorDetected <- 1
-        #convert to numeric
-        need(numValue <- as.numeric(val), "Error: cannot convert to numeric! provide one numeric value")
-      })
+      numValue <- as.numeric(val)
+      # validate({
+      #   erorDetected <- 1
+      #   #convert to numeric
+      #   need(!is.na(numValue), "Error: cannot convert to numeric! provide one numeric value")
+      # })
       if(filterType == "not equal"){
         filtr_df <- df %>% filter( .data[[col]] != numValue)
       }else if(filterType == "equal"){
@@ -1244,10 +1250,11 @@ filterData <- function(df, col, filterType, val){
       }
 
     }else if(filterType == "between"){
-      validate({
-        erorDetected <- 1
-        need(numRange <- eval(str2expression(val)), "Error: cannot convert to numeric!")
-      })
+      numRange <- eval(str2expression(val))
+      # validate({
+      #   erorDetected <- 1
+      #   need(numRange <- eval(str2expression(val)), "Error: cannot convert to numeric!")
+      # })
       filtr_df <- df %>% filter( .data[[col]] >= min(numRange), .data[[col]] <= max(numRange))
     }
   }
