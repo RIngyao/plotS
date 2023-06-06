@@ -713,6 +713,8 @@ mainSection <- div(
                                                            conditionalPanel(condition = "input.addLayer == 'smooth'",
                                                                             checkboxInput(inputId = "addLayerCI", label = "Confidence interval", value = TRUE),
                                                                             selectizeInput(inputId = "smoothMethod", label = "Method", choices = list(`Linear regression model (LM)` = "lm",`Generalized LM` = "glm", `Generalized additive model` = "gam", `LOESS` = "loess")),
+                                                                            bsTooltip(id = "smoothMethod", title = "LOESS can be applied only TO data having less than 1000 observations."),
+                                                                            uiOutput("uiSmoothMethodMsg"),
                                                                             selectizeInput(inputId = "addLayerColor", label = "Line color", choices = sort(c("blue","red","black", "brown")), selected = "blue")
                                                            )
                                                          )
@@ -4482,7 +4484,17 @@ server <- function(input, output, session){
     req(input$addLayer)
     updateSliderInput(inputId = "layerSize", label = "Adjust size", min = 1, max = 10, value = 1)
   })
-
+  
+  #message for LOESS: data must not be greater than 1000 observations
+  output$uiSmoothMethodMsg <- renderUI({
+    req(input$smoothMethod == "loess", input$xAxis %in% ptable())
+    
+    #check data. size
+    obs <- ptable() %>% count(.data[[req(input$xAxis)]]) #%>% summarise(count = n())
+    if(all(obs$n < 1000)){
+      helpText("Data must have less than 1000 observations for LOESS method", style = "color:red; test-align:center")
+    }
+  })
   #summary panel---------------------
   #stat summary table
   table1 <- reactiveVal(NULL)
@@ -6614,6 +6626,24 @@ server <- function(input, output, session){
         #additional layer
         if(req(input$addLayer) != "none"){
           # browser()
+          #Check for loess
+          validate(
+            if(input$xAxis %in% ptable() && input$addLayer == "smooth" && input$smoothMethod == "loess"){
+              obs <- ptable() %>% count(.data[[req(input$xAxis)]])
+              need(all(obs$n < 10), "Data must have less than 1000 observations for LOESS method")
+            }
+          )
+          
+          # output$uiSmoothMethodMsg <- renderUI({
+          #   req(input$smoothMethod == "loess", input$xAxis %in% ptable())
+          #   
+          #   #check data. size
+          #   obs <- ptable() %>% count(.data[[req(input$xAxis)]]) #%>% summarise(count = n())
+          #   if(all(obs$n < 1000)){
+          #     helpText("Data must have less than 1000 observations for LOESS method", style = "color:red; test-align:center")
+          #   }
+          # })
+          
           cal <- ifelse(pltType() %in% c("box plot", "violin plot"), "median", "mean")
           finalPlt_settings <- switch(req(input$addLayer),
                                "line" = forFinalPlt() + stat_summary(fun = cal, geom = 'line', aes(group = 1), linewidth = req(input$layerSize)),
