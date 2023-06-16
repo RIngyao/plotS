@@ -1,0 +1,22 @@
+---
+title: "Preview"
+author: ""
+date: ""
+output: html_document
+params:
+  preview: NA
+  height: NA
+  width: NA
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+<!-- , out.height= "200%", out.width="200%", not in use  -->
+
+```{r echo=FALSE, fig.width=params$width, fig.height=params$height}
+
+params$preview
+```
