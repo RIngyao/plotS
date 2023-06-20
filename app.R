@@ -1359,28 +1359,43 @@ ui <- fluidPage(
           route("vizAna", mainSection),
           route("help", helpSection)
         ),
-
-    ),
-    div(class = "column column3")
-
-  ),
-  #end of main content------------
-
-  #add footer note
-  tags$footer(
-    HTML('<p>  </p>'),
-    align = "center",
-    style = "height: 100px; background-color: #ffffff",#f2f2f2;" #d9d9d9
-    #bottom: 10%;padding = 10px;
-    HTML('
+        
+        #add footer note
+        tags$footer(
+          HTML('<p>  </p>'),
+          align = "center",
+          style = "height: 100px; background-color: #ffffff; border-top: solid 1px; margin-top: 25px",#f2f2f2;" #d9d9d9
+          #bottom: 10%;padding = 10px;
+          HTML('
           <p>
-          <b>Citation:</b>
-          <p><b>Jajo, R., Kansal, S., Balyan, S. & Raghuvanshi, S. </b>PlotS: web-based application for data visualization and analysis. bioRxiv 2023.06.09.544161 (2023).<cite><a href="https://www.biorxiv.org/content/10.1101/2023.06.09.544161v1"> doi:10.1101/2023.06.09.544161</a></cite></p>
+          <p><b>Citation:</b> <b>Jajo, R., Kansal, S., Balyan, S. & Raghuvanshi, S. </b>PlotS: web-based application for data visualization and analysis. bioRxiv 2023.06.09.544161 (2023).<cite><a href="https://www.biorxiv.org/content/10.1101/2023.06.09.544161v1" style = "font-size:17px"> doi:10.1101/2023.06.09.544161</a></cite></p>
           </p>
           
           <p><b>Feedback:</b> <a href = "mailto: jajoringyao@gmail.com" style = "font-size:17px">send email</a> <b> Bug report:</b> <a href="https://github.com/RIngyao/plotS" style = "font-size:17px"> GitHub</a></p>
          ')
-  )#end of footer
+        )#end of footer
+
+    ),
+    div(class = "column column3")
+
+  )
+  #end of main content------------
+
+  # #add footer note
+  # tags$footer(
+  #   HTML('<p>  </p>'),
+  #   align = "center",
+  #   style = "height: 100px; background-color: #ffffff",#f2f2f2;" #d9d9d9
+  #   #bottom: 10%;padding = 10px;
+  #   HTML('
+  #         <p>
+  #         <b>Citation:</b>
+  #         <p><b>Jajo, R., Kansal, S., Balyan, S. & Raghuvanshi, S. </b>PlotS: web-based application for data visualization and analysis. bioRxiv 2023.06.09.544161 (2023).<cite><a href="https://www.biorxiv.org/content/10.1101/2023.06.09.544161v1" style = "font-size:17px"> doi:10.1101/2023.06.09.544161</a></cite></p>
+  #         </p>
+  #         
+  #         <p><b>Feedback:</b> <a href = "mailto: jajoringyao@gmail.com" style = "font-size:17px">send email</a> <b> Bug report:</b> <a href="https://github.com/RIngyao/plotS" style = "font-size:17px"> GitHub</a></p>
+  #        ')
+  # )#end of footer
 
 )# end of fluidPage for UI
 
@@ -2391,15 +2406,26 @@ server <- function(input, output, session){
   #variables for reshape
   output$trName <- renderUI({
     req(pInputTable$data, input$transform == "Yes")
-
+    
     if(req(input$replicatePresent) == "no"){
-      if(input$transform == "Yes") varSelectInput(inputId = "variables", label = "Specify the columns to reshape", data = pInputTable$data, multiple = TRUE)
+      if(input$transform == "Yes") selectInput(inputId = "variables", label = "Specify the columns to reshape", choices = colnames(pInputTable$data), multiple = TRUE)
     }else if(req(input$replicatePresent) == "yes" && isTruthy(input$replicateActionButton) && !is_empty(replicateData$df)){
-      if(input$transform == "Yes") varSelectInput(inputId = "variables", label = "Specify the columns to reshape", data = replicateData$df, multiple = TRUE)
+      if(input$transform == "Yes") selectInput(inputId = "variables", label = "Specify the columns to reshape", choices = colnames(replicateData$df), multiple = TRUE)
     }
-
+    
   }
   )
+  # output$trName <- renderUI({
+  #   req(pInputTable$data, input$transform == "Yes")
+  # 
+  #   if(req(input$replicatePresent) == "no"){
+  #     if(input$transform == "Yes") varSelectInput(inputId = "variables", label = "Specify the columns to reshape", data = pInputTable$data, multiple = TRUE)
+  #   }else if(req(input$replicatePresent) == "yes" && isTruthy(input$replicateActionButton) && !is_empty(replicateData$df)){
+  #     if(input$transform == "Yes") varSelectInput(inputId = "variables", label = "Specify the columns to reshape", data = replicateData$df, multiple = TRUE)
+  #   }
+  # 
+  # }
+  # )
 
 
   #Action for transforming the data
