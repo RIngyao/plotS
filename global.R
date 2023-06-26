@@ -18,8 +18,9 @@ options(shiny.maxRequestSize = 50*1024^2) # too large: use 50
 #          "flextable","openxlsx","svglite","MASS","skimr",
 #          "coin","DT","data.table","readxl","markdown","shinydashboard",
 #          "ggpubr","multcompView","rstatix","shiny","tidyverse",
-#          "reactable","shinyalert", "shinyWidgets", "colourpicker")
+#          "reactable","shinyalert", "shinyWidgets", "colourpicker", "mice")
 # sort(lib)
+
 library(colourpicker)
 library(shinyalert)
 library(shinyjs)
@@ -135,7 +136,47 @@ waitNotify <- function(msg = "... Please wait..", id = NULL, type = "message"){
 #     actionButton("test_continue", "Yes", class = "btn btn-danger")
 #   )
 # )
+#function for imputation------------
+"arguments:
+df = data frame.
+method = character. imputation methods - mean, median, mode, pam, cart, lasso, miss forest
 
+return: data frame (same dimension as input df)"
+imputeFunc <- function(df, method){
+  
+  #numeric class
+  nmCls <- c("numeric", "integer", "double")
+  #execute
+  df_managed <- switch(
+    EXPR = method,
+    
+    "mean" = df %>% mutate_all(., ~replace(., is.na(.), 
+                                           #check numeric and categorical
+                                           ifelse(class(.) %in% nmCls, round(mean(as.numeric(.), na.rm=T), 2), "NA")
+    )
+    ) %>% as.data.frame(),
+    "median" = df %>% mutate_all(., ~replace(., is.na(.), 
+                                             #check numeric and categorical
+                                             ifelse(class(.) %in% nmCls, round(median(as.numeric(.), na.rm=T), 2), "NA")
+    )
+    ) %>% as.data.frame(),
+    "mode" = df %>% mutate_all(., ~replace(., is.na(.), 
+                                           #check numeric and categorical
+                                           ifelse(class(.) %in% nmCls, as.numeric(names(sort(table(.), decreasing =T)[1])),
+                                                  names(sort(table(.), decreasing =T)[1]) )
+    )
+    ) %>% as.data.frame(),
+    #advance
+    "predictive mean matching" = mice::complete(mice::mice(df, method = "pmm",  m= 1, maxit = 1)),
+    "classification and regression tree" = mice::complete(mice::mice(df, method = "cart",  m= 1, maxit = 1)),
+    "lasso linear regression" = mice::complete(mice::mice(df, method = "lasso.norm",  m= 1, maxit = 1)),
+    "linear regression" = mice::complete(mice::mice(df, method = "norm.predict",  m= 1, maxit = 1)),
+    "random forest" = mice::complete(mice::mice(df, method = "rf",  m= 1, maxit = 1)),
+    "bayesian linear regression" = mice::complete(mice::mice(df, method = "norm",  m= 1, maxit = 1)),
+  )
+  
+  return(df_managed)
+}
 #module for side graph-----------------
 sideGraphList <- c("density", "bar plot", "box plot", "scatter plot", "frequency", "violin plot")
 colorOpt <- c("black","grey","red","blue", "brown","orange")
@@ -1355,8 +1396,11 @@ function for normalization and standardization
 arguments:
 data = data frame.
 ns_method = character. method of transformation
-x = character. variable of x-axis. Require only for box-cox.
-y = chharacter. variable of y-axis.
+x = character. variable for grouping. Require only for box-cox.
+y = chharacter. variable to transform.
+
+
+return: data frame
 "
 ns_func <- function(data, ns_method, x=NULL, y){
   #remove na: this was supposed to have been taken care in the beginning, if not ,removed it
@@ -1367,18 +1411,17 @@ ns_func <- function(data, ns_method, x=NULL, y){
     data[, y] <- data[y]+1
   }
 
-
   if(ns_method == "log2"){
 
-    new_df <- data %>% mutate( log2 = log2(.data[[y]]) )
+    new_df <- data %>% mutate( log2 = round(log2(.data[[y]]),3) )
 
   }else if(ns_method == "log10"){
 
-    new_df <- data %>% mutate( log10 = log10(.data[[y]]) ) #log10(y)
+    new_df <- data %>% mutate( log10 = round(log10(.data[[y]]),3) ) #log10(y)
 
   }else if(ns_method == "square-root"){
 
-    new_df <- data %>% mutate( sqrt = sqrt(.data[[y]]) )#sqrt(y)
+    new_df <- data %>% mutate( sqrt = round(sqrt(.data[[y]]),3) )#sqrt(y)
 
   }else if(ns_method == "box-cox"){
     #determine model
@@ -1388,12 +1431,12 @@ ns_func <- function(data, ns_method, x=NULL, y){
     opt_lba <- bc$x[which.max(bc$y)]
     message("transformed")
     #transform
-    new_df <- data %>% mutate( box_cox = ((.data[[y]]^opt_lba-1)/opt_lba) )
+    new_df <- data %>% mutate( box_cox = round( ((.data[[y]]^opt_lba-1)/opt_lba), 3 ) )
 
   }else{
 
     #scale
-    new_df <- data %>% mutate( scale = scale(.data[[y]]) )#scale(y)
+    new_df <- data %>% mutate( scale = round(scale(.data[[y]]),3) )#scale(y)
 
   }
 
@@ -1401,7 +1444,7 @@ ns_func <- function(data, ns_method, x=NULL, y){
   new_df[, y] <- new_df[, ncol(new_df)]
   new_df <- new_df[, -ncol(new_df)] #remove the duplicate transform column
   return(new_df)
-}
+} 
 #standard deviation-------------------
 "function to compute standard deviation (sd), standard error (se) and confidence interval (ci)
             arguments:
@@ -1800,6 +1843,7 @@ computeFuncErrorMsg <- reactiveVal(NULL)
   catVar = character. It can be single or vector. independant variable
   compRef = character. variable for comparing or a reference group
   pairedD = logical. whether data is paired or unpaired
+  alternative = character. Alternative hypothesis - two tail or one tail (less or greater)
   anovaType = character. type of anova: one-way (one) or two-way (two)
   ttestMethod = character. welch or student's test
 
@@ -1808,14 +1852,12 @@ computeFuncErrorMsg <- reactiveVal(NULL)
 computFunc <- function(data = "data", method = "none", numericVar = "numericVar()",
                        catVar = "catVar()", compRef = "none",
                        pairedD = "pairedData", anovaType = "anovaType()",
-                       ttestMethod = FALSE, ssType="I",
-                       model = "model", cmpGrpList = NULL, rfGrpList=NULL,
-                       pAdjust = TRUE, pAdjustMethod='none'){ #switchGrpList = 0,
-  # browser()
+                       ttestMethod = FALSE, alternative = "two.sided",
+                       model = "model", cmpGrpList = NULL, rfGrpList=NULL, 
+                       pAdjust = TRUE, pAdjustMethod='none'){ 
   message("entering computFunc()------------")
   message("catVar---------")
   message(catVar)
-  message("for formula")
   #formula: dependent (numeric) ~ independent (factor)
   #need to use reformulate() from stats package to use in formula
   if(method == "anova"){
@@ -1823,7 +1865,6 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     forml <- reformulate(response = glue::glue("{numericVar}"), termlabels = glue::glue("{indepVar}"))
   }else{
     message("formula-deriving")
-    message(numericVar)
     forml <- reformulate(response = glue::glue("{numericVar}"), termlabels = glue::glue("{catVar}"))
   }
 
@@ -1831,14 +1872,11 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
   if(method %in% c("t.test", "wilcoxon.test")){
 
     message("312wreference")
-    message(glue::glue("referencegr3: {compRef}"))
     ref <- if(compRef == "reference group"){
 
       if(is_empty(rfGrpList)){
-        message("empty ref\\")
         NULL
       }else {
-        message("reference stage++")
         rfGrpList
       }
     }else { NULL }
@@ -1854,16 +1892,15 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     }else { NULL }
 
     message("after compRef=================")
-    message(glue::glue("compRef: {cmp}, {ref}"))
   }
   #hard coded: revise
   if(method == "t.test"){
-    message("forml=-=--")
     message("ttestMethod complete33")
     # browser()
     test <- rstatix::t_test(data, formula = forml,
            ref.group = unlist(ref),
            comparisons = cmp, p.adjust.method = pAdjustMethod,
+           alternative = alternative,
            paired = pairedD, var.equal = ttestMethod #welch's =FALSE, or student's test = TRUE
     )
 
@@ -1875,11 +1912,11 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
 
   }else if(method == "wilcoxon.test"){
     message("formlw=-=--")
-    message('start')
     test <- rstatix::wilcox_test(data = data, formula = forml,
                 ref.group = unlist(ref), #if(compRef == "none"){NULL}else{if(switchGrpList == 0) NULL else .data[[cmpGrpList]]},
                 comparisons = cmp, #if(compRef == "none"){NULL}else if(compRef == "comparions"){if(switchGrpList == 0) NULL else cmpGrpList},
                 paired = pairedD,
+                alternative = alternative,
                 p.adjust.method = pAdjustMethod)
     message("done------")
     #global
@@ -2260,11 +2297,11 @@ generateStatData <- function(data = "ptable()", groupStat = "groupStat()", group
                              catVar = "catVar()", compRef = "none",
                              pairedD = "pairedData", pAdjust = TRUE,
                              ttestMethod=FALSE, #welch or student's test
+                             alternative = "two.sided",
                              model = "model", #model of anova
                              pAdjustMethod = NULL, labelSignif = "labelSt()",
                              cmpGrpList = NULL, rfGrpList = NULL, #switchGrpList = 0, #for ref.group and comparison: global list
                              xVar = "xyAxis()[[1]]", anovaType = "anovaType", ssType ="I"){
-  # browser()
   #convert the x-axis or group_by variable to factor.
   #converting to factor is necessary for further processing
   message("entering generateStatData()-------------------")
@@ -2291,27 +2328,27 @@ generateStatData <- function(data = "ptable()", groupStat = "groupStat()", group
 
   message("converted to factor------------------------------")
   #apply stat and get the final data
-  tryCatch({
-    sData1 <- if(groupStat %in% c("no", "do nothing")){
-      message(glue::glue("start sData1:--"))
-      data %>%
-        #choose stat methods and apply
-        #formula: independent (numeric) ~ dependent (factor)
-        computFunc(data = ., method = method, numericVar = numericVar, catVar = catVar, compRef = compRef,
-                   paired = pairedD, ttestMethod = ttestMethod,
-                   model = model, anovaType = anovaType, #ssType = ssType,
-                   cmpGrpList = cmpGrpList, rfGrpList = rfGrpList, pAdjust = pAdjust, pAdjustMethod= pAdjustMethod) #switchGrpList = switchGrpList,
-
-    }else if(groupStat == "yes"){
-      message("running groupby----------")
-      data %>% group_by(!!!rlang::syms(groupVar)) %>%
-        #choose stat methods and apply
-        computFunc(data = ., method = method, numericVar = numericVar, catVar = catVar, compRef = compRef,
-                   paired = pairedD, ttestMethod = ttestMethod, anovaType = anovaType, pAdjustMethod = pAdjustMethod)
-    }
-  }, error = function(e){print(e)})
-
-
+  # tryCatch({
+  #   
+  # }, error = function(e){print(e)})
+   
+  sData1 <- if(groupStat %in% c("no", "do nothing")){
+    message(glue::glue("start sData1:--"))
+    data %>%
+      #choose stat methods and apply
+      #formula: independent (numeric) ~ dependent (factor)
+      computFunc(data = ., method = method, numericVar = numericVar, catVar = catVar, compRef = compRef,
+                 paired = pairedD, ttestMethod = ttestMethod, alternative = alternative,
+                 model = model, anovaType = anovaType, #ssType = ssType,
+                 cmpGrpList = cmpGrpList, rfGrpList = rfGrpList, pAdjust = pAdjust, pAdjustMethod= pAdjustMethod) #switchGrpList = switchGrpList,
+    
+  }else if(groupStat == "yes"){
+    message("running groupby----------")
+    data %>% group_by(!!!rlang::syms(groupVar)) %>%
+      #choose stat methods and apply
+      computFunc(data = ., method = method, numericVar = numericVar, catVar = catVar, compRef = compRef,
+                 paired = pairedD, ttestMethod = ttestMethod, alternative = alternative, anovaType = anovaType, pAdjustMethod = pAdjustMethod)
+  }
 
   if(!method %in% c("anova", "kruskal-wallis")){
 
