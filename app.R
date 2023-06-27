@@ -731,11 +731,11 @@ mainSection <- div(
                                                            conditionalPanel(condition = "input.addLayer == 'smooth'",
                                                                             checkboxInput(inputId = "addLayerCI", label = "Confidence interval", value = TRUE),
                                                                             selectizeInput(inputId = "smoothMethod", label = "Method", choices = list(`Linear regression model (LM)` = "lm",`Generalized LM` = "glm", `Generalized additive model` = "gam", `LOESS` = "loess")),
-                                                                            bsTooltip(id = "smoothMethod", title = "LOESS can be applied only TO data having less than 1000 observations."),
+                                                                            bsTooltip(id = "smoothMethod", title = "LOESS can be applied only TO data having less than 1000 observations.", placement = "top"),
                                                                             uiOutput("uiSmoothMethodMsg"),
                                                                             selectizeInput(inputId = "addLayerColor", label = "Line color", choices = sort(c("blue","red","black", "brown")), selected = "blue")
                                                            )
-                                                         )
+                                                         ) 
                                         ),#without sec y-axis: end of conditional panel
                                         
                                         #layer for dual y-axis
