@@ -228,7 +228,7 @@ mainSection <- div(
             # bsTooltip(id = "trName", title = "Choosen column name will be the independent variable and transposed as row. The values associated with the columns will be the dependent variable and will be placed in a new column called 'value'."),
             #variable message for reshape
             conditionalPanel(condition = "input.transform == 'Yes'",
-                             helpText("Choosen column name will be the independent variable and transposed as row. The values associated with the columns will be the dependent variable and will be placed in a new column called 'value'.", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")
+                             helpText("Chosen column name will be the independent variable and transposed as row. The values associated with the columns will be the dependent variable and will be placed in a new column called 'value'.", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")
                              # helpText("Choosen variables will be the independent variable. The values associated with the variables will be the dependent variable and will be placed in a separate column named 'value'.", style= "color:black; margin-top:0; background-color:#D6F4F7; border-radius:5%; text-align:center;")
             ),
             
@@ -731,7 +731,7 @@ mainSection <- div(
                                                            conditionalPanel(condition = "input.addLayer == 'smooth'",
                                                                             checkboxInput(inputId = "addLayerCI", label = "Confidence interval", value = TRUE),
                                                                             selectizeInput(inputId = "smoothMethod", label = "Method", choices = list(`Linear regression model (LM)` = "lm",`Generalized LM` = "glm", `Generalized additive model` = "gam", `LOESS` = "loess")),
-                                                                            bsTooltip(id = "smoothMethod", title = "LOESS can be applied only TO data having less than 1000 observations.", placement = "top"),
+                                                                            bsTooltip(id = "smoothMethod", title = "LOESS can be applied only to data having less than 1000 observations.", placement = "top"),
                                                                             uiOutput("uiSmoothMethodMsg"),
                                                                             selectizeInput(inputId = "addLayerColor", label = "Line color", choices = sort(c("blue","red","black", "brown")), selected = "blue")
                                                            )
@@ -1283,6 +1283,8 @@ helpSection <- div(includeHTML("www/plotS_help.html"))
 
 #ui-------------------
 ui <- fluidPage(
+  #analytics:
+  tags$head(includeHTML(("www/analyse.html"))),
   #link to CSS----------------
   includeCSS("www/uiStyle.css"),
   #link: https://stackoverflow.com/questions/27965931/tooltip-when-you-mouseover-a-ggplot-on-shiny
@@ -3994,11 +3996,15 @@ server <- function(input, output, session){
       }
       
       if(countVar > 2){
+        alertMsg <- if(input$stat == "t.test"){
+            "Data has more than 2 variables to compare. ANOVA may be more appropriate."} else {
+            "Data has more than 2 variables to compare. Kruskal-Wallis may be more appropriate."
+          }
         shinyalert(
           inputId = "tw_alert",
           title = "Message", #tags$b("Alert!", style = "color:red"),
           html = TRUE,
-          text = tagList(tags$b("Data has more than 2 variables to compare. ANOVA may be more appropriate.", style = "color:red;"),
+          text = tagList(tags$b(alertMsg, style = "color:red;"),
                          # Continue anyway (may be slow)?", style = "color:red;"),
                          tags$p(tags$b("Continue anyway (may be slow)?", style = "color:red;")),
                          tags$p("If yes, it will reset aesthetic options", style = "font:italic")
