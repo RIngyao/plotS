@@ -11,10 +11,170 @@ library(tidyverse)
 library(flextable)
 ```
 
+<h3 style="text-align: center;">**Data management related**</h3>
 
-<br>
 
-<br>
+<h4 style="text-align: left;">**Input data**</h4>
+
+<p style="font-size:20px;"> 
+<font size = "4">
+There are two choices for data input: **Example** and **Upload**. Under the **Example** option, three datasets are provided to enable users to conduct exploratory tasks using the application. These datasets serve as representations of the data formats supported by the application. The **wide** and **long format** datasets essentially contain the same data but are presented in different structures. The wide format is particularly suitable for generating scatter and line graphs. On the other hand, the **replicate** data features a structure with two headers and pairs of replicates for both the _"control"_ and _"treatment"_ variables. Data with replicates are expected to have more than one header. Such data necessitates further processing before it can be utilized for plotting figures. In addition to the provided example datasets, users have the option to **upload** their own data in various file formats such as _csv, tsv, xlsx, or rds_.
+</font>
+</p>
+
+<div style = "display:flex;  justify-content:center; text-align:center">
+<table style="width: 50%; table-layout: fixed;">
+  <tr>
+    <td style="width: 50%; padding: 5px;">
+      <img src="example.png" alt="Image 1" style="width: 300px; height: 200px;" /><p style = "text-align:center"><b>Example datasets</b></p>
+    </td>
+    <td style="width: 50%; padding: 5px;">
+      <img src="upload.png" alt="Image 2" style="width: 300px; height: 200px;" /> <p style = "text-align:center"><b>Upload</b></p>
+    </td>
+  </tr>
+</table>
+</div>
+
+
+<h4 style="text-align: left;">**Handle missing data**</h4>
+
+
+<p> 
+<font size = "4">
+When uploading data, users have the option to specify _single_ or _multiple_ missing values. These missing values can be managed through three approaches: they can either be **replaced with 0**, **Remove NA**, or substituted using a range of **imputation methods**. It's important to exercise caution when opting for the **Remove NA** approach, as it will lead to the elimination of entire rows containing missing data. 
+
+A selection of 10 imputation methods are available, which have been categorized into two groups: common and advance. This classification is solely for organization and doesn't imply any hierarchy among the methods. Selecting suitable imputation methods for your data is crucial. For comprehensive guidance on handling missing data, you can explore the freely available resource titled [Flexible Imputation of Missing Data](https://stefvanbuuren.name/fimd/want-the-hardcopy.html)
+</font>
+</p>
+
+<div style="text-align: center; font-weight:bold;">
+  ![Missing values](missing.png){width=500px, height=200px}
+</div>
+
+
+<h4 style="text-align: left;">**Data with replicate**</h4>
+
+
+<p>
+<font size = "4">
+Data with replicates necessitates additional processing. Select the **Yes** option of _Data with replicate/multiple headers?_. This action will unveil a range of input choices designed for data processing. PlotS anticipate replicated data to feature a minimum of two headers and are equipped to adeptly manage such data.
+
+In the provided option, ensuring correct number of **Header** and **Group/variable** is crucial. The **Group/variable** denotes the factor by which replicates are combined. For instance, in the example dataset, the replicate data features two groups/variables: _control_ and _treatment_. By specifying the number of _variables_, the system will prompt for **Variable name** and **Replicate columns**. Users interested in calculating the **mean** or **median** of pooled replicates can do so by selecting the appropriate options under **Compute**. The system will then prompt for specification of the variable(s) for grouping and performing the chosen computation method. 
+
+Upon furnishing all essential inputs, an **Apply** button will be presented. A simple click on this button triggers the initiation of the data processing procedure. This process results in the addition of new column named **replicates** and organizes the replicate values under the corresponding user-provided variables. In instances where the data features more than one variable with replicates, it's advisable to proceed with reshaping the data for optimal representation and analysis.
+
+The processed data will be presented below the original data panel, and will be available for download as a CSV file.
+
+</font>
+</p>
+
+
+
+<div style = "display:flex;  justify-content:center; text-align:center">
+<table style="width: 50%; table-layout: fixed;">
+  <tr>
+    <td style="width: 50%; padding: 5px;">
+      <img src="repYesNo.png" alt="Image 1" style="width: 300px; height: 200px;" /><p style = "text-align:center"><b>Choose "Yes"</b></p>
+    </td>
+    <td style="width: 50%; padding: 5px;">
+      <img src="rep.png" alt="Image 2" style="width: 300px; height: 300px;" /> <p style = "text-align:center"><b>Fill the parameters</b></p>
+    </td>
+  </tr>
+</table>
+</div>
+
+
+<h4 style="text-align: left;">**Reshape wide to long format**</h4>
+
+<p>
+<font size = "4">
+The choice between wide and long data formats depends on the analysis. While wide format is suitable for creating scatter or line graphs, long format is generally preferred for most cases. The primary distinction between wide and long formats lies in the organization of variables. 
+
+In wide format ( _Table 1_), independent variables occupies its own column, with the corresponding dependent values residing within the cells. Conversely, in the long format ( _Table 2_ ), both independent and dependent variables are organized into distinct columns. Opting for the long format allows for the inclusion of multiple variables in separate columns within the dataset. This, in turn, grants the flexibility to dynamically compare variables and analyze data interactively using PlotS.
+
+
+
+Wide format can be reshaped into long format by using the **Reshape** feature. The user need to first specify the column to reshape. The name of the chosen columns will serve as the different levels of independent variables, and the corresponding value will be placed in a separate column called "value". The user also need to provide a new name of column for housing the dependent variables. 
+
+<div style="text-align: center; font-weight:bold">
+  ![Reshape feature](reshape.png){width=700px, height=400px}
+</div>
+
+</font>
+</p>
+
+
+<!-- two table with equal spacing -->
+<style>
+  .container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .section {
+    flex: 1;
+    padding: 20px;
+    <!-- border: 1px solid #ccc; -->
+    <!-- box-sizing: border-box; -->
+  }
+</style>
+
+<div class="container">
+  <div class="section">
+    
+```{r}
+
+wide_df <- structure(
+  list(
+    ctrl = c(4.17, 5.58, 5.18, 6.11, 4.5, 4.61, 5.17, 4.53, 5.33, 5.14),
+    trt1 = c(4.81, 4.17, 4.41, 3.59, 5.87, 3.83, 6.03, 4.89, 4.32, 4.69),
+    trt2 = c(6.31, 5.12, 5.54, 5.5, 5.37, 5.29, 4.92, 6.15, 5.8, 5.26)),
+  row.names = c(NA, -10L),
+  class = "data.frame"
+)
+
+flextable(head(wide_df,3)) %>%
+  autofit(add_w = 2) %>%
+  add_header(ctrl = "Table 1. Wide format table. Each independent variable forms the columns (ctrl, trt1, trt2) and each cell is the record of dependent variable i.e. weight", top = TRUE) %>%
+  merge_at(i = 1, j = 1:ncol(wide_df), part = "header") %>%
+  align(i = 1, j = 1:ncol(wide_df), align = "center", part = "header")
+
+```
+
+  </div>
+  
+  <div class="section">
+  
+```{r}
+
+long_df <- structure(
+  list(
+      group = structure(c(1L, 1L, 1L, 2L, 2L, 2L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L), levels = c("ctrl", "trt1", "trt2"), class = "factor"),
+    value = c(4.17, 5.58, 5.18,  4.81, 4.17, 4.41, 6.31, 5.12, 5.54)),
+    class = "data.frame",
+    row.names = c(NA, -30L)
+)
+
+flextable(head(long_df, 9)) %>%
+  autofit(add_w = 2.5) %>%
+  add_header(group = "Table 2. Long format table. The independent variables (ctrl, trt1, and trt2) are grouped under the category 'group', while the dependent variable is positioned under 'value'.", top = TRUE) %>%
+  merge_at(i = 1, j = 1:ncol(long_df), part = "header") %>%
+  align(i = 1, j = 1:ncol(long_df), align = "center", part = "header")
+
+
+```
+  
+  </div>
+  
+</div>
+<!-- end of table -->
+
+
+<h4 style="text-align: left;">**Data transformation**</h4>
+
+
+
 
 #### **Type of file format supported in plotS**
 
@@ -42,7 +202,8 @@ _Example : the data is a comparison of yield, measured as dried weight of plants
 
 
 ```{r}
-table1 <- data.frame(sample = c( paste0(rep("sample", 3), 1:3) ), control = c(sample(20:50, 3)),
+table1 <- data.frame(sample = c( paste0(rep("sample", 3), 1:3) ), 
+                     control = c(sample(20:50, 3)),
                      treatment1 = c(sample(10:40, 3)), treatment2 = c(sample(30:60, 3)))
 # knitr::kable(table1
 

@@ -167,12 +167,13 @@ imputeFunc <- function(df, method){
     )
     ) %>% as.data.frame(),
     #advance
-    "predictive mean matching" = mice::complete(mice::mice(df, method = "pmm",  m= 1, maxit = 1)) %>% mutate_all(., ~replace(., is.na(.), "NA")),
-    "classification and regression tree" = mice::complete(mice::mice(df, method = "cart",  m= 1, maxit = 1)) %>% mutate_all(., ~replace(., is.na(.), "NA")),
-    "lasso linear regression" = mice::complete(mice::mice(df, method = "lasso.norm",  m= 1, maxit = 1)) %>% mutate_all(., ~replace(., is.na(.), "NA")),
-    "linear regression" = mice::complete(mice::mice(df, method = "norm.predict",  m= 1, maxit = 1)) %>% mutate_all(., ~replace(., is.na(.), "NA")),
-    "random forest" = mice::complete(mice::mice(df, method = "rf",  m= 1, maxit = 1)) %>% mutate_all(., ~replace(., is.na(.), "NA")),
-    "bayesian linear regression" = mice::complete(mice::mice(df, method = "norm",  m= 1, maxit = 1)) %>% mutate_all(., ~replace(., is.na(.), "NA"))
+    "predictive mean matching" = mice::complete(mice::mice(df, method = "pmm", seed = 1, m= 1, maxit = 1)) %>% mutate_all(., ~replace(., is.na(.), "NA")),
+    "classification and regression tree" = mice::complete(mice::mice(df, method = "cart", seed = 1, m= 1, maxit = 1)) %>% mutate_all(., ~replace(., is.na(.), "NA")),
+    "lasso linear regression" = mice::complete(mice::mice(df, method = "lasso.norm", seed = 1,  m= 1, maxit = 1)) %>% mutate_all(., ~replace(., is.na(.), "NA")),
+    "linear regression" = mice::complete(mice::mice(df, method = "norm.predict", seed = 1,  m= 1, maxit = 1)) %>% mutate_all(., ~replace(., is.na(.), "NA")),
+    "random forest" = mice::complete(mice::mice(df, method = "rf", seed = 1,  m= 1, maxit = 1)) %>% mutate_all(., ~replace(., is.na(.), "NA")),
+    "bayesian linear regression" = mice::complete(mice::mice(df, method = "norm", seed = 1,  m= 1, maxit = 1)) %>% mutate_all(., ~replace(., is.na(.), "NA")),
+    "stochastic regression" = mice::complete(mice::mice(df, method = "norm.nob", seed = 1, m= 1, maxit = 1)) %>% mutate_all(., ~replace(., is.na(.), "NA"))
   )
   return(df_managed)
 }
@@ -1657,7 +1658,7 @@ getMeanMedian <- function(x, df, stat='none', grp = NULL, varNum = NULL, repNum 
   #get the columns for which mean and median are to be determine
   df2 <- df[, c(x), drop = FALSE]
   final <- NULL
-
+  
   if(is.null(grp)){
     #user provide no column to group by
     #add unique id to each sample to be used in group by

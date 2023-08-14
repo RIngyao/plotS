@@ -127,7 +127,7 @@ mainSection <- div(
                                
                                #more impute methods: if user choose impute methods
                                conditionalPanel(condition = "input.remRepNa == 'impute'",
-                                                selectInput(inputId = "imputeMethods", label = "Methods", choices = list(`Common methods` = sort(c("mean", "median", "mode")), `Advance methods` = sort(c("predictive mean matching","classification and regression tree", "lasso linear regression", "linear regression", "random forest", "bayesian linear regression"))))
+                                                selectInput(inputId = "imputeMethods", label = "Methods", choices = list(`Common methods` = sort(c("mean", "median", "mode")), `Advance methods` = sort(c("predictive mean matching","classification and regression tree", "lasso linear regression", "linear regression", "random forest", "bayesian linear regression", "stochastic regression"))))
                                                 )
                              )
             ),
@@ -1277,14 +1277,93 @@ mainSection <- div(
 
 
 #help----
-helpSection <- div(includeHTML("www/plotS_help.html"))
+# helpSection <- div(includeHTML("www/plotS_help.html"))
+help1<- div(includeHTML("www/plotS_help.html"))
+helpSection <- div(
+  
+  # div(
+  #   class = "menu",
+  #   a(id = "hd1", href = route_link("help1"), "Data")
+  #   # a(href = route_link("help2"), "Graph"),
+  #   # a(href = route_link("help3"), "Statistics")
+  # ),
+  # # tags$a(id="bt2",  href = route_link("vizAna"), tags$strong("Visualize & analyze"))),
+  # div(
+  #   router_ui(
+  #     route("help1", help1)
+  #     # route("help2", div("")),
+  #     # route("help3", div("helpSection"))
+  #   )
+  # ),
+  # 
+  # #tabPanel----------------
+  # div(
+  #   navlistPanel(
+  #     tabPanel("Data management related", includeHTML("www/plotS_help.html")),
+  #     tabPanel("Graph related", "This section shows different types of charts."),
+  #     tabPanel("Statistics related", "Explore statistical analysis methods.")
+  #   )
+  # )
+  
+  #dashboard--------------------------
+  fluidRow(
+    div(
+      style = "position: -webkit-sticky; position: sticky; top: 100px;",
+      column(2,
+             sidebarMenu(id = "helpMenu",
+                         width = 2,
+                         br(),
+                         # selected = 1,
+                         menuItem(text = tags$small("Data management related"), tabName = "help1"),
+                         menuItem(text = tags$small("Graph related"), tabName = "help2"),
+                         menuItem(text = tags$small("Statistic related"), tabName = "help3"),
+                         menuItem(text = tags$small("R packages related"), tabName = "help4")
+             )
+      )
+    ),
+    # column(10,
+    #        tabItems(uiOutput("tabContent")))
+    column(10,
+           shinydashboard::dashboardBody(
+             tabItems(
+               uiOutput("tabContent"),
+               tabItem(tabName = "help1",
+                       div(includeHTML("www/plotS_help.html"))
+               ),
+               tabItem(tabName = "help2", "Graph"),
+               tabItem(tabName = "help3", "statistic"),
+               tabItem(tabName = "help4","rpackages")
+             ), selected = FALSE
+             # selected = 1s
+           )
+    )
+  )
+
+
+  
+  # si-------------------
+  # sidebarLayout(
+  #   sidebarPanel(
+  #     h3("Choose here for help"),
+  #     fluidRow(
+  #       actionButton("help1", "Data management related"),
+  #       actionButton("help2", "Graph"),
+  #       actionButton("help3", "Statistics")
+  #     )
+  #     
+  #   ),
+  #   mainPanel(
+  #     uiOutput("section_content")
+  #   )
+  # )
+)
 #help-----
 
 
 #ui-------------------
 ui <- fluidPage(
   #analytics:
-  tags$head(includeHTML(("www/analyse.html"))),
+  # tags$head(includeHTML(("www/analyse.html"))),
   #link to CSS----------------
   includeCSS("www/uiStyle.css"),
   #link: https://stackoverflow.com/questions/27965931/tooltip-when-you-mouseover-a-ggplot-on-shiny
@@ -1426,8 +1505,31 @@ ui <- fluidPage(
 
 #server------------------------
 server <- function(input, output, session){
-
-
+  # #for help section
+  output$tabContent <- renderUI({
+    # browser()
+    div(
+      style="text-align:center; font-weight:bold; text-color:rgb(2, 152, 185)",
+      tags$h4(HTML("&#11013;"), "Explore the provided section to access assistance on utilizing the application", style="text-align:center; font-weight:bold; color:rgb(2, 152, 185)")
+    )
+  })
+  # observe({
+  # output$tabContent <- renderUI({
+  #   # browser()
+  #   if (is.null(input$sideMenu) || input$sideMenu == "help1") {
+  #     tabItem(tabName = "help1",
+  #             div(includeHTML("www/plotS_help.html")))
+  #   } else {
+  #     tabItem(tabName = "help2", p("jack"))
+  #   }
+  # })
+  # })
+  # 
+  # observe({
+  #   # updateTabItems(session, inputId = "helpMenu", selected = "help1")
+  #   shinyjs::runjs('$("#helpMenu a[data-value=help1]").click();')
+  # })
+  
   # secondary graph-----------------
   #update dualAxis
   observe({
@@ -2408,12 +2510,12 @@ server <- function(input, output, session){
       "Input Table"
     }
   })
-  #not require---------
-  output$textTransformTable <- renderText({
-    if(isTruthy(input$pInput) & input$transform == "Yes"){
-      "Reshaped Table"
-    }
-  })
+  # #not require
+  # output$textTransformTable <- renderText({
+  #   if(isTruthy(input$pInput) & input$transform == "Yes"){
+  #     "Reshaped Table"
+  #   }
+  # })
 
 
 
@@ -2945,7 +3047,7 @@ server <- function(input, output, session){
     )
 
     #for caption
-    if( input$normalizeStandardize == 'none' || (input$normalizeStandardize != 'none' && !isTruthy(input$nsActionButton)) ){
+                                                                                                                                                                                                                      if( input$normalizeStandardize == 'none' || (input$normalizeStandardize != 'none' && !isTruthy(input$nsActionButton)) ){
       addCaption <- "."
     }else if(input$normalizeStandardize != 'none' && isTruthy(input$nsActionButton)){
       addCaption <- paste0(". Applied ", input$normalizeStandardize," transformation.")
@@ -5737,7 +5839,7 @@ server <- function(input, output, session){
     computeMsg <- showNotification("Computing....", duration = NULL, closeButton = FALSE,
                                    type ="message", id = "computeMsg")
     on.exit(removeNotification(computeMsg), add = FALSE, after = TRUE)
-    #required parameters
+    #required parameters                                                                                   
     figType <- reactive(req(input$plotType))
 
     #get x- and y-axis as list
