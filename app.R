@@ -1278,34 +1278,7 @@ mainSection <- div(
 
 #help----
 # helpSection <- div(includeHTML("www/plotS_help.html"))
-help1<- div(includeHTML("www/plotS_help.html"))
 helpSection <- div(
-  
-  # div(
-  #   class = "menu",
-  #   a(id = "hd1", href = route_link("help1"), "Data")
-  #   # a(href = route_link("help2"), "Graph"),
-  #   # a(href = route_link("help3"), "Statistics")
-  # ),
-  # # tags$a(id="bt2",  href = route_link("vizAna"), tags$strong("Visualize & analyze"))),
-  # div(
-  #   router_ui(
-  #     route("help1", help1)
-  #     # route("help2", div("")),
-  #     # route("help3", div("helpSection"))
-  #   )
-  # ),
-  # 
-  # #tabPanel----------------
-  # div(
-  #   navlistPanel(
-  #     tabPanel("Data management related", includeHTML("www/plotS_help.html")),
-  #     tabPanel("Graph related", "This section shows different types of charts."),
-  #     tabPanel("Statistics related", "Explore statistical analysis methods.")
-  #   )
-  # )
-  
-  #dashboard--------------------------
   fluidRow(
     div(
       style = "position: -webkit-sticky; position: sticky; top: 100px;",
@@ -1330,32 +1303,16 @@ helpSection <- div(
                tabItem(tabName = "help1",
                        div(includeHTML("www/plotS_help.html"))
                ),
-               tabItem(tabName = "help2", "Graph"),
+               tabItem(tabName = "help2",
+                       div(includeHTML("www/plotS_help_graph.html"))
+                       ),
                tabItem(tabName = "help3", "statistic"),
                tabItem(tabName = "help4","rpackages")
-             ), selected = FALSE
-             # selected = 1s
+             )
+             #, selected = "help1"
            )
     )
   )
-
-
-  
-  # si-------------------
-  # sidebarLayout(
-  #   sidebarPanel(
-  #     h3("Choose here for help"),
-  #     fluidRow(
-  #       actionButton("help1", "Data management related"),
-  #       actionButton("help2", "Graph"),
-  #       actionButton("help3", "Statistics")
-  #     )
-  #     
-  #   ),
-  #   mainPanel(
-  #     uiOutput("section_content")
-  #   )
-  # )
 )
 #help-----
 

@@ -1,0 +1,45 @@
+---
+title: ""
+author: ""
+date: ""
+output: html_fragment
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<h3 style="text-align: center;">**Graph related**</h3>
+
+
+<h4 style="text-align: left;">**Type of graph**</h4>
+
+
+<p style="font-size:20px;"> 
+<font size = "4">
+PlotS presents users with a range of eight graph types to select from:
+<ul>
+<li>Bar plot</li>
+<li>Box plot</li>
+<li>Density plot</li>
+<li>Frequency polygon</li>
+<li>Histogram</li>
+<li>Line plot</li>
+<li>Scatter plot</li>
+<li>Violin plot</li>
+</ul>
+
+Certain graph like density, frequency and histogram require only X-axis. The variable for Y-axis for the other remaining graph has to be numeric variable. Users can interactively change the variable for the axes.
+
+</font>
+</p>
+
+
+<h4 style="text-align: left;">**Aesthetic option**</h4>
+
+
+<p style="font-size:20px;"> 
+<font size = "4">
+
+</font>
+</p>

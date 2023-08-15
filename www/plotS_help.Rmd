@@ -59,9 +59,9 @@ A selection of 10 imputation methods are available, which have been categorized 
 <font size = "4">
 Data with replicates necessitates additional processing. Select the **Yes** option of _Data with replicate/multiple headers?_. This action will unveil a range of input choices designed for data processing. PlotS anticipate replicated data to feature a minimum of two headers and are equipped to adeptly manage such data.
 
-In the provided option, ensuring correct number of **Header** and **Group/variable** is crucial. The **Group/variable** denotes the factor by which replicates are combined. For instance, in the example dataset, the replicate data features two groups/variables: _control_ and _treatment_. By specifying the number of _variables_, the system will prompt for **Variable name** and **Replicate columns**. Users interested in calculating the **mean** or **median** of pooled replicates can do so by selecting the appropriate options under **Compute**. The system will then prompt for specification of the variable(s) for grouping and performing the chosen computation method. 
+In the provided option, ensuring correct number of **Header** and **Group/variable** is crucial. The **Group/variable** denotes the factor by which replicates have to be combined. For instance, in the example dataset, the replicate data features two groups/variables: _control_ and _treatment_. By specifying the number of _variables_, the system will prompt for **Variable name** and **Replicate columns**. Users interested in calculating the **mean** or **median** of pooled replicates can do so by selecting the appropriate options under **Compute**. The system will then prompt for specification of the variable(s) for grouping and performing the chosen computation method. 
 
-Upon furnishing all essential inputs, an **Apply** button will be presented. A simple click on this button triggers the initiation of the data processing procedure. This process results in the addition of new column named **replicates** and organizes the replicate values under the corresponding user-provided variables. In instances where the data features more than one variable with replicates, it's advisable to proceed with reshaping the data for optimal representation and analysis.
+Upon furnishing all essential inputs, an **Apply** button will be presented. A simple click on this button triggers the initiation of the data processing procedure. This process results in the addition of new column named **replicates**, which will specify to which replicate the data belong to. Furthermore, it will create a column using the user-provided variable name and replicate value of independent variable will be placed under it. In instances where the data features more than one variable with replicates, it's advisable to proceed with reshaping the data for optimal representation and analysis.
 
 The processed data will be presented below the original data panel, and will be available for download as a CSV file.
 
@@ -92,16 +92,9 @@ The choice between wide and long data formats depends on the analysis. While wid
 
 In wide format ( _Table 1_), independent variables occupies its own column, with the corresponding dependent values residing within the cells. Conversely, in the long format ( _Table 2_ ), both independent and dependent variables are organized into distinct columns. Opting for the long format allows for the inclusion of multiple variables in separate columns within the dataset. This, in turn, grants the flexibility to dynamically compare variables and analyze data interactively using PlotS.
 
-
-
-Wide format can be reshaped into long format by using the **Reshape** feature. The user need to first specify the column to reshape. The name of the chosen columns will serve as the different levels of independent variables, and the corresponding value will be placed in a separate column called "value". The user also need to provide a new name of column for housing the dependent variables. 
-
-<div style="text-align: center; font-weight:bold">
-  ![Reshape feature](reshape.png){width=700px, height=400px}
-</div>
-
 </font>
 </p>
+
 
 
 <!-- two table with equal spacing -->
@@ -171,8 +164,57 @@ flextable(head(long_df, 9)) %>%
 <!-- end of table -->
 
 
+<p>
+<font size = "4">
+Wide format can be reshaped into long format by using the **Reshape** feature. The user need to first specify the column to reshape. The name of the chosen columns will serve as the different levels of independent variables, and the corresponding value will be placed in a separate column called "value". The user also need to provide a new name of column for housing the dependent variables. 
+
+<div style="text-align: center; font-weight:bold">
+  ![Reshape feature](reshape.png){width=700px, height=400px}
+</div>
+
+</font>
+</p>
+
+
+
 <h4 style="text-align: left;">**Data transformation**</h4>
 
+
+<p>
+<font size = "4">
+
+The tool provides different methods for transforming data. Here's some details of the feature:
+
+1. **Method selection:** Users can select a data transformation method from a dropdown menu. The available methods are:
+   - log2
+   - log10
+   - square-root
+   - box-cox
+   - scale
+
+2. **Variable selection:** The tool automatically identifies numeric variables from the input data and generates a list of these variables. Users can select one or more variables from the list to be transformed.
+
+3. **Box-Cox transformation:** The "box-cox" method has a specific requirement. It needs two variables:
+   - Categorical variable
+   - Numeric variable
+
+4. **Overwriting:** Data transformation will overwrite the other data processing methods (reshaped and replicate data).  
+
+5. **Reverting to original data:** Users can revert to their original data state by selecting the " _none_" option from the transformation method dropdown. 
+
+
+6. **Transformed data display:** The transformed data will be displayed below the panel of input data. 
+
+7. **Download:** Users can download the transformed data as a CSV file.
+
+
+</font>
+</p>
+
+
+<div style="text-align: center; font-weight:bold">
+  ![Transformation feature](transform.png){width=500px, height=200px}
+</div>
 
 
 
