@@ -28,7 +28,9 @@ output: html_fragment
 .facet{
   border-top: 1px dotted #ccc;
   border-bottom: 1px dotted #ccc;
-  padding-top: 10px;
+  padding-top: 30px;
+  padding-bottom: 30px;
+  max-height: 400px;
 }
 </style>
 
@@ -79,7 +81,7 @@ Certain graph like density, frequency and histogram require only X-axis. The var
 
 <p style="font-size:20px;"> 
 <font size = "4">
-The aesthetic choice serves as a valuable function that links a variable to a visual element like color, shape, or line type (dash, dotted, solid). This enables users to add additional variables or differentiate between variables on the graph through aesthetic mapping. This functionality equips PlotS to effectively manage a wide range of data variables for analysis, setting it apart from other visualization tools. 
+The aesthetic choice serves as a valuable function that links a variable to a visual element like color, shape, or line type (dash, dotted, solid). This enables users to add additional variables or differentiate between variables. This functionality equips PlotS to effectively manage a wide range of data variables for analysis, setting it apart from other visualization tools. 
 
 To illustrate, we will use a hypothetical gene expression dataset (refer to _Table 1_) representing two rice cultivars (IR64 and N22) exposed to two types of treatments (t1 and t2), along with a control (c). Each condition has two replicates (R1, R2). Let's create a scatter plot with aesthetic **color** mapped to _treatment_ and **Shape** to _replicate_ of the data. The resulting graphical representation is depicted in _Figure 1_.
 
@@ -138,27 +140,30 @@ ggplot(data = df, aes(x = cultivar, y = fpkm, color = treatment, shape = replica
 <p style="font-size:20px;"> 
 <font size = "4">
 PlotS offers various features for multivariate analysis in addition to the features provided under **Aesthetic options**. Visualization of the relationship of multiple variables in a data can be done in four ways:
+
 1. Faceting
+
 2. Secondary Y-axis
+
 2. Side graph
+
 3. Inset graph
 
 <h4 style="text-align: left;">**Faceting**</h4>
 
-Faceting creates tables of graphics by splitting the data into subsets and displaying the same graph for each subset. It can either be in _grid_ or _wrap_. We will use the below _Table2_ for illustration of faceting. The data are in similar format as in _Table 1_, but more detail number of rows.
 
-Faceting involves generating sets of visual representations by partitioning data into smaller groups and showcasing identical graphs for each subgroup. This can be achieved using either a _wrap_ or _grid_ arrangement. To exemplify the concept of faceting, we will utilize the provided _Table 2_. Although the data follows a format akin to _Table 1_, it contains a more comprehensive range of rows, providing a more detailed perspective.
+Faceting generate sets of visual representations by partitioning data into smaller groups and showcasing identical graphs for each subgroup. This can be achieved using either a _wrap_ or _grid_ arrangement. To exemplify the concept of faceting, we will utilize the provided _Table 2_. Although the data follows a format akin to _Table 1_, it contains a more comprehensive range of rows, providing a more detailed perspective.
 
 </font>
 </p>
 
-<div style = "width:50%; justify-content:center;">
+<div style = "width:60%; margin: 0 auto; text-align: center">
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 df_facet <- read_csv("plots_facetData.csv.gz") %>% dplyr::select(-upOrDown)
 df_facet$fpkm <- round(df_facet$fpkm, 2)  
 DT::datatable(
             as.data.frame(df_facet),  selection = "none",
-            options = list(searching = FALSE), caption="Table 1: expression data."
+            options = list(searching = FALSE, pageLength = 5), caption="Table 2. Expression data."
           )
 ```
 </div>
@@ -166,11 +171,11 @@ DT::datatable(
 
 <div class="container">
 <div class="section facet">
-![Facet wrap setting](facetWrap.png){width=150px, height=500px}
+![Facet wrap setting](facetWrap.png){width=150px, height=350px}
 </div>
 
 <div class="section facet">
-```{r, fig.cap="Figure 2. displaying the wrap faceting", echo=FALSE}
+```{r, fig.cap="Figure 2. displaying the wrap faceting", echo=FALSE, out.width="100%", out.height="auto"}
 ggplot2::ggplot(df_facet, aes(x= treatment, y = log(fpkm+1,2), fill = replicate))+
   stat_boxplot(geom = "errorbar", width = 0.4)+
   geom_boxplot(width = 0.4)+ 
@@ -187,11 +192,11 @@ ggplot2::ggplot(df_facet, aes(x= treatment, y = log(fpkm+1,2), fill = replicate)
 <div class="container">
 
 <div class="section facet">
-![Facet grid setting](facetGrid.png){width=150px, height=500px}
+![Facet grid setting](facetGrid.png){width=150px, height=350px}
 </div>
 
 <div class="section facet">
-```{r, fig.cap="Figure 2. displaying the grid faceting", echo=FALSE}
+```{r, fig.cap="Figure 2. displaying the grid faceting", echo=FALSE, out.width="100%", out.height="auto"}
 ggplot2::ggplot(df_facet, aes(x= treatment, y = log(fpkm+1,2), fill = replicate))+
   stat_boxplot(geom = "errorbar", width = 0.4)+
   geom_boxplot(width = 0.4)+ 
@@ -207,3 +212,11 @@ ggplot2::ggplot(df_facet, aes(x= treatment, y = log(fpkm+1,2), fill = replicate)
 
 
 
+<h4 style="text-align: left; color:red;">**Secondary Y-axis**</h4>
+
+
+<p style="font-size:20px;"> 
+<font size = "4">
+In certain cases dual Y-axis is necessary to display the relationship between variables. To add the layer, users have to select any one graph listed under the _"Add layer with secondary Y-axis"_.
+</font>
+</p>
