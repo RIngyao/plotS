@@ -217,6 +217,26 @@ ggplot2::ggplot(df_facet, aes(x= treatment, y = log(fpkm+1,2), fill = replicate)
 
 <p style="font-size:20px;"> 
 <font size = "4">
-In certain cases dual Y-axis is necessary to display the relationship between variables. To add the layer, users have to select any one graph listed under the _"Add layer with secondary Y-axis"_.
+In certain cases dual Y-axis is necessary to display the relationship between variables. To add the secondary Y-axis, data must have two numeric variables (or columns) and users have to select any one graph listed under the _"Add layer with secondary Y-axis"_. 
 </font>
 </p>
+
+
+
+<!-- # Load required packages -->
+<!-- library(ggplot2) -->
+<!-- library(lubridate) -->
+
+<!-- # Load the AirPassengers dataset -->
+<!-- data("AirPassengers") -->
+
+<!-- # Convert the AirPassengers time series object to a data frame -->
+<!-- AirPassengers_df <- data.frame(Date = time(AirPassengers), PassengerCount = as.numeric(AirPassengers)) -->
+
+<!-- # Separate year and month -->
+<!-- AirPassengers_df$Year <- year(AirPassengers_df$Date) -->
+<!-- AirPassengers_df$Month <- month(AirPassengers_df$Date) -->
+
+<!-- # Print the first few rows of the updated data frame -->
+<!-- head(AirPassengers_df) -->
+
