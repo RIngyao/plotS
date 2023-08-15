@@ -1,13 +1,52 @@
 ---
-title: ""
+title: "dds"
 author: ""
 date: ""
 output: html_fragment
 ---
 
+
+<style>
+  .container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .section {
+    flex: 1;
+    padding: 30px;
+    box-sizing: border-box;
+    font-weight: bold;
+    text-align:center;
+  }
+  
+  .img{
+  border: 1px dotted #ccc;
+}
+
+.facet{
+  border-top: 1px dotted #ccc;
+  border-bottom: 1px dotted #ccc;
+  padding-top: 10px;
+}
+</style>
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(flextable)
+#general theme
+themes <- ggplot2::theme(
+  axis.text = element_text(face = 2),
+  axis.title = element_text(face =2),
+  legend.text = element_text(face =2),
+  legend.title = element_text(face = 2),
+  strip.text = element_text(face = "bold")
+)
 ```
+
 
 <h3 style="text-align: center;">**Graph related**</h3>
 
@@ -35,11 +74,136 @@ Certain graph like density, frequency and histogram require only X-axis. The var
 </p>
 
 
-<h4 style="text-align: left;">**Aesthetic option**</h4>
+
+<h4 style="text-align: left; color:red;">**Aesthetic option**</h4>
+
+<p style="font-size:20px;"> 
+<font size = "4">
+The aesthetic choice serves as a valuable function that links a variable to a visual element like color, shape, or line type (dash, dotted, solid). This enables users to add additional variables or differentiate between variables on the graph through aesthetic mapping. This functionality equips PlotS to effectively manage a wide range of data variables for analysis, setting it apart from other visualization tools. 
+
+To illustrate, we will use a hypothetical gene expression dataset (refer to _Table 1_) representing two rice cultivars (IR64 and N22) exposed to two types of treatments (t1 and t2), along with a control (c). Each condition has two replicates (R1, R2). Let's create a scatter plot with aesthetic **color** mapped to _treatment_ and **Shape** to _replicate_ of the data. The resulting graphical representation is depicted in _Figure 1_.
+
+
+</font>
+</p>
+
+<!-- 1 table with 1 figure -->
+<div class="container">
+  <div class="section img">
+    
+```{r echo=FALSE}
+
+df <- structure(list(cultivar = c("IR64", "IR64", "IR64", "IR64", "IR64", 
+"IR64", "N22", "N22", "N22", "N22", "N22", "N22"), treatment = c("t1", 
+"t1", "t2", "t2", "c", "c", "t1", "t1", "t2", "t2", "c", "c"), 
+    replicate = c("R1", "R2", "R1", "R2", "R1", "R2", "R1", "R2", 
+    "R1", "R2", "R1", "R2"), fpkm = c(20.9, 17.75, 5.9, 3.39, 
+    7.6, 6.6, 10.37, 11.93, 41.51, 33.64, 23.81, 28.01)), row.names = c(NA, 
+-12L), class = c("tbl_df", "tbl", "data.frame"))
+
+flextable(df) %>%
+  autofit(add_w = 2) %>%
+  add_header(cultivar = "Table 1. Expression data with two replicates of two rice cultivars under different treatment conditions.", top = TRUE) %>%
+  merge_at(i = 1, j = 1:ncol(df), part = "header") %>%
+  align(i = 1, j = 1:ncol(df), align = "center", part = "header")
+
+```
+
+  </div>
+
+  <div class="section img">
+  ![Aesthetic setting](aes.png){width=150px, height=500px}
+  </div>
+
+  <div class="section img">
+  
+```{r echo=FALSE, fig.cap="Figure 1. Scatter plot with the chosen aesthetic elements - color and shape"}
+ggplot(data = df, aes(x = cultivar, y = fpkm, color = treatment, shape = replicate)) + 
+  geom_point(size =3)+
+  theme_classic()+
+  labs(x = "Cultivar", y = "Expression")+
+  themes
+# df
+# ggplot(data = df, aes(x = cultivar, y = avg_fpkm, color = treatment, linetype = replicate)) + geom_bar(stat = "identity")+theme_minimal()
+```
+  
+  </div>
+  
+</div>
+<!-- end of table and figure -->
+
+<h4 style="text-align: left; color:red;">**Visualization of multivariate data**</h4>
 
 
 <p style="font-size:20px;"> 
 <font size = "4">
+PlotS offers various features for multivariate analysis in addition to the features provided under **Aesthetic options**. Visualization of the relationship of multiple variables in a data can be done in four ways:
+1. Faceting
+2. Secondary Y-axis
+2. Side graph
+3. Inset graph
+
+<h4 style="text-align: left;">**Faceting**</h4>
+
+Faceting creates tables of graphics by splitting the data into subsets and displaying the same graph for each subset. It can either be in _grid_ or _wrap_. We will use the below _Table2_ for illustration of faceting. The data are in similar format as in _Table 1_, but more detail number of rows.
+
+Faceting involves generating sets of visual representations by partitioning data into smaller groups and showcasing identical graphs for each subgroup. This can be achieved using either a _wrap_ or _grid_ arrangement. To exemplify the concept of faceting, we will utilize the provided _Table 2_. Although the data follows a format akin to _Table 1_, it contains a more comprehensive range of rows, providing a more detailed perspective.
 
 </font>
 </p>
+
+<div style = "width:50%; justify-content:center;">
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+df_facet <- read_csv("plots_facetData.csv.gz") %>% dplyr::select(-upOrDown)
+df_facet$fpkm <- round(df_facet$fpkm, 2)  
+DT::datatable(
+            as.data.frame(df_facet),  selection = "none",
+            options = list(searching = FALSE), caption="Table 1: expression data."
+          )
+```
+</div>
+
+
+<div class="container">
+<div class="section facet">
+![Facet wrap setting](facetWrap.png){width=150px, height=500px}
+</div>
+
+<div class="section facet">
+```{r, fig.cap="Figure 2. displaying the wrap faceting", echo=FALSE}
+ggplot2::ggplot(df_facet, aes(x= treatment, y = log(fpkm+1,2), fill = replicate))+
+  stat_boxplot(geom = "errorbar", width = 0.4)+
+  geom_boxplot(width = 0.4)+ 
+  labs(y = "log2(fpkm)")+
+  theme_bw()+
+  facet_wrap(.~cultivar)+
+  themes
+  
+```
+</div>
+
+</div>
+
+<div class="container">
+
+<div class="section facet">
+![Facet grid setting](facetGrid.png){width=150px, height=500px}
+</div>
+
+<div class="section facet">
+```{r, fig.cap="Figure 2. displaying the grid faceting", echo=FALSE}
+ggplot2::ggplot(df_facet, aes(x= treatment, y = log(fpkm+1,2), fill = replicate))+
+  stat_boxplot(geom = "errorbar", width = 0.4)+
+  geom_boxplot(width = 0.4)+ 
+  labs(y = "log2(fpkm)")+
+  theme_bw()+
+  facet_grid(replicate ~cultivar)+
+  themes
+  
+```
+</div>
+
+</div>
+
+
+

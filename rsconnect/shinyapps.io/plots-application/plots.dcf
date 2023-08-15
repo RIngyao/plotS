@@ -1,0 +1,11 @@
+name: plots
+title:
+username:
+account: plots-application
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 7950095
+bundleId: 7502462
+url: https://plots-application.shinyapps.io/plots/
+when: 1690461777.46303
+lastSyncTime: 1690461777.46305
