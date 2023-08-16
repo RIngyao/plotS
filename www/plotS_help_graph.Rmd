@@ -83,7 +83,14 @@ Certain graph like density, frequency and histogram require only X-axis. The var
 <font size = "4">
 The aesthetic choice serves as a valuable function that links a variable to a visual element like color, shape, or line type (dash, dotted, solid). This enables users to add additional variables or differentiate between variables. This functionality equips PlotS to effectively manage a wide range of data variables for analysis, setting it apart from other visualization tools. 
 
-To illustrate, we will use a hypothetical gene expression dataset (refer to _Table 1_) representing two rice cultivars (IR64 and N22) exposed to two types of treatments (t1 and t2), along with a control (c). Each condition has two replicates (R1, R2). Let's create a scatter plot with aesthetic **color** mapped to _treatment_ and **Shape** to _replicate_ of the data. The resulting graphical representation is depicted in _Figure 1_.
+Change color of variables:
+
+1. auto filled - by default PlotS will automatically select color for the chosen variable.
+
+2. customize - users can edit the color. They can either type the color in the text box (comma or space separated) or choose from the color picker provided at the side.
+
+
+To illustrate **Aesthetic options**, we will use a hypothetical gene expression dataset (refer to _Table 1_) representing two rice cultivars (IR64 and N22) exposed to two types of treatments (t1 and t2), along with a control (c). Each condition has two replicates (R1, R2). Let's create a scatter plot with aesthetic **color** (auto filled) mapped to _treatment_ and **Shape** to _replicate_ of the data. The resulting graphical representation is depicted in _Figure 1_.
 
 
 </font>
@@ -147,7 +154,7 @@ PlotS offers various features for multivariate analysis in addition to the featu
 
 2. Side graph
 
-3. Inset graph
+3. Inset
 
 <h4 style="text-align: left;">**Faceting**</h4>
 
@@ -160,7 +167,7 @@ User has to select the **Facet type**. There are two types:
 
 2. _grid_. 
 
-To exemplify the concept of faceting, we will utilize the provided _Table 2_. Although the data follows a format akin to _Table 1_, it contains a more comprehensive range of rows, providing a more detailed perspective.
+To exemplify the feature of faceting, we will utilize the provided _Table 2_. Although the data follows a format akin to _Table 1_, it contains a more comprehensive range of rows, providing a more detailed perspective.
 
 </font>
 </p>
@@ -225,7 +232,13 @@ ggplot2::ggplot(df_facet, aes(x= treatment, y = log(fpkm+1,2), fill = replicate)
 
 <p style="font-size:20px;"> 
 <font size = "4">
-In certain cases dual Y-axis is necessary to display the relationship between variables. To add the secondary Y-axis, _data must have two numeric variables (or columns)_ and users have to select any one graph listed under the **"Add layer with secondary Y-axis"**. 
+**Secondary Y-axis** is to display two sets of data on the same graph, each with its own Y-axis and scale. It is useful for comparing two different types of data that have distinct measurement ranges, or when you want to show relationships between variables that might not be immediately apparent on a single Y-axis
+
+To add the secondary Y-axis:
+
+1. Data must have two numeric variables (or columns)
+
+2. Users have to select any one graph listed under the **Add layer with secondary Y-axis**
 
 
 </font>
@@ -237,7 +250,7 @@ In certain cases dual Y-axis is necessary to display the relationship between va
 <p style="font-size:20px;"> 
 <font size = "4">
 
-The **Side graph** functionality within PlotS offers an additional and valuable avenue for investigating the relationship between variables. It provide the flexibility to introduce graphs on either the right side (**Y-graph**) and/or the upper side (**X-graph**) of the primary graph. This feature is conveniently located beneath the main graph panel (shown below).
+The **Side graph** is used to add graphs on the right side (**Y-graph**) and/or the upper side (**X-graph**) of the primary graph. This functionality within PlotS offers an additional and valuable avenue for investigating the relationship between variables. This feature is conveniently located beneath the main graph panel (shown below).
 
 By default, the variables selected for the side graphs are aligned with those assigned to the X-axis and Y-axis of the main graph. However, users have the autonomy to opt for different variables when generating these side graphs.
 
@@ -249,3 +262,27 @@ It's important to note that the **Side graph** feature is not compatible with th
 <div class="section">
 ![Side graph setting](sideGr.png){width=200px, height=500px}
 </div>
+
+
+<!-- inset -->
+
+<h4 style="text-align: left; color:red;">**Inset**</h4>
+
+<p style="font-size:20px;"> 
+<font size = "4">
+
+**Inset** is to insert a graph within the primary graph. The feature enhances the exploration and presentation of data by enabling users to focus on specific data points while still maintaining an overall view of the dataset. **Inset** panel is also placed below the primary graph panel along with the **Side graph**
+
+
+
+1. **Add inset**: Users can easily add an inset graph by using the mouse to select and drag across a specific data point of interest on the primary graph. The corresponding data from that point is then displayed below the panel. This data can also be downloaded as a CSV file.
+
+
+2. **Add metadata**: The variable displayed in the inset graph can be different from the one in the primary graph. This allows users to incorporate additional contextual information or metadata into the graph.
+
+
+3. **Toggle Inset**: By default, the **Inset** is turned on, but users can disable it if desired. Enabling the **Inset** will only turn off the display of the inset graph.
+
+
+</font>
+</p>
