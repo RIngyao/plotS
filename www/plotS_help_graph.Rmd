@@ -152,7 +152,15 @@ PlotS offers various features for multivariate analysis in addition to the featu
 <h4 style="text-align: left;">**Faceting**</h4>
 
 
-Faceting generate sets of visual representations by partitioning data into smaller groups and showcasing identical graphs for each subgroup. This can be achieved using either a _wrap_ or _grid_ arrangement. To exemplify the concept of faceting, we will utilize the provided _Table 2_. Although the data follows a format akin to _Table 1_, it contains a more comprehensive range of rows, providing a more detailed perspective.
+Faceting generate sets of visual representations by partitioning data into smaller groups and showcasing identical graphs for each subgroup. 
+
+User has to select the **Facet type**. There are two types: 
+
+1. _wrap_ 
+
+2. _grid_. 
+
+To exemplify the concept of faceting, we will utilize the provided _Table 2_. Although the data follows a format akin to _Table 1_, it contains a more comprehensive range of rows, providing a more detailed perspective.
 
 </font>
 </p>
@@ -217,26 +225,27 @@ ggplot2::ggplot(df_facet, aes(x= treatment, y = log(fpkm+1,2), fill = replicate)
 
 <p style="font-size:20px;"> 
 <font size = "4">
-In certain cases dual Y-axis is necessary to display the relationship between variables. To add the secondary Y-axis, data must have two numeric variables (or columns) and users have to select any one graph listed under the _"Add layer with secondary Y-axis"_. 
+In certain cases dual Y-axis is necessary to display the relationship between variables. To add the secondary Y-axis, _data must have two numeric variables (or columns)_ and users have to select any one graph listed under the **"Add layer with secondary Y-axis"**. 
+
+
 </font>
 </p>
 
+<h4 style="text-align: left; color:red;">**Side graph**</h4>
 
 
-<!-- # Load required packages -->
-<!-- library(ggplot2) -->
-<!-- library(lubridate) -->
+<p style="font-size:20px;"> 
+<font size = "4">
 
-<!-- # Load the AirPassengers dataset -->
-<!-- data("AirPassengers") -->
+The **Side graph** functionality within PlotS offers an additional and valuable avenue for investigating the relationship between variables. It provide the flexibility to introduce graphs on either the right side (**Y-graph**) and/or the upper side (**X-graph**) of the primary graph. This feature is conveniently located beneath the main graph panel (shown below).
 
-<!-- # Convert the AirPassengers time series object to a data frame -->
-<!-- AirPassengers_df <- data.frame(Date = time(AirPassengers), PassengerCount = as.numeric(AirPassengers)) -->
+By default, the variables selected for the side graphs are aligned with those assigned to the X-axis and Y-axis of the main graph. However, users have the autonomy to opt for different variables when generating these side graphs.
 
-<!-- # Separate year and month -->
-<!-- AirPassengers_df$Year <- year(AirPassengers_df$Date) -->
-<!-- AirPassengers_df$Month <- month(AirPassengers_df$Date) -->
+It's important to note that the **Side graph** feature is not compatible with the **two-way ANOVA** or when the **secondary Y-axis is in use**.
 
-<!-- # Print the first few rows of the updated data frame -->
-<!-- head(AirPassengers_df) -->
+</font>
+</p>
 
+<div class="section">
+![Side graph setting](sideGr.png){width=200px, height=500px}
+</div>
