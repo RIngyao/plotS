@@ -30,7 +30,7 @@ output: html_fragment
   border-bottom: 1px dotted #ccc;
   padding-top: 30px;
   padding-bottom: 30px;
-  max-height: 400px;
+  max-height: 500px;
 }
 </style>
 
@@ -75,6 +75,8 @@ Certain graph like density, frequency and histogram require only X-axis. The var
 </font>
 </p>
 
+
+<br>
 
 
 <h4 style="text-align: left; color:red;">**Aesthetic option**</h4>
@@ -141,6 +143,9 @@ ggplot(data = df, aes(x = cultivar, y = fpkm, color = treatment, shape = replica
 </div>
 <!-- end of table and figure -->
 
+<br>
+
+
 <h4 style="text-align: left; color:red;">**Visualization of multivariate data**</h4>
 
 
@@ -156,6 +161,7 @@ PlotS offers various features for multivariate analysis in addition to the featu
 
 3. Inset
 
+
 <h4 style="text-align: left;">**Faceting**</h4>
 
 
@@ -165,7 +171,10 @@ User has to select the **Facet type**. There are two types:
 
 1. _wrap_ 
 
-2. _grid_. 
+2. _grid_
+
+
+Users can specify the **number of column and row for facet**. The value "0" signifies the default setting.
 
 To exemplify the feature of faceting, we will utilize the provided _Table 2_. Although the data follows a format akin to _Table 1_, it contains a more comprehensive range of rows, providing a more detailed perspective.
 
@@ -227,7 +236,7 @@ ggplot2::ggplot(df_facet, aes(x= treatment, y = log(fpkm+1,2), fill = replicate)
 
 
 
-<h4 style="text-align: left; color:red;">**Secondary Y-axis**</h4>
+<h4 style="text-align: left;">**Secondary Y-axis**</h4>
 
 
 <p style="font-size:20px;"> 
@@ -240,11 +249,17 @@ To add the secondary Y-axis:
 
 2. Users have to select any one graph listed under the **Add layer with secondary Y-axis**
 
-
 </font>
 </p>
 
-<h4 style="text-align: left; color:red;">**Side graph**</h4>
+
+<div class="section">
+![Secondary Y-axis](secondY.png){width=300px, height=400px}
+</div>
+
+
+
+<h4 style="text-align: left;">**Side graph**</h4>
 
 
 <p style="font-size:20px;"> 
@@ -260,13 +275,13 @@ It's important to note that the **Side graph** feature is not compatible with th
 </p>
 
 <div class="section">
-![Side graph setting](sideGr.png){width=200px, height=500px}
+![Side graph setting](sideGr.png){width=250px, height=550px}
 </div>
 
 
 <!-- inset -->
 
-<h4 style="text-align: left; color:red;">**Inset**</h4>
+<h4 style="text-align: left;">**Inset**</h4>
 
 <p style="font-size:20px;"> 
 <font size = "4">
@@ -286,3 +301,10 @@ It's important to note that the **Side graph** feature is not compatible with th
 
 </font>
 </p>
+
+
+<div class="section">
+![Inset of histogram](inset.png){width=250px; height=550px}
+</div>
+
+
