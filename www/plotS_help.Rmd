@@ -18,7 +18,17 @@ library(flextable)
 
 <p style="font-size:20px;"> 
 <font size = "4">
-There are two choices for data input: **Example** and **Upload**. Under the **Example** option, three datasets are provided to enable users to conduct exploratory tasks using the application. These datasets serve as representations of the data formats supported by the application. The **wide** and **long format** datasets essentially contain the same data but are presented in different structures. The wide format is particularly suitable for generating scatter and line graphs. On the other hand, the **replicate** data features a structure with two headers and pairs of replicates for both the _"control"_ and _"treatment"_ variables. Data with replicates are expected to have more than one header. Such data necessitates further processing before it can be utilized for plotting figures. In addition to the provided example datasets, users have the option to **upload** their own data in various file formats such as _csv, tsv, xlsx, or rds_.
+Two choice
+
+1. **Example**
+
+2. **Upload** : valid file format for upload : _csv, tsv, txt, xlsx,_ or _rds_
+
+
+Under the **Example** option, three datasets are provided to enable users to conduct exploratory tasks using the application. These datasets serve as representations of the data formats supported by the application. The **wide** and **long format** datasets essentially contain the same data but are presented in different structures. The wide format is particularly suitable for generating scatter and line graphs. On the other hand, the **replicate** data features a structure with two headers and pairs of replicates for both the _"control"_ and _"treatment"_ variables. 
+
+_Data with replicates can have more than one header. Such data necessitates further processing before it can be utilized for plotting figures._
+
 </font>
 </p>
 
@@ -41,9 +51,17 @@ There are two choices for data input: **Example** and **Upload**. Under the **Ex
 
 <p> 
 <font size = "4">
-When uploading data, users have the option to specify _single_ or _multiple_ missing values. These missing values can be managed through three approaches: they can either be **replaced with 0**, **Remove NA**, or substituted using a range of **imputation methods**. It's important to exercise caution when opting for the **Remove NA** approach, as it will lead to the elimination of entire rows containing missing data. 
+When uploading data, users have the option to specify _single_ or _multiple_ missing values. **Specifying multiple missing values must be comma separated**.
 
-A selection of 10 imputation methods are available, which have been categorized into two groups: common and advance. This classification is solely for organization and doesn't imply any hierarchy among the methods. Selecting suitable imputation methods for your data is crucial. For comprehensive guidance on handling missing data, you can explore the freely available resource titled [Flexible Imputation of Missing Data](https://stefvanbuuren.name/fimd/want-the-hardcopy.html)
+Three approaches to manage missing data:
+
+1. **Replaced with 0** : It is the default setting. It will replaced specified missing values with _0_.
+
+2. **Removed NA** : It will eliminate the entire rows containing missing data. _It's important to exercise caution when opting for this option._
+
+3. **Impute methods** : A selection of 10 imputation methods are available, which have been categorized into two groups: common and advance. This classification is solely for organization and doesn't imply any hierarchy among the methods.
+
+ Selecting suitable imputation methods for your data is crucial. For comprehensive guidance on handling missing data, you can explore the freely available resource titled [Flexible Imputation of Missing Data](https://stefvanbuuren.name/fimd/want-the-hardcopy.html)
 </font>
 </p>
 
@@ -57,13 +75,26 @@ A selection of 10 imputation methods are available, which have been categorized 
 
 <p>
 <font size = "4">
-Data with replicates necessitates additional processing. Select the **Yes** option of _Data with replicate/multiple headers?_. This action will unveil a range of input choices designed for data processing. PlotS anticipate replicated data to feature a minimum of two headers and are equipped to adeptly manage such data.
+PlotS anticipate replicated data to feature a minimum of two headers. So, it necessitates additional processing. 
 
-In the provided option, ensuring correct number of **Header** and **Group/variable** is crucial. The **Group/variable** denotes the factor by which replicates have to be combined. For instance, in the example dataset, the replicate data features two groups/variables: _control_ and _treatment_. By specifying the number of _variables_, the system will prompt for **Variable name** and **Replicate columns**. Users interested in calculating the **mean** or **median** of pooled replicates can do so by selecting the appropriate options under **Compute**. The system will then prompt for specification of the variable(s) for grouping and performing the chosen computation method. 
+1. **Data with replicate/multiple headers?** : Select the **Yes**. This action will unveil a range of input choices designed for data processing. 
 
-Upon furnishing all essential inputs, an **Apply** button will be presented. A simple click on this button triggers the initiation of the data processing procedure. This process results in the addition of new column named **replicates**, which will specify to which replicate the data belong to. Furthermore, it will create a column using the user-provided variable name and replicate value of independent variable will be placed under it. In instances where the data features more than one variable with replicates, it's advisable to proceed with reshaping the data for optimal representation and analysis.
+2. Ensure correct number of **Header** and **Group/variable**. This is a crucial step. The **Group/variable** denotes the factor by which replicates have to be combined. For instance, in the example dataset, the replicate data features two groups/variables: _control_ and _treatment_. 
 
-The processed data will be presented below the original data panel, and will be available for download as a CSV file.
+3. Provide **Variable name** and **Replicate columns** : By specifying the number of _variables_, the system will prompt for **Variable name** and **Replicate columns**.
+
+4. **Compute mean or median** : Users interested in calculating the **mean** or **median** of pooled replicates can do so by selecting the appropriate options under **Compute**. The system will then prompt for specification of the variable(s) for grouping and performing the chosen computation method. 
+
+5. **Apply** : Upon furnishing all essential inputs, an **Apply** button will be presented. A simple click on this button triggers the initiation of the data processing procedure.
+
+
+After processing replicate data it will add two new columns : 
+
+ - New column named **replicates**, which will specify to which replicates the data belong to.
+ 
+ - New column using the user-provided _variable name_. Replicate value of independent variable will be placed under it.
+ 
+ In instances where the data features more than one variable with replicates, it's advisable to proceed with reshaping the data for optimal representation and analysis. The processed data will be presented below the original data panel, and will be available for download as a CSV file.
 
 </font>
 </p>

@@ -11,6 +11,7 @@ output: html_fragment
     display: flex;
     justify-content: space-between;
     width: 100%;
+    <!-- max-width: 700px; -->
   }
   
   .section {
@@ -308,3 +309,39 @@ It's important to note that the **Side graph** feature is not compatible with th
 </div>
 
 
+<!-- Add layer without secondary y-axis -->
+<h4 style="text-align: left;">**Additional layer without secondary y-axis**</h4>
+
+
+<p style="font-size:20px;"> 
+<fondt size = "4">
+
+It add additional layer over the existing graph, but without secondary y-axis.  It enable user to look for pattern in the data. 
+
+Type of layer:
+
+1. line graph
+
+2. point graph
+
+3. smooth line graph: applicable only when continuous data is provided to X-axis
+
+
+Methods for plottig smooth line
+    
+1. Linear regression model (LM)
+
+2. Generalized LM
+
+3. Generalized additive model
+
+4. LOESS : applicable for data having less than 1000 observations
+    
+
+</font>
+</p>
+
+
+<div class="section">
+![Smooth line](addlayer.png){width=250px; height=500px}
+</div>
