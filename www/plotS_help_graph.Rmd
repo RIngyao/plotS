@@ -314,7 +314,7 @@ It's important to note that the **Side graph** feature is not compatible with th
 
 
 <p style="font-size:20px;"> 
-<fondt size = "4">
+<font size = "4">
 
 It add additional layer over the existing graph, but without secondary y-axis.  It enable user to look for pattern in the data. 
 
@@ -345,3 +345,42 @@ Methods for plottig smooth line
 <div class="section">
 ![Smooth line](addlayer.png){width=250px; height=500px}
 </div>
+
+
+<!-- Adding error bar -->
+
+<h4 style="text-align: left;">**Add error bar to a graph**</h4>
+
+
+<p style="font-size:20px;"> 
+<font size = "4">
+
+Based on the graph, users have the option to incorporate a measure of variability using the **Add error bar** function.
+
+There are different types of measurements available for this purpose:
+
+1. **Confidence Interval** at 95% Level: This measurement provides a range within which the true population parameter is likely to lie with a 95% confidence.
+
+2. **Standard Error**: This measurement represents the average variability between sample means and the actual population mean.
+
+3. **Standard Deviation**: This measurement quantifies the dispersion or spread of data points around the mean.
+
+
+To add error bars to a graph, there are two approaches:
+
+1. **Specifying Computed Statistics**: Users can directly input the computed statistic values from a column in their dataset. This allows for precise control over the error bar representation.
+
+2. **Auto Compute**: Alternatively, PlotS offers an automatic computation option. It calculates the dispersion based on the data.
+
+These error bars enhance the graphical representation by providing insights into the variability and reliability of the data points, aiding in a more comprehensive interpretation of the information presented.
+
+
+
+</font>
+</p>
+
+
+<div class="section">
+![Error bar feature](errorBar.png){width=250px; height=500px}
+</div>
+
