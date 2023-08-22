@@ -1,0 +1,39 @@
+---
+title: ""
+author: ""
+date: ""
+output: html_fragment
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<h3 style="text-align: center;">**Statistics related**</h3>
+
+<p style="font-size:20px;"> 
+<font size = "4">
+PlotS is a data visualization tool that places a strong emphasis on visual representations of data. It doesn't offer standalone statistical analysis; instead, statistical methods can only be applied once a graph or visualization is chosen.
+
+Currently there are four commonly used statistical methods:
+
+A. Parameteric methods: 
+
+
+1. **T-test** - Welch's and Student's test
+
+2. **ANOVA** - one-way and two-way ANOVA
+
+
+B. Non-parametric methods:
+
+1. **Wilcoxon test** - Rank sum test and Signed-rank test
+
+2. **Kruskal-Wallis test**: It is an alternative to one-way ANOVA test and recommended when the assumptions for the parametric test are not met.
+
+
+From the menu choose the statistical method:
+
+
+</font>
+</p>

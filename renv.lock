@@ -1541,19 +1541,6 @@
       ],
       "Hash": "2fa7b59feca0d767533fd0c8a7a2bf4b"
     },
-    "lubridate": {
-      "Package": "lubridate",
-      "Version": "1.9.2",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Requirements": [
-        "R",
-        "generics",
-        "methods",
-        "timechange"
-      ],
-      "Hash": "e25f18436e3efd42c7c590a1c4c15390"
-    },
     "magrittr": {
       "Package": "magrittr",
       "Version": "2.0.3",
@@ -1877,18 +1864,6 @@
         "ucminf"
       ],
       "Hash": "47be9c32eb004c1945307eb318a6ef98"
-    },
-    "packrat": {
-      "Package": "packrat",
-      "Version": "0.9.1",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Requirements": [
-        "R",
-        "tools",
-        "utils"
-      ],
-      "Hash": "481428983c19a7c443f7ea1beff0a2de"
     },
     "pan": {
       "Package": "pan",
@@ -2332,24 +2307,6 @@
         "R"
       ],
       "Hash": "1de7ab598047a87bba48434ba35d497d"
-    },
-    "rsconnect": {
-      "Package": "rsconnect",
-      "Version": "0.8.29",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Requirements": [
-        "R",
-        "curl",
-        "digest",
-        "jsonlite",
-        "openssl",
-        "packrat",
-        "rstudioapi",
-        "tools",
-        "yaml"
-      ],
-      "Hash": "fe178fc15af80952f546aafedf655b36"
     },
     "rstatix": {
       "Package": "rstatix",
@@ -2854,17 +2811,6 @@
         "xml2"
       ],
       "Hash": "c328568cd14ea89a83bd4ca7f54ae07e"
-    },
-    "timechange": {
-      "Package": "timechange",
-      "Version": "0.2.0",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Requirements": [
-        "R",
-        "cpp11"
-      ],
-      "Hash": "8548b44f79a35ba1791308b61e6012d7"
     },
     "tinytex": {
       "Package": "tinytex",
