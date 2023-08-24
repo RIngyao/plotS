@@ -1306,7 +1306,9 @@ helpSection <- div(
                tabItem(tabName = "help2",
                        div(includeHTML("www/plotS_help_graph.html"))
                        ),
-               tabItem(tabName = "help3", "statistic"),
+               tabItem(tabName = "help3", 
+                       div(includeHTML("www/plotS_help_stats.html"))
+                       ),
                tabItem(tabName = "help4","rpackages")
              )
              #, selected = "help1"

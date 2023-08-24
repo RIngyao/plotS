@@ -297,7 +297,7 @@ It's important to note that the **Side graph** feature is not compatible with th
 2. **Add metadata**: The variable displayed in the inset graph can be different from the one in the primary graph. This allows users to incorporate additional contextual information or metadata into the graph.
 
 
-3. **Toggle Inset**: By default, the **Inset** is turned on, but users can disable it if desired. Enabling the **Inset** will only turn off the display of the inset graph.
+3. **Toggle Inset**: By default, the **Inset** is turned on, but users can disable it if desired. When deactivated, the **Inset** will only turn off the display of the inset graph.
 
 
 </font>
