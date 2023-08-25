@@ -217,8 +217,8 @@ Wide format can be reshaped into long format by using the **Reshape** feature. T
 The tool provides different methods for transforming data. Here's some details of the feature:
 
 1. **Method selection:** Users can select a data transformation method from a dropdown menu. The available methods are:
-   - log2
-   - log10
+   - log2: it add +1 to all the value if there is 0 in the data.
+   - log10: it add +1 to all the value if there is 0 in the data.
    - square-root
    - box-cox
    - scale

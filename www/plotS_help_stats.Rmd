@@ -22,7 +22,8 @@ A. Parameteric methods:
 
 1. **T-test** - Welch's and Student's test
 
-2. **ANOVA** - one-way and two-way ANOVA
+2. **ANOVA** - one-way and two-way ANOVA. 
+<!-- for type i/ii/iii ss : https://www.r-bloggers.com/2011/03/anova-%E2%80%93-type-iiiiii-ss-explained/ -->
 
 
 B. Non-parametric methods:
@@ -59,6 +60,10 @@ T-test is for comparing means between two groups. If data has more than two vari
  
  - **Add** and **Delete**: Use these button to add or delete the reference variable.
 
+
+<br>
+
+<h4> **ANOVA** </h4>
 
 </font>
 </p>

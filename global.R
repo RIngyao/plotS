@@ -2560,19 +2560,28 @@ themeF <- function(thme = "user preferred theme"){
          "grey" = theme_grey())
 }
 
+# ggplot(ToothGrowth, aes(x = supp, y = len))+ geom_boxplot()+
+#   labs(caption = "what is caption", tag = "new tag")+
+#   theme(
+#     plot.caption = element_text(face = "bold", size = 22),
+#     plot.tag = element_text(face = "bold"),
+#     plot.tag.position = "topright"
+#   )
 #Axis labeling Function-------------
-axisLabs <- function(x =xyLable[[1]], y = xyLable[[2]]){
+axisLabs <- function(x =NULL, y = NULL, main=NULL, sub=NULL, figCap = NULL, figTag = NULL){
+  
+  # labs(x=x, y = y, title = main, subtitle = sub) 
   if(!is.null(x) & !is.null(y)){
-    labs(x = x, y = y)
+    labs(x = x, y = y, title = main, subtitle = sub, caption = figCap, tag = figTag)
   }else if(is.null(x) & !is.null(y)){
-    labs(x = NULL, y = y)
+    labs(x = NULL, y = y, title = main, subtitle = sub, caption = figCap, tag = figTag)
   }else if(!is.null(x) & is.null(y)){
-    labs(x = x, y = NULL)
+    labs(x = x, y = NULL, title = main, subtitle = sub, caption = figCap, tag = figTag)
   }else{
     #use default
-    labs()
+    labs(title = main, subtitle = sub, caption = figCap, tag = figTag)
   }
-}
+} 
 
 #advance graph function: adding statistic info to the graph-----------
 "

@@ -1054,16 +1054,22 @@ mainSection <- div(
                    )
                  ),
                  bsTooltip(id = "changeNameDiv", title = "Applicable only when the x-axis is non-numeric", placement = "top",  trigger = "hover", options = list(container = "body")),
-
+                
+                
                 #font size
-                 column(6, sliderInput(inputId = "titleSize", label = "Axis title font size", min = 10, max = 50, value = 15)),
+                 column(6, sliderInput(inputId = "titleSize", label = "Title font size", min = 10, max = 50, value = 15)),
                  column(6, sliderInput(inputId = "textSize", label = "Axis text font size", min = 10, max = 50, value = 15)),
                  fluidRow(
-                   column(6, textAreaInput(inputId = "yLable", label = "Enter title for Y-axis", height = "35px")),
-                   column(6, textAreaInput(inputId = "xLable", label = "Enter title for X-axis", height = "35px"))
+                   column(6, textAreaInput(inputId = "yLable", label = "Enter title for Y-axis", height = "35px", placeholder = "new y-axis title")),
+                   column(6, textAreaInput(inputId = "xLable", label = "Enter title for X-axis", height = "35px", placeholder = "new x-axis title"))
                  ),
+                #figure main title and sub-title
+                fluidRow(
+                  column(6, textAreaInput(inputId = "mainTitle", label = "Add main title", height = "35px", placeholder = "main title of the graph")),
+                  column(6, textAreaInput(inputId = "subTitle", label = "Add subtitle", height = "35px", placeholder = "sub-title of the graph"))
+                ),
                 conditionalPanel(condition = "input.dualAxis != 'none'",
-                     fluidRow(column(6, textAreaInput(inputId = "secYLable", label = "Enter title for secondary Y-axis", height = "35px")))
+                     fluidRow(column(6, textAreaInput(inputId = "secYLable", label = "Enter title for secondary Y-axis", height = "35px", placeholder = "new title for secondary y-axis")))
                 ),
                 
                 conditionalPanel(condition = "input.colorSet != 'none'",
@@ -1107,6 +1113,7 @@ mainSection <- div(
                                        label = "Misc setting",
                                        icon = icon("sliders"),
                                        size="sm",
+                                       width = 400,
                                        up=TRUE,
                                        margin = '5px',
                                        status = "primary",
@@ -1123,8 +1130,19 @@ mainSection <- div(
                                          bsTooltip(id="sampleSize", title = "May not work with numeric variable", placement = "bottom"),
                                          #remove bracket of statistic label
                                          uiOutput("UiRemoveBracket"),
-                                         uiOutput("UiStripBackground")
-
+                                         uiOutput("UiStripBackground"),
+                                         fluidRow(
+                                           column(8, textInput(inputId = "figCaption", label = "Add caption")),
+                                           column(4, sliderInput(inputId = "figCaptionSize", label = "Caption size", value = 15, min = 10, max = 35))
+                                         ),
+                                         bsTooltip(id = "figCaption", title = "It will be placed at the bottom-right of the graph"),
+                                         fluidRow(
+                                          column(8, textInput(inputId = "figTag", label = "Tag label")),
+                                          column(4, sliderInput(inputId = "figTagSize", label = "Tag size", value = 15, min = 10, max = 35))
+                                         ),
+                                         fluidRow(
+                                           column(8, selectInput(inputId = "tagPos", label = "Tag position", choices = c("topleft", "topright", "bottomleft", "bottomright")))
+                                         )
                                        )
                                      )
                   ))) #end of fluidrow
@@ -1414,10 +1432,13 @@ ui <- fluidPage(
     div(class = "column column1"
     ),
     div(class = "column column2",
-        router_ui(
-          route("/", aboutSection),
-          route("vizAna", mainSection),
-          route("help", helpSection)
+        div(
+          style = "min-height:500px;",
+          router_ui(
+            route("/", aboutSection),
+            route("vizAna", mainSection),
+            route("help", helpSection)
+          )
         ),
         
         #add footer note
@@ -6763,11 +6784,62 @@ server <- function(input, output, session){
         }
       }
     })
-
+    
+    #main and sub-title
+    mainSubTitle <- reactive({
+      if(!isTruthy(input$mainTitle) && !isTruthy(input$subTitle)){
+        list(NULL, NULL)
+      }else if(isTruthy(input$mainTitle) && !isTruthy(input$subTitle)){
+        list(input$mainTitle, NULL)
+      }else if(isTruthy(input$subTitle) && !isTruthy(input$mainTitle)){
+        list(NULL, input$subTitle)
+      }else if(isTruthy(input$mainTitle) && isTruthy(input$subTitle)){
+        list(input$mainTitle, input$subTitle)
+      }
+    })
+    
+    #caption and tag
+    figCaption <- reactive({
+      if(!isTruthy(input$figCaption)){
+        NULL
+      }else if(isTruthy(input$figCaption)){
+        input$figCaption
+      }
+    })
+    figCaptionSize <- reactive({
+      if(!isTruthy(input$figCaptionSize)){
+        15
+      }else if(isTruthy(input$figCaption)){
+        input$figCaptionSize
+      }
+    })
+    figTag <- reactive({
+      if(!isTruthy(input$figTag)){
+        NULL
+      }else if(isTruthy(input$figTag)){
+        input$figTag
+      }
+    })
+    
+    figTagSize <- reactive({
+      if(!isTruthy(input$figTagSize)){
+        15
+      }else if(isTruthy(input$figTagSize)){
+        input$figTagSize
+      }
+    })
+    tagPos <- reactive({
+      if(!isTruthy(input$tagPos)){
+        "topleft"
+      }else if(isTruthy(input$tagPos)){
+        input$tagPos
+      }
+    })
     #get theme parameters for the graph
     otherTheme <- if(isTRUE(legendTitle())){
       if(isTRUE(stripBackground())){
         theme(
+          title = element_text(size = titleSize() - 5, face = "bold"),
           axis.text = element_text(size = textSize(), face = "bold"),
           axis.title = element_text(size = titleSize(), face = "bold"),
           legend.position = legendPosition(),
@@ -6775,20 +6847,30 @@ server <- function(input, output, session){
           legend.title = element_blank(),
           legend.text = element_text(size = legendSize(), face = "bold"),
           strip.text = element_text(size = textSize(), face = "bold"),
-          strip.background = element_blank())
+          strip.background = element_blank(),
+          plot.caption = element_text(size = figCaptionSize(), face = "bold"),
+          plot.tag = element_text(size = figTagSize(), face = "bold"),
+          plot.tag.position = tagPos()
+          )
       }else{
         theme(
+          title = element_text(size = titleSize() - 5, face = "bold"),
           axis.text = element_text(size = textSize(), face = "bold"),
           axis.title = element_text(size = titleSize(), face = "bold"),
           legend.position = legendPosition(),
           legend.direction = legendDirection(),
           legend.title = element_blank(),
           legend.text = element_text(size = legendSize(), face = "bold"),
-          strip.text = element_text(size = textSize(), face = "bold"))
+          strip.text = element_text(size = textSize(), face = "bold"),
+          plot.caption = element_text(size = figCaptionSize(), face = "bold"),
+          plot.tag = element_text(size = figTagSize(), face = "bold"),
+          plot.tag.position = tagPos()
+          )
       }
     }else{
       if(isTRUE(stripBackground())){
         theme(
+          title = element_text(size = titleSize() - 5, face = "bold"),
           axis.text = element_text(size = textSize(), face = "bold"),
           axis.title = element_text(size = titleSize(), face = "bold"),
           legend.position = legendPosition(),
@@ -6796,16 +6878,25 @@ server <- function(input, output, session){
           legend.title = element_text(size = legendSize(), face = "bold"),
           legend.text = element_text(size = legendSize(), face = "bold"),
           strip.text = element_text(size = textSize(), face = "bold"),
-          strip.background = element_blank())
+          strip.background = element_blank(),
+          plot.caption = element_text(size = figCaptionSize(), face = "bold"),
+          plot.tag = element_text(size = figTagSize(), face = "bold"),
+          plot.tag.position = tagPos()
+          )
       }else{
         theme(
+          title = element_text(size = titleSize() - 5, face = "bold"),
           axis.text = element_text(size = textSize(), face = "bold"),
           axis.title = element_text(size = titleSize(), face = "bold"),
           legend.position = legendPosition(),
           legend.direction = legendDirection(),
           legend.title = element_text(size = legendSize(), face = "bold"),
           legend.text = element_text(size = legendSize(), face = "bold"),
-          strip.text = element_text(size = textSize(), face = "bold"))
+          strip.text = element_text(size = textSize(), face = "bold"),
+          plot.caption = element_text(size = figCaptionSize(), face = "bold"),
+          plot.tag = element_text(size = figTagSize(), face = "bold"),
+          plot.tag.position = tagPos()
+          )
       }
 
     }
@@ -6891,12 +6982,12 @@ server <- function(input, output, session){
 
           finalPlt <- finalPlt_settings +
             ylim(0, NA) +
-            axisLabs(x =xyLable()[[1]], y = xyLable()[[2]])+
+            axisLabs(x =xyLable()[[1]], y = xyLable()[[2]], main = mainSubTitle()[[1]], sub = mainSubTitle()[[2]], figCap = figCaption(), figTag = figTag())+
             themeF(thme = themes())+
             otherTheme
         }else{
           finalPlt <- finalPlt_settings +
-            axisLabs(x =xyLable()[[1]], y = xyLable()[[2]])+
+            axisLabs(x =xyLable()[[1]], y = xyLable()[[2]], main = mainSubTitle()[[1]], sub = mainSubTitle()[[2]], figCap = figCaption(), figTag = figTag())+
             themeF(thme = themes())+
             otherTheme
         }
