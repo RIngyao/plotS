@@ -5026,7 +5026,7 @@ server <- function(input, output, session){
     })
 
     #get input param for liner regression
-    num_var <- input$yAxis #dependent variable
+    num_var <- input$yAxis #dependent variable: numerical variable
 
     #validate the presence of x axis before proceeding: It will take care of change in data by the user
     validate(
@@ -5104,7 +5104,7 @@ server <- function(input, output, session){
     }#end of anova
 
 
-    #formula
+    #get formula and apply to the data
     message("--------ind_var for regress")
     message(ind_var)
     if(input$stat %in% c("t.test", "anova")){
@@ -5112,7 +5112,10 @@ server <- function(input, output, session){
       validate(
         need(twoAnovaError() == 0, " ")
       )
-
+      
+      #get data for each levels of the independent variable
+      
+      
       forml <- reformulate(response = glue::glue("{num_var}"), termlabels = glue::glue("{ind_var}"))
       #run linear regression based on user's input.
       tryCatch({
@@ -5138,7 +5141,7 @@ server <- function(input, output, session){
         if(input$stat == 't.test' && unpaired_stopTest() == 'yes'){
           validate("")
         }else{
-          plot(fitted(model), resl, main= "Figure 1. Residual plot", ylab="residual") %>% abline(0,0, col="red")
+          plot(fitted(model), resl, main= "Figure 1. Residual plot", ylab="residual", xlab = "predicted") %>% abline(0,0, col="red")
           rec <- recordPlot()
           figure1(rec)
           rec
@@ -5196,7 +5199,8 @@ server <- function(input, output, session){
     # case 1. if sample size is between 3 and 5000, use Shaprio-Wilk test
     # case 2: sample size is above 5000, use Kolmogorov-Smirnov test
     output$UiTestCaption <- renderUI({
-
+      
+      browser()
       if(input$stat == 't.test' && unpaired_stopTest() == 'yes'){
         validate("")
       }
@@ -5211,6 +5215,8 @@ server <- function(input, output, session){
         #levene test
         if(input$stat == "anova" && input$pairedData == 'two' && input$anovaModel == "additive"){
           form_lv <- reformulate(response = glue::glue("{num_var}"), termlabels = glue::glue("{lv_var}")) #used in levene test
+          message(form_lv)
+          
           model_lv <- lm(data = data, formula = form_lv)
           lvT <- car::leveneTest(model_lv)
         }else{

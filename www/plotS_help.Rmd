@@ -25,9 +25,9 @@ Two choice
 2. **Upload** : valid file format for upload : _csv, tsv, txt, xlsx,_ or _rds_
 
 
-Under the **Example** option, three datasets are provided to enable users to conduct exploratory tasks using the application. These datasets serve as representations of the data formats supported by the application. The **wide** and **long format** datasets essentially contain the same data but are presented in different structures. The wide format is particularly suitable for generating scatter and line graphs. On the other hand, the **replicate** data features a structure with two headers and pairs of replicates for both the _"control"_ and _"treatment"_ variables. 
+Under the **Example** option, three datasets are provided to enable users to conduct exploratory tasks using the application. These datasets serve as representations of the data formats supported by the application. The **wide** and **long format** dataset essentially contain the same data but are presented in different structures. For more details about **wide** and **long format** refer the *Reshape* section. 
 
-_Data with replicates can have more than one header. Such data necessitates further processing before it can be utilized for plotting figures._
+On the other hand, the **replicate** data features a structure with two headers and pairs of replicates for both the _"control"_ and _"treatment"_. Data with replicates can have more than one header. Such data necessitates further processing before it can be utilized for plotting figures. Refer the **Data with replicate** for more details.
 
 </font>
 </p>
@@ -119,9 +119,12 @@ After processing replicate data it will add two new columns :
 
 <p>
 <font size = "4">
-The choice between wide and long data formats depends on the analysis. While wide format is suitable for creating scatter or line graphs, long format is generally preferred for most cases. The primary distinction between wide and long formats lies in the organization of variables. 
+The choice between **wide** and **long** data formats depends on the analysis. While **wide format** is suitable for creating scatter or line graphs, **long format** is generally preferred for most cases. The primary distinction between wide and long formats lies in the organization of variables. 
 
-In wide format ( _Table 1_), independent variables occupies its own column, with the corresponding dependent values residing within the cells. Conversely, in the long format ( _Table 2_ ), both independent and dependent variables are organized into distinct columns. Opting for the long format allows for the inclusion of multiple variables in separate columns within the dataset. This, in turn, grants the flexibility to dynamically compare variables and analyze data interactively using PlotS.
+
+**Wide format**: Value of independent variable is the column name i.e. column headers are value ( _Table 1_). 
+
+**Long format**: Also known as tidy format. Each variable forms a column and each observation forms a row ( _Table 2_ ). Both independent and dependent variables are organized into distinct columns. Opting for the long format allows for inclusion of multiple variables in separate columns within the dataset. This, in turn, grants the flexibility to dynamically compare variables and analyze data interactively using PlotS.
 
 </font>
 </p>
@@ -197,7 +200,13 @@ flextable(head(long_df, 9)) %>%
 
 <p>
 <font size = "4">
-Wide format can be reshaped into long format by using the **Reshape** feature. The user need to first specify the column to reshape. The name of the chosen columns will serve as the different levels of independent variables, and the corresponding value will be placed in a separate column called "value". The user also need to provide a new name of column for housing the dependent variables. 
+Wide format can be reshaped into long format by using the **Reshape** feature. 
+
+- **Specify the columns to reshape**: Users need to first specify the column to reshape. The name of the chosen columns will serve as the different levels of independent variables, and the corresponding value (dependent variable) will be placed in a separate column called "value". 
+
+- **Enter name**: Users also need to provide a new name of column for housing the independent variables. 
+
+- **Reshape**: Apply the reshape by clicking the **Reshape** button.
 
 <div style="text-align: center; font-weight:bold">
   ![Reshape feature](reshape.png){width=700px, height=400px}
@@ -247,6 +256,8 @@ The tool provides different methods for transforming data. Here's some details o
   ![Transformation feature](transform.png){width=500px, height=200px}
 </div>
 
+
+#------------------------------------------------------------
 
 
 #### **Type of file format supported in plotS**

@@ -1,3 +1,57 @@
+
+# rough -------------------------------------------------------------------
+
+
+"
+Function to generate data for all the levels of independent variable specified by indVar.
+This data will be used for normality and homogeneity test.
+
+arguments:
+df = data frame
+indVar = character. Name of the independent variable(s)
+numVar = character. Name of the dependent variable (s)
+stat = character. specify statistical methods. For ANOVA, data for both the 
+        variables will be generated. For t-test, it will generate data for the
+        combination of x-axis and variable chosen for aesthetic option.
+
+
+return list of data frame
+"
+separateIndLevel <- function(df = ToothGrowth, indVar = NULL, numVar = NULL, stat = NULL){
+  
+}
+
+ind_var <- "supp:dose"
+num_var = "len"
+#t-test 
+if(stringr::str_detect(ind_var, ":")){
+  varLs <- stringr::str_split(ind_var, ":") %>% unlist() #length = 2; 
+  varLs1 <- as.character(unique(df[, varLs[1]])) #as.character is to remove factor level
+  varLs2 <- as.character(unique(df[, varLs[2]]))
+  #get a computation of all the levels
+  varCombination <- expand.grid(varLs1, varLs2)
+  
+}
+
+lapply(varLs1, gtools::permutations, n = 4, r = 2, v = c("OJ", varLs2))
+expand_grid(varLs1, varLs2)
+expand_grid(x = 1:3, y = 1:2)
+
+gtools::combinations(n = 5, r = 2, c(as.character(varLs1), varLs2))
+
+gtools::permutations(3,2,letters[1:3])
+gtools::permute(c(as.character(varLs1), varLs2))
+
+
+# reough end --------------------------------------------------------------
+
+
+
+
+
+
+
+
 #vignette("ggplot2-specs")
 options(shiny.maxRequestSize = 50*1024^2) # too large: use 50
 #library--------------------------------
