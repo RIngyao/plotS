@@ -5113,12 +5113,16 @@ server <- function(input, output, session){
         need(twoAnovaError() == 0, " ")
       )
       
-      #get data for each levels of the independent variable
       
-      
-      forml <- reformulate(response = glue::glue("{num_var}"), termlabels = glue::glue("{ind_var}"))
-      #run linear regression based on user's input.
       tryCatch({
+        #get data for each levels of the independent variable: list of df output
+        # df_list <- separateIndLevel(df = data, indVar = ind_var, stat = input$stat)
+        df_list <- separateIndLevel(df = ToothGrowth, indVar = ind_var, stat = "t.test")
+        forml <- reformulate(response = glue::glue("{num_var}"), termlabels = glue::glue("{ind_var}"))
+        #run linear regression based on user's input.
+        model_list <- lapply(df_list, function(x) lm(data = x, formula = forml))
+        lapply(df_list, print)
+        lm(data = ToothGrowth, formula = forml)
         model <- lm(data = data, formula = forml)
         #residual
         resl <- resid(model)

@@ -1,56 +1,39 @@
 
-# rough -------------------------------------------------------------------
+# link: https://library.virginia.edu/data/articles/diagnostic-plots
+ind_var <- "supp"
 
+lm(data = df_list[[1]], x = "supp", y ="len")
 
-"
-Function to generate data for all the levels of independent variable specified by indVar.
-This data will be used for normality and homogeneity test.
+modl <- lm(data = df, formula =  len ~ supp)
+modl2 <- lm(data = df_2, formula = value ~ species*sub)
 
-arguments:
-df = data frame
-indVar = character. Name of the independent variable(s)
-numVar = character. Name of the dependent variable (s)
-stat = character. specify statistical methods. For ANOVA, data for both the 
-        variables will be generated. For t-test, it will generate data for the
-        combination of x-axis and variable chosen for aesthetic option.
+plot(modl, which = 5)#good
+plot(modl, which = 1)#
+plot(modl, which = 2)
 
-
-return list of data frame
-"
-separateIndLevel <- function(df = ToothGrowth, indVar = NULL, numVar = NULL, stat = NULL){
-  
-}
-
-ind_var <- "supp:dose"
-num_var = "len"
-#t-test 
-if(stringr::str_detect(ind_var, ":")){
-  varLs <- stringr::str_split(ind_var, ":") %>% unlist() #length = 2; 
-  varLs1 <- as.character(unique(df[, varLs[1]])) #as.character is to remove factor level
-  varLs2 <- as.character(unique(df[, varLs[2]]))
-  #get a computation of all the levels
-  varCombination <- expand.grid(varLs1, varLs2)
-  
-}
-
-lapply(varLs1, gtools::permutations, n = 4, r = 2, v = c("OJ", varLs2))
-expand_grid(varLs1, varLs2)
-expand_grid(x = 1:3, y = 1:2)
-
-gtools::combinations(n = 5, r = 2, c(as.character(varLs1), varLs2))
-
-gtools::permutations(3,2,letters[1:3])
-gtools::permute(c(as.character(varLs1), varLs2))
-
-
-# reough end --------------------------------------------------------------
+plot(modl, which = 2)
+plot(modl, which = 3)
+plot(modl2, which = 5)
+plot(modl2, which = 1)
+df = data.frame(x=c(1, 3, 3, 4, 5, 5, 6, 8, 9, 12),
+                y=c(12, 14, 14, 13, 17, 19, 22, 26, 24, 22))
 
 
 
+ggpubr::ggqqplot(df_list[[1]]$len)+ ggpubr::ggqqplot(df_list[[1]]$len)
+ggpubr::ggqqplot(df, x= "len", color = "supp", title = "Normal Q-Q plot")
 
+qplot(df, x= "len", color = "supp")
+#good for shapiro_test and ks
+iris %>% shapiro_test(Sepal.Length, Petal.Width, Sepal.Width)
+hs <- ks.test(unique(df_list[[1]]$len), "pnorm")
+ks.test(df_list[[1]]$len, "pnorm")
 
-
-
+data.frame(test = "Normality", method = hs$method, alternative = hs$alternative,  statistic = hs$statistic,  pvalue = hs$p.value)
+#levene
+lv <- car::leveneTest(y = len ~supp, data = ToothGrowth)
+data.frame(test = "Homogeneity of variance", method = "Levene's test", alternative = "-", statistic = lv$`F value`[1], pvalue = lv$`Pr(>F)`[1])
+lv$`Pr(>F)`[1]
 
 #vignette("ggplot2-specs")
 options(shiny.maxRequestSize = 50*1024^2) # too large: use 50
@@ -190,6 +173,61 @@ waitNotify <- function(msg = "... Please wait..", id = NULL, type = "message"){
 #     actionButton("test_continue", "Yes", class = "btn btn-danger")
 #   )
 # )
+#function for normality test----------------------
+"
+Function to generate data for all the levels of independent variable specified by indVar.
+This data will be used for normality and homogeneity test.
+
+arguments:
+df = data frame
+indVar = character. Name of the independent variable(s)
+numVar = character. Name of the dependent variable (s)
+stat = character. specify statistical methods. For ANOVA, data for both the 
+        variables will be generated. For t-test, it will generate data for the
+        combination of x-axis and variable chosen for aesthetic option.
+
+
+return list of data frame
+"
+separateIndLevel <- function(df = ToothGrowth, indVar = NULL, numVar = NULL, stat = NULL){
+  
+  if(tolower(stat) == "t.test"){
+    if(stringr::str_detect(ind_var, ":")){
+      varLs <- stringr::str_split(ind_var, ":") %>% unlist() #length = 2; 
+      varLs1 <- as.character(unique(df[, varLs[1]])) #as.character is to remove factor level
+      varLs2 <- as.character(unique(df[, varLs[2]]))
+      #get a combination of all the levels
+      varCombination <- expand_grid(varLs1, varLs2) %>% as.data.frame()
+      varCom2 <- paste0(varCombination$varLs1,":", varCombination$varLs2) 
+      indVarLevel <- unique(varCom2)
+      #add columns of levels combination to the df
+      df$indVarLv <- paste0(df[[varLs[1]]], ":", df[[varLs[2]]])
+    }else{
+      indVarLevel <- as.character(unique(df[[ind_var]]))
+      df$indVarLv <- df[[ind_var]]
+    }
+    
+    #subset data for the levels combination
+    df_list <- lapply(indVarLevel, function(x) df |> filter(indVarLv == x) |> dplyr::select(-indVarLv))
+    
+  }else if(tolower(stat) == "anova"){
+    if(stringr::str_detect(ind_var, "[*,+]")){
+      varLs <- stringr::str_split(ind_var, "[*,+]") %>% unlist()
+      varLs1 <- as.character(unique(df[, varLs[1]])) #as.character is to remove factor level
+      varLs2 <- as.character(unique(df[, varLs[2]]))
+      #subset data of all levels from two variables
+      df_list1 <- lapply(varLs1, function(x) df |> filter(eval(str2expression(varLs[1])) == x))
+      df_list2 <- lapply(varLs2, function(x) df |> filter(eval(str2expression(varLs[2])) == x))
+      #merge
+      df_list <- c(df_list1, df_list2)
+    }else{
+      df_list <- lapply(as.character(unique(df[[ind_var]])), function(x) df |> filter(eval(str2expression(ind_var)) == x))
+    }
+    
+  }
+  
+  return(df_list)
+}
 #function for imputation------------
 "arguments:
 df = data frame.
