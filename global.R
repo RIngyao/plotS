@@ -1,40 +1,4 @@
 
-# link: https://library.virginia.edu/data/articles/diagnostic-plots
-ind_var <- "supp"
-
-lm(data = df_list[[1]], x = "supp", y ="len")
-
-modl <- lm(data = df, formula =  len ~ supp)
-modl2 <- lm(data = df_2, formula = value ~ species*sub)
-
-plot(modl, which = 5)#good
-plot(modl, which = 1)#
-plot(modl, which = 2)
-
-plot(modl, which = 2)
-plot(modl, which = 3)
-plot(modl2, which = 5)
-plot(modl2, which = 1)
-df = data.frame(x=c(1, 3, 3, 4, 5, 5, 6, 8, 9, 12),
-                y=c(12, 14, 14, 13, 17, 19, 22, 26, 24, 22))
-
-
-
-ggpubr::ggqqplot(df_list[[1]]$len)+ ggpubr::ggqqplot(df_list[[1]]$len)
-ggpubr::ggqqplot(df, x= "len", color = "supp", title = "Normal Q-Q plot")
-
-qplot(df, x= "len", color = "supp")
-#good for shapiro_test and ks
-iris %>% shapiro_test(Sepal.Length, Petal.Width, Sepal.Width)
-hs <- ks.test(unique(df_list[[1]]$len), "pnorm")
-ks.test(df_list[[1]]$len, "pnorm")
-
-data.frame(test = "Normality", method = hs$method, alternative = hs$alternative,  statistic = hs$statistic,  pvalue = hs$p.value)
-#levene
-lv <- car::leveneTest(y = len ~supp, data = ToothGrowth)
-data.frame(test = "Homogeneity of variance", method = "Levene's test", alternative = "-", statistic = lv$`F value`[1], pvalue = lv$`Pr(>F)`[1])
-lv$`Pr(>F)`[1]
-
 #vignette("ggplot2-specs")
 options(shiny.maxRequestSize = 50*1024^2) # too large: use 50
 #library--------------------------------
@@ -173,7 +137,8 @@ waitNotify <- function(msg = "... Please wait..", id = NULL, type = "message"){
 #     actionButton("test_continue", "Yes", class = "btn btn-danger")
 #   )
 # )
-#function for normality test----------------------
+#function for normality test related----------------------
+
 "
 Function to generate data for all the levels of independent variable specified by indVar.
 This data will be used for normality and homogeneity test.
@@ -185,15 +150,18 @@ numVar = character. Name of the dependent variable (s)
 stat = character. specify statistical methods. For ANOVA, data for both the 
         variables will be generated. For t-test, it will generate data for the
         combination of x-axis and variable chosen for aesthetic option.
-
+all = logical. if TRUE return exaxt same column as the input data, else only selected few columns will be return
 
 return list of data frame
 "
-separateIndLevel <- function(df = ToothGrowth, indVar = NULL, numVar = NULL, stat = NULL){
+# separateIndLevel(df = ToothGrowth, indVar = ind_var, numVar = "len", stat = "t.test")
+# separateIndLevel(df = df_2, indVar = "species", numVar = "value", stat = "t.test") 
+# separateIndLevel(df=ToothGrowth, indVar = "supp",  numVar = "len", stat = "anova", all = FALSE)
+separateIndLevel <- function(df = NULL, indVar = NULL, numVar = NULL, stat = NULL, all = TRUE){
   
   if(tolower(stat) == "t.test"){
-    if(stringr::str_detect(ind_var, ":")){
-      varLs <- stringr::str_split(ind_var, ":") %>% unlist() #length = 2; 
+    if(stringr::str_detect(indVar, ":")){
+      varLs <- stringr::str_split(indVar, ":") %>% unlist() #length = 2; 
       varLs1 <- as.character(unique(df[, varLs[1]])) #as.character is to remove factor level
       varLs2 <- as.character(unique(df[, varLs[2]]))
       #get a combination of all the levels
@@ -203,30 +171,83 @@ separateIndLevel <- function(df = ToothGrowth, indVar = NULL, numVar = NULL, sta
       #add columns of levels combination to the df
       df$indVarLv <- paste0(df[[varLs[1]]], ":", df[[varLs[2]]])
     }else{
-      indVarLevel <- as.character(unique(df[[ind_var]]))
-      df$indVarLv <- df[[ind_var]]
+      varLs <- indVar
+      indVarLevel <- as.character(unique(df[[indVar]]))
+      df$indVarLv <- df[[indVar]]
     }
     
     #subset data for the levels combination
-    df_list <- lapply(indVarLevel, function(x) df |> filter(indVarLv == x) |> dplyr::select(-indVarLv))
+    if(isTRUE(all)){
+      df_list <- lapply(indVarLevel, function(x, da) da |> filter(indVarLv == x) |> dplyr::select(-indVarLv), da = df)
+    }else{
+      df_list <- lapply(indVarLevel, function(x, da) da |> filter(indVarLv == x) |> dplyr::select(-indVarLv) |> dplyr::select(all_of(c(varLs, numVar))), da = df)
+    }
+    
     
   }else if(tolower(stat) == "anova"){
-    if(stringr::str_detect(ind_var, "[*,+]")){
-      varLs <- stringr::str_split(ind_var, "[*,+]") %>% unlist()
+    if(stringr::str_detect(indVar, "[*,+]")){
+      varLs <- stringr::str_split(indVar, "[*,+]") %>% unlist()
       varLs1 <- as.character(unique(df[, varLs[1]])) #as.character is to remove factor level
       varLs2 <- as.character(unique(df[, varLs[2]]))
       #subset data of all levels from two variables
-      df_list1 <- lapply(varLs1, function(x) df |> filter(eval(str2expression(varLs[1])) == x))
-      df_list2 <- lapply(varLs2, function(x) df |> filter(eval(str2expression(varLs[2])) == x))
+      if(isTRUE(all)){
+        df_list1 <- lapply(varLs1, function(x, da) da |> filter(eval(str2expression(varLs[1])) == x), da = df)
+        df_list2 <- lapply(varLs2, function(x, da) da |> filter(eval(str2expression(varLs[2])) == x), da = df)
+      }else{
+        df_list1 <- lapply(varLs1, function(x, da) da |> filter(eval(str2expression(varLs[1])) == x) |> select(all_of(c(varLs[1], numVar))), da = df)
+        df_list2 <- lapply(varLs2, function(x, da) da |> filter(eval(str2expression(varLs[2])) == x) |> select(all_of(c(varLs[2], numVar))), da = df)
+      }
+      
       #merge
       df_list <- c(df_list1, df_list2)
     }else{
-      df_list <- lapply(as.character(unique(df[[ind_var]])), function(x) df |> filter(eval(str2expression(ind_var)) == x))
+      if(isTRUE(all)){
+        df_list <- lapply(as.character(unique(df[[indVar]])), function(x, da) da |> filter(eval(str2expression(indVar)) == x), da=df)
+      }else{
+        df_list <- lapply(as.character(unique(df[[indVar]])), function(x, da) da |> filter(eval(str2expression(indVar)) == x) |> select(all_of(c(indVar, numVar))), da=df)
+      }
     }
     
   }
   
   return(df_list)
+}
+
+# link: https://library.virginia.edu/data/articles/diagnostic-plots
+
+"
+Function to determine normality test using shapiro-wilk or kolmogorov-smirnov method.
+
+argument: similar as above
+x = df; derived from separateIndLevel( all = FALSE)
+
+Return a dataframe of the statistic results
+"
+normalityTest <- function(x, indVar = ind_var, numVar=NULL, stat = NULL){
+  # x <- x[1]
+  #get column name
+  varCol <- str_split(indVar,"[:,*,+]") %>% unlist()
+  
+  #get levels name: require for labeling
+  if(str_detect(indVar, "[:,*,+]")){
+    x$new <- paste0(x[[varCol[1]]], ":", x[[varCol[[2]]]])
+    varName <- unique(x$new)
+  }else{
+    varName <- unique(x[[indVar]])
+  }
+  
+  
+  if(nrow(x) <= 5000){
+    #shapiro-wilk test
+    result <- rstatix::shapiro_test(x[[numVar]])
+    newResult <- result %>% mutate(test = "Normality", method = "Shapiro-Wilk test") %>% select(test, method, everything())
+    newResult$variable <- varName
+  }else{
+    result <- ks.test(unique(x[[numVar]]),"pnorm")
+    newResult <- data.frame(test = "Normality", method = result$method,  variable = varName, statistic = result$statistic,  pvalue = result$p.value)
+  }
+  
+  return(newResult)
 }
 #function for imputation------------
 "arguments:

@@ -1237,7 +1237,8 @@ mainSection <- div(
                                   ),
                                   
                                   #caption: for normality and homoscedasticity
-                                  uiOutput("UiTestCaption")
+                                  # uiOutput("UiTestCaption")
+                                  dataTableOutput("UiTestCaption")
                                   
                                   
                  ),
@@ -5005,6 +5006,7 @@ server <- function(input, output, session){
   observe({
     req(is.data.frame(ptable()), pltType() != "none", input$xAxis, input$yAxis, input$stat %in% c("t.test", "anova"), computeFuncError(), twoAnovaError())
     #notify user
+    browser()
     summaryId <- waitNotify(id = "summaryId")
     on.exit(removeNotification(summaryId),  add = TRUE)
 
@@ -5113,16 +5115,12 @@ server <- function(input, output, session){
         need(twoAnovaError() == 0, " ")
       )
       
-      
       tryCatch({
         #get data for each levels of the independent variable: list of df output
-        # df_list <- separateIndLevel(df = data, indVar = ind_var, stat = input$stat)
-        df_list <- separateIndLevel(df = ToothGrowth, indVar = ind_var, stat = "t.test")
+        df_list <- separateIndLevel(df = data, indVar = ind_var, stat = "t.test", all=TRUE)
         forml <- reformulate(response = glue::glue("{num_var}"), termlabels = glue::glue("{ind_var}"))
         #run linear regression based on user's input.
         model_list <- lapply(df_list, function(x) lm(data = x, formula = forml))
-        lapply(df_list, print)
-        lm(data = ToothGrowth, formula = forml)
         model <- lm(data = data, formula = forml)
         #residual
         resl <- resid(model)
@@ -5131,7 +5129,10 @@ server <- function(input, output, session){
       })
 
     }
-
+    
+    model <- lm(data = data, formula = forml)
+    #residual
+    resl <- resid(model)
     #residual plot
     output$UiResidualPlot <- renderPlot({
 
@@ -5145,7 +5146,9 @@ server <- function(input, output, session){
         if(input$stat == 't.test' && unpaired_stopTest() == 'yes'){
           validate("")
         }else{
-          plot(fitted(model), resl, main= "Figure 1. Residual plot", ylab="residual", xlab = "predicted") %>% abline(0,0, col="red")
+          plot(model, which = 1, add.smooth = TRUE) #red line is the smooth line and 
+          #     number values next to some points represent extreme values identified by their row numbers in the data 
+          # plot(fitted(model), resl, main= "Figure 1. Residual plot", ylab="residual", xlab = "predicted") %>% abline(0,0, col="red")
           rec <- recordPlot()
           figure1(rec)
           rec
@@ -5189,8 +5192,9 @@ server <- function(input, output, session){
         if(input$stat == 't.test' && unpaired_stopTest() == 'yes'){
           validate("")
         }else{
-          qqnorm(resl, main="Figure 3. Q-Q plot of residuals")
-          qqline(resl, col="red")
+          plot(model, which =2)
+          # qqnorm(resl, main="Figure 3. Q-Q plot of residuals")
+          # qqline(resl, col="red")
           rec <- recordPlot()
           figure3(rec)
           rec
@@ -5202,7 +5206,7 @@ server <- function(input, output, session){
     #normality test
     # case 1. if sample size is between 3 and 5000, use Shaprio-Wilk test
     # case 2: sample size is above 5000, use Kolmogorov-Smirnov test
-    output$UiTestCaption <- renderUI({
+    output$UiTestCaption <- renderReactable({
       
       browser()
       if(input$stat == 't.test' && unpaired_stopTest() == 'yes'){
@@ -5226,58 +5230,20 @@ server <- function(input, output, session){
         }else{
           lvT <- car::leveneTest(model)
         }
-
-        #get sample size
-        sampleSize <- nrow(data)
-        x <- rstandard(model)
-
-        if(sampleSize <= 5000){
-
-          #shapiro
-          message("shaprio length")
-
-          normT <- shapiro.test(x)
-          if(normT$p.value <= 0.05 | lvT[1,3] <= 0.05){
-            statment1(round(lvT[1,3], digit=3))
-            statment2(round(normT$p.value, digit = 3))
-
-            helpText( list( tags$p(glue::glue("The p-value (rounded to 3 decimal places) for Levene's homoscedasticity test is { statment1() }, and Shapiro-Wilk's normality test is { statment2() }."),style = "color:red; margin-left:10%; margin-right:10%;font-weight:bolder"),
-                            tags$p("Note: Higher the p-value (generally greater than 0.05), the more likely it satisfy the parametric assumptions.", style = "color:black; margin-left:10%; margin-right:10%; font-weight:bold")
-            )
-            )
-
-          }else{
-            statment1(round(lvT[1,3], digit=3))
-            statment2(round(normT$p.value, digit = 3))
-
-            helpText( list( tags$p(glue::glue("The p-value (rounded to 3 decimal places) for Levene's homoscedasticity test is { statment1() }, and Shapiro-Wilk's normality test is { statment2() }."), style = "color:#3385ff; margin-left:10%; margin-right:10%;font-weight:bolder"),
-                            tags$p("Note: Higher the p-value (generally greater than 0.05), the more likely it satisfy the parametric assumptions.", style = "color:black; margin-left:10%; margin-right:10%; font-weight:bold")
-            )
-            )
-          }
-
-        }else{
-          normT <- ks.test(x, "pnorm", mean = mean(x), sd = sd(x))
-          if(normT$p.value <= 0.05 | lvT[1,3] <= 0.05){
-            statment1(round(lvT[1,3], digit=3))
-            statment2(round(normT$p.value, digit = 3))
-            helpText( list( tags$p(glue::glue("The p-value (rounded to 3 decimal places) for Levene's homoscedasticity test is { statment1() }, and Kolmogrov-Smirnov's normality test is { statment2() }."),style = "color:red; margin-left:10%; margin-right:10%;font-weight:bolder"),
-                            tags$p("Note: Higher the p-value (generally greater than 0.05), the more likely it satisfy the parametric assumptions.", style = "color:black; margin-left:10%; margin-right:10%; font-weight:bold")
-            )
-            )
-
-          }else{
-            statment1(round(lvT[1,3], digit=3))
-            statment2(round(normT$p.value, digit = 3))
-
-            helpText( list( tags$p(glue::glue("The p-value (rounded to 3 decimal places) for Levene's homoscedasticity test is { statment1() }, and Kolmogrov-Smirnov's normality test is { statment2() }."),style = "color:#3385ff; margin-left:10%; margin-right:10%;font-weight:bolder"),
-                            tags$p("Note: Higher the p-value (generally greater than 0.05), the more likely it satisfy the parametric assumptions.", style = "color:black; margin-left:10%; margin-right:10%; font-weight:bold")
-            )
-            )
-          }
-        }
-
-
+        
+        #get data for each levels of the independent variable: list of df output
+        df_list2 <- separateIndLevel(df = data, indVar = ind_var, numVar = num_var, stat = input$stat, all=FALSE)
+        #execute normality test and get result
+        normTest <- lapply(df_list2, normalityTest, indVar = ind_var, numVar = num_var, stat = input$stat)
+        #merge into single data frame
+        normDf <- do.call(rbind, normTest)
+        
+        #levene test
+        lvDf <- data.frame(test = "Homogeneity of variance", method = "Levene's test", variable = "across groups", statistic = lvT$`F value`[1], p.value = lvT$`Pr(>F)`[1])
+        #append to the nromality result
+        normHomoDf <- rbind(normDf, lvDf)
+        
+        reactable(as.data.frame(normHomoDf))
       }
     })
 
