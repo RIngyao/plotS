@@ -13,7 +13,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 <p style="font-size:20px;"> 
 <font size = "4">
-PlotS is a data visualization tool that places a strong emphasis on visual representations of data. It doesn't offer standalone statistical analysis; instead, statistical methods can only be applied once a graph or visualization is chosen.
+
+PlotS is a data analysis tool that places a strong emphasis on visual representations of data. It doesn't offer standalone statistical analysis; instead, statistical methods can only be applied once a graph or visualization is chosen.
 
 Currently there are four commonly used statistical methods:
 
@@ -28,14 +29,21 @@ A. Parameteric methods:
 
 B. Non-parametric methods:
 
-1. **Wilcoxon test** - Rank sum test and Signed-rank test
+1. **Wilcoxon test** - Rank sum test (Mann Whitney U test) and Signed-rank test
 
 2. **Kruskal-Wallis test**: It is an alternative to one-way ANOVA test and recommended when the assumptions for the parametric test are not met.
+
+
+</font>
+</p>
 
 
 <br>
 
 <h4> **T-test** </h4>
+
+<p style="font-size:20px;"> 
+<font size = "4">
 
 T-test is for comparing means between two groups. If data has more than two variables to compare, it will prompt a warning message to continue or stop the computation. If the decision to proceed is made, the default operation will involve computing statistics for all possible combinations of two variables per group. However, users can later edit the variables for comparison or add reference group to compare.
 
@@ -46,7 +54,7 @@ T-test is for comparing means between two groups. If data has more than two vari
  
  - **Choose 2 variables per group**: Users are required to choose two variables from the provided list for comparison.
  
- - **Add**: After selecting the variables, clicking the **Add** button incorporates the chosen pairing into the analysis, which will be reflected in the graph as well as in the **Summary** section. If additional comparisons are desired, users should reselect two variables under **Choose 2 variables per group** and use the **Add** button.
+ - **Add**: After selecting the variables, clicking the **Add** button incorporates the chosen pairing into the analysis, which will be reflected in the graph as well as in the **Summary** section. If additional comparisons are desired, users should re-select two variables under **Choose 2 variables per group** and use the **Add** button.
  
  
  - **Delete**: If users wish to remove comparison group, the **Delete** button lets them remove the group sequentially from the comparison list.
@@ -60,10 +68,57 @@ T-test is for comparing means between two groups. If data has more than two vari
  
  - **Add** and **Delete**: Use these button to add or delete the reference variable.
 
+</font>
+</p>
 
 <br>
 
+
 <h4> **ANOVA** </h4>
+
+<p style="font-size:20px;"> 
+<font size = "4">
+
+Use ANOVA to compare variances across the means of different groups. PlotS provide features for:
+
+1. **One-way ANOVA**: Select the one-way ANOVA from **ANOVA type**.
+
+
+2. **Two-way ANOVA**:
+
+   - **ANOVA type**: Select the two-way ANOVA
+        
+   - **Model** : It can be either
+        
+        i. **Additive**: The outcome of a change in one variable does not depend on the level of other variable, i.e. no interaction.
+        ii. **Non-additive**: There is interaction between the factors.
+                
+
+**Visualization of ANOVA** 
+
+- **Choose ANOVA figure**: Depending on the model, the list can be **Main effect** and/or **Interaction**
+
+- **Customizing color of variables**: 
+
+  i. **Additive**: A separate button for color will be provided for the main effects.
+        
+  ii. **Non-additive**: All paramters supplied using **Aesthetic options** will be applied to **Interaction** figure, but a separate button will be provided for the main effect.
+                
+
+**Post-hoc analysis for ANOVA: Tukey's Honest Significant Difference test**
+
+</font>
+</p>
+
+<br>
+
+
+<h4>**Wilcoxon test**</h4>
+
+<p style="font-size:20px;"> 
+<font size = "4">
+It is a non-parametric tests for comparing two paired groups.
+
 
 </font>
 </p>

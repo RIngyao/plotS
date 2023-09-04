@@ -5,10 +5,11 @@
 <strong>Statistics related</strong>
 </h3>
 <p style="font-size:20px;">
-<p><font size="4"> PlotS is a data visualization tool that places a
-strong emphasis on visual representations of data. It doesn’t offer
-standalone statistical analysis; instead, statistical methods can only
-be applied once a graph or visualization is chosen.</p>
+<p><font size="4"></p>
+<p>PlotS is a data analysis tool that places a strong emphasis on visual
+representations of data. It doesn’t offer standalone statistical
+analysis; instead, statistical methods can only be applied once a graph
+or visualization is chosen.</p>
 <p>Currently there are four commonly used statistical methods:</p>
 <p>A. Parameteric methods:</p>
 <ol style="list-style-type: decimal">
@@ -18,16 +19,20 @@ be applied once a graph or visualization is chosen.</p>
 </ol>
 <p>B. Non-parametric methods:</p>
 <ol style="list-style-type: decimal">
-<li><p><strong>Wilcoxon test</strong> - Rank sum test and Signed-rank
-test</p></li>
+<li><p><strong>Wilcoxon test</strong> - Rank sum test (Mann Whitney U
+test) and Signed-rank test</p></li>
 <li><p><strong>Kruskal-Wallis test</strong>: It is an alternative to
 one-way ANOVA test and recommended when the assumptions for the
 parametric test are not met.</p></li>
 </ol>
+</font>
+</p>
 <p><br></p>
 <h4>
 <strong>T-test</strong>
 </h4>
+<p style="font-size:20px;">
+<p><font size="4"></p>
 <p>T-test is for comparing means between two groups. If data has more
 than two variables to compare, it will prompt a warning message to
 continue or stop the computation. If the decision to proceed is made,
@@ -46,8 +51,8 @@ to choose two variables from the provided list for comparison.</p></li>
 <strong>Add</strong> button incorporates the chosen pairing into the
 analysis, which will be reflected in the graph as well as in the
 <strong>Summary</strong> section. If additional comparisons are desired,
-users should reselect two variables under <strong>Choose 2 variables per
-group</strong> and use the <strong>Add</strong> button.</p></li>
+users should re-select two variables under <strong>Choose 2 variables
+per group</strong> and use the <strong>Add</strong> button.</p></li>
 <li><p><strong>Delete</strong>: If users wish to remove comparison
 group, the <strong>Delete</strong> button lets them remove the group
 sequentially from the comparison list.</p></li>
@@ -66,9 +71,57 @@ variable level against the overall reference (i.e. basemean).</p></li>
 <li><p><strong>Add</strong> and <strong>Delete</strong>: Use these
 button to add or delete the reference variable.</p></li>
 </ul>
+</font>
+</p>
 <p><br></p>
 <h4>
 <strong>ANOVA</strong>
 </h4>
+<p style="font-size:20px;">
+<p><font size="4"></p>
+<p>Use ANOVA to compare variances across the means of different groups.
+PlotS provide features for:</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>One-way ANOVA</strong>: Select the one-way ANOVA from
+<strong>ANOVA type</strong>.</p></li>
+<li><p><strong>Two-way ANOVA</strong>:</p>
+<ul>
+<li><p><strong>ANOVA type</strong>: Select the two-way ANOVA</p></li>
+<li><p><strong>Model</strong> : It can be either</p>
+<ol style="list-style-type: lower-roman">
+<li><strong>Additive</strong>: The outcome of a change in one variable
+does not depend on the level of other variable, i.e. no
+interaction.</li>
+<li><strong>Non-additive</strong>: There is interaction between the
+factors.</li>
+</ol></li>
+</ul></li>
+</ol>
+<p><strong>Visualization of ANOVA</strong></p>
+<ul>
+<li><p><strong>Choose ANOVA figure</strong>: Depending on the model, the
+list can be <strong>Main effect</strong> and/or
+<strong>Interaction</strong></p></li>
+<li><p><strong>Customizing color of variables</strong>:</p>
+<ol style="list-style-type: lower-roman">
+<li><p><strong>Additive</strong>: A separate button for color will be
+provided for the main effects.</p></li>
+<li><p><strong>Non-additive</strong>: All paramters supplied using
+<strong>Aesthetic options</strong> will be applied to
+<strong>Interaction</strong> figure, but a separate button will be
+provided for the main effect.</p></li>
+</ol></li>
+</ul>
+<p><strong>Post-hoc analysis for ANOVA: Tukey’s Honest Significant
+Difference test</strong></p>
+</font>
+</p>
+<p><br></p>
+<h4>
+<strong>Wilcoxon test</strong>
+</h4>
+<p style="font-size:20px;">
+<p><font size="4"> It is a non-parametric tests for comparing two
+paired groups.</p>
 </font>
 </p>

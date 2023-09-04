@@ -157,6 +157,7 @@ return list of data frame
 # separateIndLevel(df = ToothGrowth, indVar = ind_var, numVar = "len", stat = "t.test")
 # separateIndLevel(df = df_2, indVar = "species", numVar = "value", stat = "t.test") 
 # separateIndLevel(df=ToothGrowth, indVar = "supp",  numVar = "len", stat = "anova", all = FALSE)
+#not in use
 separateIndLevel <- function(df = NULL, indVar = NULL, numVar = NULL, stat = NULL, all = TRUE){
   
   if(tolower(stat) == "t.test"){
@@ -2014,7 +2015,8 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
            ref.group = unlist(ref),
            comparisons = cmp, p.adjust.method = pAdjustMethod,
            alternative = alternative,
-           paired = pairedD, var.equal = ttestMethod #welch's =FALSE, or student's test = TRUE
+           paired = ifelse(isFALSE(ttestMethod), FALSE, pairedD), # welch's test than always FALSE
+           var.equal = ttestMethod #welch's =FALSE, or student's test = TRUE
     )
 
     message("ttest done2 ")

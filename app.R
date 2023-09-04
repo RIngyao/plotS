@@ -562,6 +562,10 @@ mainSection <- div(
                                                                         choiceNames = dataTypeList, choiceValues = list("no", "yes"))
                                                          }
                                         ),
+                                        conditionalPanel(condition = "input.stat == 'wilcoxon.test'",
+                                                         helpText("Unpaired: Rank sum test;
+                                                                  Paired: Signed-rank test")
+                                                         ),
 
                                         conditionalPanel(condition = "input.stat == 't.test' || input.stat == 'wilcoxon.test'",
                                                           {
@@ -1233,12 +1237,14 @@ mainSection <- div(
                                     column(4,
                                            #ui for normality test
                                            plotOutput("UiQqplot")
-                                    )
+                                    ),
+                                    
+                                    helpText("Number values next to points are the extreme values identified by their row numbers in the data.", style = "text-align:center;")
                                   ),
                                   
                                   #caption: for normality and homoscedasticity
-                                  # uiOutput("UiTestCaption")
-                                  dataTableOutput("UiTestCaption")
+                                  uiOutput("UiTestCaption"),
+                                  reactableOutput("UiNormHomoTest")
                                   
                                   
                  ),
@@ -1319,15 +1325,15 @@ helpSection <- div(
            shinydashboard::dashboardBody(
              tabItems(
                uiOutput("tabContent"),
-               tabItem(tabName = "help1",
-                       div(includeHTML("www/plotS_help.html"))
-               ),
-               tabItem(tabName = "help2",
-                       div(includeHTML("www/plotS_help_graph.html"))
-                       ),
-               tabItem(tabName = "help3", 
-                       div(includeHTML("www/plotS_help_stats.html"))
-                       ),
+               # tabItem(tabName = "help1",
+               #         div(includeHTML("www/plotS_help.html"))
+               # ),
+               # tabItem(tabName = "help2",
+               #         div(includeHTML("www/plotS_help_graph.html"))
+               #         ),
+               # tabItem(tabName = "help3", 
+               #         div(includeHTML("www/plotS_help_stats.html"))
+               #         ),
                tabItem(tabName = "help4","rpackages")
              )
              #, selected = "help1"
@@ -4744,6 +4750,7 @@ server <- function(input, output, session){
   table3 <- reactiveVal(NULL)
   table4 <- reactiveVal(NULL)
   table5 <- reactiveVal(NULL)
+  table6 <- reactiveVal(NULL)
   #stat summary figure
   # figure1 <- figure2 <- figure3 <- reactiveVal(NULL)
   figure1 <- reactiveVal(NULL)
@@ -4763,6 +4770,7 @@ server <- function(input, output, session){
     table3 <- reactiveVal(NULL)
     table4 <- reactiveVal(NULL)
     table5 <- reactiveVal(NULL)
+    table6 <- reactiveVal(NULL)
   })
 
   #update the statSumDownList
@@ -4790,13 +4798,13 @@ server <- function(input, output, session){
       #case 1 & 2: case iii
       if(input$stat == "t.test"){
         #included case 3:
-        optList <- list(Report = "Report", Table = c(paste0(rep("Table ", 4), 1:4)), Figure = c( paste0(rep("Figure ",3), 1:3) ))
+        optList <- list(Report = "Report", Table = c(paste0(rep("Table ", 4), 1:5)), Figure = c( paste0(rep("Figure ",3), 1:3) ))
       }else if(input$stat == "wilcoxon.test"){
-        optList <- list( Report = "Report", Table = c( paste0(rep("Table ", 4), 1:4) ) )
+        optList <- list( Report = "Report", Table = c( paste0(rep("Table ", 4), 1:5) ) )
       }else if(input$stat == "anova"){
         #included case 3:
         if(twoAnovaError() == 0){
-          optList <- list(Report = "Report", Table = c(paste0(rep("Table ", 5), 1:5)), Figure = c( paste0(rep("Figure ",3), 1:3) ))
+          optList <- list(Report = "Report", Table = c(paste0(rep("Table ", 6                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ), 1:6)), Figure = c( paste0(rep("Figure ",3), 1:3) ))
         }else if(twoAnovaError() != 0){
           optList <- list(Table = c("Table 1", "Table 2"))
         }
@@ -5006,7 +5014,6 @@ server <- function(input, output, session){
   observe({
     req(is.data.frame(ptable()), pltType() != "none", input$xAxis, input$yAxis, input$stat %in% c("t.test", "anova"), computeFuncError(), twoAnovaError())
     #notify user
-    browser()
     summaryId <- waitNotify(id = "summaryId")
     on.exit(removeNotification(summaryId),  add = TRUE)
 
@@ -5109,30 +5116,27 @@ server <- function(input, output, session){
     #get formula and apply to the data
     message("--------ind_var for regress")
     message(ind_var)
-    if(input$stat %in% c("t.test", "anova")){
-      #anova check
-      validate(
-        need(twoAnovaError() == 0, " ")
-      )
-      
-      tryCatch({
-        #get data for each levels of the independent variable: list of df output
-        df_list <- separateIndLevel(df = data, indVar = ind_var, stat = "t.test", all=TRUE)
-        forml <- reformulate(response = glue::glue("{num_var}"), termlabels = glue::glue("{ind_var}"))
-        #run linear regression based on user's input.
-        model_list <- lapply(df_list, function(x) lm(data = x, formula = forml))
-        model <- lm(data = data, formula = forml)
-        #residual
-        resl <- resid(model)
-      }, error = function(e){
-        print(e)
-      })
-
-    }
+    #anova check
+    validate(
+      need(twoAnovaError() == 0, " ")
+    )
     
-    model <- lm(data = data, formula = forml)
-    #residual
-    resl <- resid(model)
+    tryCatch({
+      #get data for each levels of the independent variable: list of df output
+      #not in use: df_list <- separateIndLevel(df = data, indVar = ind_var, stat = "t.test", all=TRUE)
+      forml <- reformulate(response = glue::glue("{num_var}"), termlabels = glue::glue("{ind_var}"))
+      #run linear regression based on user's input.
+      #not in use: model_list <- lapply(df_list, function(x) lm(data = x, formula = forml))
+      model <- lm(data = data, formula = forml)
+      #residual
+      resl <- resid(model)
+    }, error = function(e){
+      print(e)
+    })
+    
+    # model <- lm(data = data, formula = forml)
+    # #residual
+    # resl <- resid(model)
     #residual plot
     output$UiResidualPlot <- renderPlot({
 
@@ -5146,7 +5150,7 @@ server <- function(input, output, session){
         if(input$stat == 't.test' && unpaired_stopTest() == 'yes'){
           validate("")
         }else{
-          plot(model, which = 1, add.smooth = TRUE) #red line is the smooth line and 
+          plot(model, which = 1, add.smooth = TRUE, caption = NULL, ann = FALSE, sub="");title(ylab = "Residuals", xlab = "Fitted values", main = "Figure 1. Residuals vs Fitted") #red line is the smooth line and 
           #     number values next to some points represent extreme values identified by their row numbers in the data 
           # plot(fitted(model), resl, main= "Figure 1. Residual plot", ylab="residual", xlab = "predicted") %>% abline(0,0, col="red")
           rec <- recordPlot()
@@ -5192,7 +5196,7 @@ server <- function(input, output, session){
         if(input$stat == 't.test' && unpaired_stopTest() == 'yes'){
           validate("")
         }else{
-          plot(model, which =2)
+          plot(model, which =2, caption = NULL, ann = FALSE,  sub="");title(ylab = "Standardized residuals", xlab = "Theoretical quantiles", main = "Figure 3. Normal Q-Q plot")
           # qqnorm(resl, main="Figure 3. Q-Q plot of residuals")
           # qqline(resl, col="red")
           rec <- recordPlot()
@@ -5206,9 +5210,11 @@ server <- function(input, output, session){
     #normality test
     # case 1. if sample size is between 3 and 5000, use Shaprio-Wilk test
     # case 2: sample size is above 5000, use Kolmogorov-Smirnov test
-    output$UiTestCaption <- renderReactable({
+    output$UiTestCaption <- renderUI({
+      helpText("Table 3. Test results of normality and homogeneity of variance.", style = "margin-top:40px; margin-bottom:0; font-weight:bold; font-size:20px")
+    })
+    output$UiNormHomoTest <- renderReactable({
       
-      browser()
       if(input$stat == 't.test' && unpaired_stopTest() == 'yes'){
         validate("")
       }
@@ -5243,7 +5249,7 @@ server <- function(input, output, session){
         #append to the nromality result
         normHomoDf <- rbind(normDf, lvDf)
         
-        reactable(as.data.frame(normHomoDf))
+        reactable(as.data.frame(normHomoDf), sortable = FALSE, pagination = FALSE, outlined = TRUE)
       }
     })
 
@@ -5314,7 +5320,7 @@ server <- function(input, output, session){
 
       }
 
-      helpText(glue::glue("Table 3. Summary for {ttype}."), style = "margin-top:40px; margin-bottom:0; font-weight:bold; font-size:20px;")
+      helpText(glue::glue("Table 4. Summary for {ttype}."), style = "margin-top:40px; margin-bottom:0; font-weight:bold; font-size:20px;")
     })
 
     output$UiStatSubCaption <- renderUI({
@@ -5631,7 +5637,7 @@ server <- function(input, output, session){
         if(input$stat %in% c('t.test', "wilcoxon.test") && unpaired_stopTest() == 'yes'){
           validate("")
         }else{
-          helpText("Table 4. Table of effect size. Measures the strength of relationship between variables.", style = "margin-top:40px; margin-bottom:0; font-weight:bold; font-size:20px;")
+          helpText("Table 5. Table of effect size. Measures the strength of relationship between variables.", style = "margin-top:40px; margin-bottom:0; font-weight:bold; font-size:20px;")
         }
 
       }
@@ -5712,7 +5718,7 @@ server <- function(input, output, session){
         need(twoAnovaError() == 0, " ")
       )
 
-      tabn <- "Table 5."
+      tabn <- "Table 6."
       if(input$stat == "anova"){
         helpText(glue::glue("{tabn} Post-hoc analysis using Tukey's Honest Significant Difference method"), style = "margin-top:40px; margin-bottom:0; font-weight:bold; font-size:20px")
       }else{
@@ -7551,22 +7557,24 @@ server <- function(input, output, session){
         }else if(dlChoice == "Table 4"){
           write_csv(table4(), file)
         }else if(dlChoice == "Table 5"){
+          write_csv(table5(), file)
+        }else if(dlChoice == "Table 6"){
 
           #save as worksheet: openxlsx
           #create a workbook
           wb <- openxlsx::createWorkbook()
           #add sheet name and write the data
-          if(is.data.frame(table5())){
-            addWorksheet(wb, sheetName = "table 5")
-            writeData(wb, table5()[], sheet = "table 5")
-          }else if(!is.data.frame(table5())){
-            for(i in 1:length(table5())){
+          if(is.data.frame(table6())){
+            addWorksheet(wb, sheetName = "table 6")
+            writeData(wb, table6()[], sheet = "table 6")
+          }else if(!is.data.frame(table6())){
+            for(i in 1:length(table6())){
               #prepare the sheet name of the table: ':' not allow
-              colName <- names(table5()[i])
+              colName <- names(table6()[i])
               sheetnames <- ifelse( str_detect(colName, ":"), sub(":",".", colName), colName )
               #add proper column name in the final output
-              x_df <- as.data.frame(table5()[i])
-              x_df[, sheetnames] <- rownames(as.data.frame(table5()[i]))
+              x_df <- as.data.frame(table6()[i])
+              x_df[, sheetnames] <- rownames(as.data.frame(table6()[i]))
               x_df <- x_df %>% select(.data[[sheetnames]], everything())
               # rownames(x_df) <- NULL
 
