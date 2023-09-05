@@ -1244,7 +1244,9 @@ mainSection <- div(
                                   
                                   #caption: for normality and homoscedasticity
                                   uiOutput("UiTestCaption"),
-                                  reactableOutput("UiNormHomoTest")
+                                  reactableOutput("UiNormHomoTest"),
+                                  conditionalPanel(condition = "input.stat == 't.test' | input.stat == 'anova'",
+                                                   helpText("Note: Higher the p-value (generally greater than 0.05), the more likely it satisfy the parametric assumptions.", style = "font-weight:bold"))
                                   
                                   
                  ),
@@ -4756,9 +4758,9 @@ server <- function(input, output, session){
   figure1 <- reactiveVal(NULL)
   figure2 <- reactiveVal(NULL)
   figure3 <- reactiveVal(NULL)
-  #convert to null whenever data change
+  #convert to null whenever data and stat method change
   observe({
-    req(is.data.frame(ptable()))
+    req(is.data.frame(ptable()), input$stat)
     #stat summary figure
     # figure1 <- figure2 <- figure3 <- reactiveVal(NULL)
     figure1 <- reactiveVal(NULL)
@@ -5150,7 +5152,8 @@ server <- function(input, output, session){
         if(input$stat == 't.test' && unpaired_stopTest() == 'yes'){
           validate("")
         }else{
-          plot(model, which = 1, add.smooth = TRUE, caption = NULL, ann = FALSE, sub="");title(ylab = "Residuals", xlab = "Fitted values", main = "Figure 1. Residuals vs Fitted") #red line is the smooth line and 
+          plot(model, which = 1,  add.smooth =FALSE, caption = NULL, ann = FALSE, sub="");title(ylab = "Residuals", xlab = "Fitted values", main = "Figure 1. Residuals vs Fitted") #red line is the smooth line and 
+          # add.smooth = TRUE,
           #     number values next to some points represent extreme values identified by their row numbers in the data 
           # plot(fitted(model), resl, main= "Figure 1. Residual plot", ylab="residual", xlab = "predicted") %>% abline(0,0, col="red")
           rec <- recordPlot()
@@ -5248,7 +5251,10 @@ server <- function(input, output, session){
         lvDf <- data.frame(test = "Homogeneity of variance", method = "Levene's test", variable = "across groups", statistic = lvT$`F value`[1], p.value = lvT$`Pr(>F)`[1])
         #append to the nromality result
         normHomoDf <- rbind(normDf, lvDf)
+        #save it for download purpose: as report
+        table3(normHomoDf)
         
+        #display the table
         reactable(as.data.frame(normHomoDf), sortable = FALSE, pagination = FALSE, outlined = TRUE)
       }
     })
@@ -5286,7 +5292,7 @@ server <- function(input, output, session){
       #type of stat
       if(input$stat == "t.test"){
         req(input$ttestMethod)
-
+        tableNo <- "Table 4."
         if(input$ttestMethod == "welch"){
           ttype <- "t-test (Welch's test)"
         }else{
@@ -5294,12 +5300,16 @@ server <- function(input, output, session){
         }
 
       }else if(input$stat == "kruskal-wallis"){
-
+        
+        tableNo <- "Table 3."
         ttype <-  "Kruskal-Wallis test"
 
       }else if(input$stat == 'anova'){
         #for anova
         req(input$pairedData)
+        
+        tableNo <- "Table 4."
+        
         if(input$pairedData == "one"){
           ttype <- "one-way ANOVA"
         }else if(input$pairedData == "two"){
@@ -5311,7 +5321,9 @@ server <- function(input, output, session){
         }
 
       }else if(input$stat == "wilcoxon.test"){
-
+        
+        tableNo <- "Table 3."
+        
         if(input$pairedData == "no"){
           ttype <- "Wilcoxon rank-sum test"
         }else{
@@ -5320,7 +5332,7 @@ server <- function(input, output, session){
 
       }
 
-      helpText(glue::glue("Table 4. Summary for {ttype}."), style = "margin-top:40px; margin-bottom:0; font-weight:bold; font-size:20px;")
+      helpText(glue::glue("{tableNo} Summary for {ttype}."), style = "margin-top:40px; margin-bottom:0; font-weight:bold; font-size:20px;")
     })
 
     output$UiStatSubCaption <- renderUI({
@@ -5368,7 +5380,15 @@ server <- function(input, output, session){
             need(computeFuncError() == 0, "Error: cannot compute! Please, check the data")
           )
         }
-        table3(testTable$df)
+        
+        #save the stat summary for report
+        if(input$stat %in% c("t.test", "kruskal-wallis")){
+          table3(testTable$df)
+        }else{
+          # for parametric
+          table4(testTable$df)
+        }
+        
         reactable(as.data.frame(testTable$df), sortable = FALSE, pagination = FALSE, outlined = TRUE)
 
       }
@@ -5637,7 +5657,13 @@ server <- function(input, output, session){
         if(input$stat %in% c('t.test', "wilcoxon.test") && unpaired_stopTest() == 'yes'){
           validate("")
         }else{
-          helpText("Table 5. Table of effect size. Measures the strength of relationship between variables.", style = "margin-top:40px; margin-bottom:0; font-weight:bold; font-size:20px;")
+          
+          if(input$stat %in% c("kruskal-wallis", "wilcoxon.test")){
+            helpText("Table 4. Table of effect size. Measures the strength of relationship between variables.", style = "margin-top:40px; margin-bottom:0; font-weight:bold; font-size:20px;")
+          }else{
+            helpText("Table 5. Table of effect size. Measures the strength of relationship between variables.", style = "margin-top:40px; margin-bottom:0; font-weight:bold; font-size:20px;")
+          }
+          
         }
 
       }
@@ -5695,7 +5721,12 @@ server <- function(input, output, session){
               need(computeFuncError() == 0, efsErrorMsg())
             )
           }
-          table4(effectSize$df)
+          
+          #save it for downloading as report
+          if(input$stat %in% c("kruskal-wallis", "wilcoxon.test")){
+            table4(effectSize$df)
+          }else{table5(effectSize$df)}
+          
           reactable(as.data.frame(effectSize$df), sortable = FALSE, pagination = FALSE, outlined = TRUE)
         }
       }
@@ -5718,11 +5749,12 @@ server <- function(input, output, session){
         need(twoAnovaError() == 0, " ")
       )
 
-      tabn <- "Table 6."
+      
       if(input$stat == "anova"){
-        helpText(glue::glue("{tabn} Post-hoc analysis using Tukey's Honest Significant Difference method"), style = "margin-top:40px; margin-bottom:0; font-weight:bold; font-size:20px")
+        
+        helpText(glue::glue("Table 6. Post-hoc analysis using Tukey's Honest Significant Difference method"), style = "margin-top:40px; margin-bottom:0; font-weight:bold; font-size:20px")
       }else{
-        helpText(glue::glue("{tabn} Post-hoc analysis using Dunnett's method"), style = "margin-top:40px; margin-bottom:0; font-weight:bold; font-size:20px")
+        helpText(glue::glue("Table 5. Post-hoc analysis using Dunnett's method"), style = "margin-top:40px; margin-bottom:0; font-weight:bold; font-size:20px")
       }
 
     })
@@ -5737,8 +5769,14 @@ server <- function(input, output, session){
       validate(
         need(twoAnovaError() == 0, " ")
       )
-
-      table5(postHoc_table$df)
+      
+      #save it for downloading as report
+      if(input$stat == "anova"){
+        table6(postHoc_table$df)
+      }else{
+        table5(postHoc_table$df)
+      }
+      
       postHoc_table$df
     })
   })
@@ -7513,6 +7551,7 @@ server <- function(input, output, session){
     )
   })
 
+  #Download statistic summary
   observe({
     req(input$statSumDownList)
     output$downloadStatSummary <- downloadHandler(
@@ -7602,7 +7641,7 @@ server <- function(input, output, session){
           # Set up parameters to pass to Rmd document: depend on the type of plot and stat
           if(pltType() != "none" && input$stat != "none"){
             if(input$stat == "t.test"){
-              param <- list(table1 = table1(), table2 = table2(), table3=table3(), table4 = table4(),
+              param <- list(table1 = table1(), table2 = table2(), table3=table3(), table4 = table4(), table5 = table5(),
                             figure1 = figure1(), figure2 = figure2(), figure3 = figure3(),
                             caption = input$ttestMethod, statment1 = statment1(), statment2 = statment2(),
                             subcaption = reportSubCaption()
@@ -7611,13 +7650,13 @@ server <- function(input, output, session){
               param <- list(table1 = table1(), table2 = table2(), table3=table3(), table4 = table4(), subcaption = reportSubCaption())
             }else if(input$stat == "anova"){
               if(input$pairedData == "one"){
-                param <- list(table1 = table1(), table2 = table2(), table3=table3(), table4 = table4(), table5 = table5(),
+                param <- list(table1 = table1(), table2 = table2(), table3=table3(), table4 = table4(), table5 = table5(), table6 = table6(),
                               figure1 = figure1(), figure2 = figure2(), figure3 = figure3(),
                               anovaType = input$pairedData, statment1 = statment1(), statment2 = statment2(),
                               subcaption = reportSubCaption()
                 )
               }else if(input$pairedData == "two"){
-                param <- list(table1 = table1(), table2 = table2(), table3=table3(), table4 = table4(), table5 = table5(),
+                param <- list(table1 = table1(), table2 = table2(), table3=table3(), table4 = table4(), table5 = table5(), table6 = table6(),
                               figure1 = figure1(), figure2 = figure2(), figure3 = figure3(),
                               anovaType = input$pairedData, model = input$anovaModel,
                               statment1 = statment1(), statment2 = statment2(), subcaption = reportSubCaption()

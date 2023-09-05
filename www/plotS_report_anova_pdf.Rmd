@@ -12,6 +12,7 @@ params:
   table3: NA
   table4: NA
   table5: NA
+  table6: NA
   figure1: NA
   figure2: NA
   figure3: NA
@@ -47,32 +48,40 @@ params$figure3
 
 ```
 
-The p-value (rounded to 3 decimal places) for Levene's homoscedasticity test is `r params$statment1`, and Kolmogrov-Smirnov's normality test is `r params$statment2`.
+### Number values next to points are the extreme values identified by their row numbers in the data
 
+
+
+
+# Table 3. Test results of normality and homogeneity of variance.
+```{r echo =FALSE}
+knitr::kable(params$table3)
+```
 
 **Note: Higher the p-value (generally greater than 0.05), the more likely it satisfy the parametric assumptions.**
 
 
-# Table 3. Summar for `r if(params$anovaType == "one"){"one-way ANOVA"}else{"two-way ANOVA"} ` `r if(params$model == "additive"){"(additive model)"}else if(params$model == "non-additive"){"(non-additive model)"}`.
+
+# Table 4. Summary for `r if(params$anovaType == "one"){"one-way ANOVA"}else{"two-way ANOVA"} ` `r if(params$model == "additive"){"(additive model)"}else if(params$model == "non-additive"){"(non-additive model)"}`.
 ```{r echo=FALSE}
-knitr::kable(params$table3)
+knitr::kable(params$table4)
 ```
 
-# Table 4. Table of effect size. Measures the strength of relationship between variables.
+# Table 5. Table of effect size. Measures the strength of relationship between variables.
 
 <!-- Eta2 is the Generalized eta squared (Eta2); CI is the confidence interval; CI_low and CI_high are the upper and lower bound. -->
 `r params$subcaption`
 ```{r echo=FALSE}
-knitr::kable(params$table4)
+knitr::kable(params$table5)
 
 ```
 
-# Table 5. Post-hoc analysis using Tukey's Honest Significant Difference method
+# Table 6. Post-hoc analysis using Tukey's Honest Significant Difference method
 ```{r}
 if(params$anovaType == "one"){
-  knitr::kable(params$table5)
+  knitr::kable(params$table6)
 }else{
-  params$table5
+  params$table6
 }
 ```
 
