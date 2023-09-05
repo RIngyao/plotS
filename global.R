@@ -1944,7 +1944,8 @@ aovInFunc <- function(x = "categoricalVar", model){
 #require table for summary
 testTable <- reactiveValues(df=NULL) #statistic table
 postHoc_table <- reactiveValues(df = NULL) #post-hoc analysis table
-effectSize <- reactiveValues(df=NULL) #effect size table
+# effectSize <- reactiveValues(df=NULL) #effect size table
+effectSize <- reactiveVal(NULL)
 
 #statistical computation function:
 # compute error message
@@ -2315,6 +2316,8 @@ stat = character. Statistical method - 't.test' or 'anova'
 welchs = logical. TRUE for welch and FALSE for student. require only for t.test.
 fa = formula. lm formula - eg. len ~ supp
 ... = additional arguments. can be used to specify paired or unpaired data in t.test
+
+Note: Currently the alternative for effect size of ANOVA (eta-squared) is only two.sided
 "
 
 efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, method = "cohen/hedge/glass/eta..", stat = "t.test/anova", welchs = FALSE, partial = TRUE, fa, ...){
@@ -2363,31 +2366,33 @@ efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, meth
     final_df <- efs2
     #end of t.test
   }else if(stat =="anova"){
-
+    browser()
+    message(fa)
     av <- aov(data = dt, formula = fa) #replace fs with proper format
     # anov <- car::Anova(av, type = 3)
-    anov <- car::Anova(av)
-    pav <- parameters::model_parameters(anov)
-
+    # anov <- car::Anova(av)
+    pav <- parameters::model_parameters(av)
+    message(av)
+    message(pav)
     if(method == "Eta-squared"){
-      final_df <- effectsize::eta_squared(pav, partial = FALSE) %>% as.data.frame()
+      final_df <- effectsize::eta_squared(pav, partial = FALSE, alternative = "two.sided") %>% as.data.frame()
       final_df["magnitude"] <- effectsize::interpret_eta_squared(final_df$Eta2) %>% as.data.frame()
     }else if(method == "Partial eta-squared"){
-      final_df <- effectsize::eta_squared(pav, partial = TRUE) %>% as.data.frame()
+      final_df <- effectsize::eta_squared(pav, partial = TRUE, alternative = "two.sided") %>% as.data.frame()
       print(final_df)
       print(colnames(final_df))
-      final_df["magnitude"] <- effectsize::interpret_eta_squared(final_df$Eta2_partial) %>% as.data.frame()
-    }else if(method == "Generalized partial eta-squared"){
-      final_df <- effectsize::eta_squared(pav, partial = TRUE, generalized = TRUE) %>% as.data.frame()
+      final_df["magnitude"] <- effectsize::interpret_eta_squared(final_df[,2]) #%>% as.data.frame()
+    }else if(method == "Generalized partial eta-squared"){ 
+      final_df <- effectsize::eta_squared(pav, partial = TRUE, generalized = TRUE, alternative = "two.sided") %>% as.data.frame()
       final_df["magnitude"] <- effectsize::interpret_eta_squared(final_df$Eta2_generalized) %>% as.data.frame()
     }else if(method == "Epsilon-squared"){
-      final_df <- effectsize::epsilon_squared(pav, partial = FALSE) %>% as.data.frame()
+      final_df <- effectsize::epsilon_squared(pav, partial = FALSE, alternative = "two.sided") %>% as.data.frame()
       final_df["magnitude"] <- effectsize::interpret_epsilon_squared(final_df$Epsilon2) %>% as.data.frame()
     }else if(method == "Omega-squared"){
-      final_df <- effectsize::omega_squared(pav, partial = FALSE) %>% as.data.frame()
+      final_df <- effectsize::omega_squared(pav, partial = FALSE, alternative = "two.sided") %>% as.data.frame()
       final_df["magnitude"] <- effectsize::interpret_omega_squared(final_df$Omega2) %>% as.data.frame()
     }else if(method == "Cohen's f"){
-      coh <- effectsize::cohens_f(pav, partial = FALSE) %>% as.data.frame()
+      coh <- effectsize::cohens_f(pav, partial = FALSE, alternative = "two.sided") %>% as.data.frame()
       if(abs(coh$Cohens_f) < 0.10){
         coh$magnitude <- "negligible"
       }else if(abs(coh$Cohens_f) >= 0.10 & abs(coh$Cohens_f) < 0.25){
@@ -2401,7 +2406,9 @@ efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, meth
     }#end of cohens_f
 
   }#end of anova
-
+  
+  message(str(final_df))
+  message(final_df)
   return(final_df)
 }
 

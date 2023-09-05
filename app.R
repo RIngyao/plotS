@@ -5566,10 +5566,13 @@ server <- function(input, output, session){
                         stat = input$stat, fa = forml, x = NULL, v = NULL)
         }else{
           req(input$anovaModel)
+          browser()
           message(input$anovaModel)
           #get the formula
           avIndVar <- aovInFunc(indpVar(), model = input$anovaModel)
           forml <- reformulate(response = input$yAxis, termlabels = avIndVar)
+          message(avIndVar)
+          message(forml)
           efs_df <- efS(dt = ptable(), y = input$yAxis, method = input$effectSizeMethod,
                         stat = input$stat, fa = forml, x = NULL, v = NULL)
         }
@@ -5612,8 +5615,9 @@ server <- function(input, output, session){
                                            nboot = as.numeric(input$effectSizeMethod))
       }
 
-
-      effectSize$df <<- efs_df
+      browser()
+      message(str(efs_df))
+      effectSize(efs_df)
     }, error = function(e){
       efsErrorMsg(glue::glue("{e}")) #not implemented yet
       print(e)
@@ -5626,8 +5630,8 @@ server <- function(input, output, session){
   #display effect size.
   observe({
 
-    req( is.data.frame(ptable()), pltType() != "none", input$stat %in% statList, !is.null(effectSize$df), input$effectSizeMethod, computeFuncError(), twoAnovaError() )
-    # req( is.data.frame(ptable()), pltType() != "none", input$stat %in% statList, effectSize$df, input$effectSizeMethod, computeFuncError(), twoAnovaError() )
+    req( is.data.frame(ptable()), pltType() != "none", input$stat %in% statList, !is.null(effectSize()), input$effectSizeMethod, computeFuncError(), twoAnovaError() )
+    # req( is.data.frame(ptable()), pltType() != "none", input$stat %in% statList, effectSize(), input$effectSizeMethod, computeFuncError(), twoAnovaError() )
 
 
     validate(
@@ -5724,10 +5728,10 @@ server <- function(input, output, session){
           
           #save it for downloading as report
           if(input$stat %in% c("kruskal-wallis", "wilcoxon.test")){
-            table4(effectSize$df)
-          }else{table5(effectSize$df)}
+            table4(effectSize())
+          }else{table5(effectSize())}
           
-          reactable(as.data.frame(effectSize$df), sortable = FALSE, pagination = FALSE, outlined = TRUE)
+          reactable(as.data.frame(effectSize()), sortable = FALSE, pagination = FALSE, outlined = TRUE)
         }
       }
     })
