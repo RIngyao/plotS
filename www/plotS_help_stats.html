@@ -80,14 +80,14 @@ button to add or delete the reference variable.</p></li>
 <p style="font-size:20px;">
 <p><font size="4"></p>
 <p>Use ANOVA to compare variances across the means of different groups.
-PlotS provide features for:</p>
+Two types of ANOVA:</p>
 <ol style="list-style-type: decimal">
 <li><p><strong>One-way ANOVA</strong>: Select the one-way ANOVA from
 <strong>ANOVA type</strong>.</p></li>
 <li><p><strong>Two-way ANOVA</strong>:</p>
 <ul>
 <li><p><strong>ANOVA type</strong>: Select the two-way ANOVA</p></li>
-<li><p><strong>Model</strong> : It can be either</p>
+<li><p><strong>Model</strong> :</p>
 <ol style="list-style-type: lower-roman">
 <li><strong>Additive</strong>: The outcome of a change in one variable
 does not depend on the level of other variable, i.e. no
@@ -104,8 +104,8 @@ list can be <strong>Main effect</strong> and/or
 <strong>Interaction</strong></p></li>
 <li><p><strong>Customizing color of variables</strong>:</p>
 <ol style="list-style-type: lower-roman">
-<li><p><strong>Additive</strong>: A separate button for color will be
-provided for the main effects.</p></li>
+<li><p><strong>Additive</strong>: A separate color button will be
+provided for the main effects. Users can edit the color.</p></li>
 <li><p><strong>Non-additive</strong>: All paramters supplied using
 <strong>Aesthetic options</strong> will be applied to
 <strong>Interaction</strong> figure, but a separate button will be
@@ -122,6 +122,19 @@ Difference test</strong></p>
 </h4>
 <p style="font-size:20px;">
 <p><font size="4"> It is a non-parametric tests for comparing two
-paired groups.</p>
+groups. If the data has more than two groups to compare than it will
+prompt a warning message to continue or stop the computation. Just as in
+t-test, proceeding the computation will by default analyse all possible
+combinations of two variables per group. Users can later add reference
+group or add variables to compare. Similar steps as in
+<strong>t-test</strong> for adding variables to compare.</p>
+<p><strong>Paired or Unpaired data</strong>:</p>
+<ul>
+<li><p>Paired data: If the test is to compare two related samples or
+paired data, then it will use <strong>Wilcoxon signed-rank
+test</strong></p></li>
+<li><p>Unpaired data: <strong>Mann-Whitney test/ Wilcoxon Rank Sum
+test</strong> is used for unpaired data.</p></li>
+</ul>
 </font>
 </p>

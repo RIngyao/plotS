@@ -231,12 +231,14 @@ normalityTest <- function(x, indVar = ind_var, numVar=NULL, stat = NULL){
   
   #get levels name: require for labeling
   if(str_detect(indVar, "[:,*,+]")){
+    
     x$new <- paste0(x[[varCol[1]]], ":", x[[varCol[[2]]]])
+    
     varName <- unique(x$new)
+    
   }else{
     varName <- unique(x[[indVar]])
   }
-  
   
   if(nrow(x) <= 5000){
     #shapiro-wilk test
@@ -244,6 +246,7 @@ normalityTest <- function(x, indVar = ind_var, numVar=NULL, stat = NULL){
     newResult <- result %>% mutate(test = "Normality", method = "Shapiro-Wilk test") %>% select(test, method, everything())
     newResult$variable <- varName
   }else{
+    #kolmogorov test
     result <- ks.test(unique(x[[numVar]]),"pnorm")
     newResult <- data.frame(test = "Normality", method = result$method,  variable = varName, statistic = result$statistic,  pvalue = result$p.value)
   }
@@ -254,7 +257,7 @@ normalityTest <- function(x, indVar = ind_var, numVar=NULL, stat = NULL){
 "arguments:
 df = data frame.
 method = character. imputation methods - mean, median, mode, pam, cart, lasso, miss forest
-
+ 
 return: data frame (same dimension as input df)"
 imputeFunc <- function(df, method){
   
@@ -2366,14 +2369,12 @@ efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, meth
     final_df <- efs2
     #end of t.test
   }else if(stat =="anova"){
-    browser()
-    message(fa)
+    
     av <- aov(data = dt, formula = fa) #replace fs with proper format
     # anov <- car::Anova(av, type = 3)
     # anov <- car::Anova(av)
     pav <- parameters::model_parameters(av)
-    message(av)
-    message(pav)
+    
     if(method == "Eta-squared"){
       final_df <- effectsize::eta_squared(pav, partial = FALSE, alternative = "two.sided") %>% as.data.frame()
       final_df["magnitude"] <- effectsize::interpret_eta_squared(final_df$Eta2) %>% as.data.frame()
@@ -2381,7 +2382,7 @@ efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, meth
       final_df <- effectsize::eta_squared(pav, partial = TRUE, alternative = "two.sided") %>% as.data.frame()
       print(final_df)
       print(colnames(final_df))
-      final_df["magnitude"] <- effectsize::interpret_eta_squared(final_df[,2]) #%>% as.data.frame()
+      final_df["magnitude"] <- effectsize::interpret_eta_squared(final_df$Eta2_partial) #%>% as.data.frame()
     }else if(method == "Generalized partial eta-squared"){ 
       final_df <- effectsize::eta_squared(pav, partial = TRUE, generalized = TRUE, alternative = "two.sided") %>% as.data.frame()
       final_df["magnitude"] <- effectsize::interpret_eta_squared(final_df$Eta2_generalized) %>% as.data.frame()
@@ -2407,8 +2408,6 @@ efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, meth
 
   }#end of anova
   
-  message(str(final_df))
-  message(final_df)
   return(final_df)
 }
 

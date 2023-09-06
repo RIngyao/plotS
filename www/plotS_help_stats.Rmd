@@ -79,7 +79,7 @@ T-test is for comparing means between two groups. If data has more than two vari
 <p style="font-size:20px;"> 
 <font size = "4">
 
-Use ANOVA to compare variances across the means of different groups. PlotS provide features for:
+Use ANOVA to compare variances across the means of different groups. Two types of ANOVA:
 
 1. **One-way ANOVA**: Select the one-way ANOVA from **ANOVA type**.
 
@@ -88,7 +88,7 @@ Use ANOVA to compare variances across the means of different groups. PlotS provi
 
    - **ANOVA type**: Select the two-way ANOVA
         
-   - **Model** : It can be either
+   - **Model** :
         
         i. **Additive**: The outcome of a change in one variable does not depend on the level of other variable, i.e. no interaction.
         ii. **Non-additive**: There is interaction between the factors.
@@ -100,7 +100,7 @@ Use ANOVA to compare variances across the means of different groups. PlotS provi
 
 - **Customizing color of variables**: 
 
-  i. **Additive**: A separate button for color will be provided for the main effects.
+  i. **Additive**: A separate color button will be provided for the main effects. Users can edit the color.
         
   ii. **Non-additive**: All paramters supplied using **Aesthetic options** will be applied to **Interaction** figure, but a separate button will be provided for the main effect.
                 
@@ -117,7 +117,15 @@ Use ANOVA to compare variances across the means of different groups. PlotS provi
 
 <p style="font-size:20px;"> 
 <font size = "4">
-It is a non-parametric tests for comparing two paired groups.
+It is a non-parametric tests for comparing two groups. If the data has more than two groups to compare than it will prompt a warning message to continue or stop the computation. Just as in t-test, proceeding the computation will by default analyse all possible combinations of two variables per group. Users can later add reference group or add variables to compare. Similar steps as in **t-test** for adding variables to compare.
+
+**Paired or Unpaired data**:
+
+- Paired data: If the test is to compare two related samples or paired data, then it will use **Wilcoxon signed-rank test**
+
+- Unpaired data: **Mann-Whitney test/ Wilcoxon Rank Sum test** is used for unpaired data.
+
+
 
 
 </font>

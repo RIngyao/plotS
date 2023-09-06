@@ -5232,8 +5232,6 @@ server <- function(input, output, session){
         #levene test
         if(input$stat == "anova" && input$pairedData == 'two' && input$anovaModel == "additive"){
           form_lv <- reformulate(response = glue::glue("{num_var}"), termlabels = glue::glue("{lv_var}")) #used in levene test
-          message(form_lv)
-          
           model_lv <- lm(data = data, formula = form_lv)
           lvT <- car::leveneTest(model_lv)
         }else{
@@ -5502,7 +5500,9 @@ server <- function(input, output, session){
 
       }else if(input$stat == "anova" && req(input$pairedData) == "two"){
         # For two-way anova: select x-axis and one more independent variable choosen by the user
-        c(colnames(input$xAxis), req(input$twoAovVar))
+        message(input$xAxis)
+        message(input$twoAovVar)
+        c(input$xAxis, req(input$twoAovVar))
       }
 
     })
@@ -5566,13 +5566,11 @@ server <- function(input, output, session){
                         stat = input$stat, fa = forml, x = NULL, v = NULL)
         }else{
           req(input$anovaModel)
-          browser()
-          message(input$anovaModel)
+          
           #get the formula
           avIndVar <- aovInFunc(indpVar(), model = input$anovaModel)
           forml <- reformulate(response = input$yAxis, termlabels = avIndVar)
-          message(avIndVar)
-          message(forml)
+          
           efs_df <- efS(dt = ptable(), y = input$yAxis, method = input$effectSizeMethod,
                         stat = input$stat, fa = forml, x = NULL, v = NULL)
         }
@@ -5614,9 +5612,7 @@ server <- function(input, output, session){
                                            conf.level = 0.95,
                                            nboot = as.numeric(input$effectSizeMethod))
       }
-
-      browser()
-      message(str(efs_df))
+      
       effectSize(efs_df)
     }, error = function(e){
       efsErrorMsg(glue::glue("{e}")) #not implemented yet
