@@ -1326,7 +1326,7 @@ helpSection <- div(
     column(10,
            shinydashboard::dashboardBody(
              tabItems(
-               uiOutput("tabContent"),
+               uiOutput("tabContent")
                # tabItem(tabName = "help1",
                #         div(includeHTML("www/plotS_help.html"))
                # ),
@@ -1336,7 +1336,9 @@ helpSection <- div(
                # tabItem(tabName = "help3", 
                #         div(includeHTML("www/plotS_help_stats.html"))
                #         ),
-               tabItem(tabName = "help4","rpackages")
+               # tabItem(tabName = "help4",
+               #         div(includeHTML("www/plotS_help_package.html"))
+               #         )
              )
              #, selected = "help1"
            )
@@ -1499,6 +1501,7 @@ server <- function(input, output, session){
     # browser()
     div(
       style="text-align:center; font-weight:bold; text-color:rgb(2, 152, 185)",
+      tags$h6("Last updated: 7th Sept. 2023", style="text-align:center;"),
       tags$h4(HTML("&#11013;"), "Explore the provided section to access assistance on utilizing the application", style="text-align:center; font-weight:bold; color:rgb(2, 152, 185)")
     )
   })
@@ -5754,7 +5757,7 @@ server <- function(input, output, session){
         
         helpText(glue::glue("Table 6. Post-hoc analysis using Tukey's Honest Significant Difference method"), style = "margin-top:40px; margin-bottom:0; font-weight:bold; font-size:20px")
       }else{
-        helpText(glue::glue("Table 5. Post-hoc analysis using Dunnett's method"), style = "margin-top:40px; margin-bottom:0; font-weight:bold; font-size:20px")
+        helpText(glue::glue("Table 5. Post-hoc analysis using Dunn's method"), style = "margin-top:40px; margin-bottom:0; font-weight:bold; font-size:20px")
       }
 
     })

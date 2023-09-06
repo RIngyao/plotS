@@ -92,7 +92,8 @@ Use ANOVA to compare variances across the means of different groups. Two types o
         
         i. **Additive**: The outcome of a change in one variable does not depend on the level of other variable, i.e. no interaction.
         ii. **Non-additive**: There is interaction between the factors.
-                
+    
+
 
 **Visualization of ANOVA** 
 
@@ -107,6 +108,8 @@ Use ANOVA to compare variances across the means of different groups. Two types o
 
 **Post-hoc analysis for ANOVA: Tukey's Honest Significant Difference test**
 
+_Note: Currently, PlotS use type I sum of squares._
+
 </font>
 </p>
 
@@ -117,7 +120,8 @@ Use ANOVA to compare variances across the means of different groups. Two types o
 
 <p style="font-size:20px;"> 
 <font size = "4">
-It is a non-parametric tests for comparing two groups. If the data has more than two groups to compare than it will prompt a warning message to continue or stop the computation. Just as in t-test, proceeding the computation will by default analyse all possible combinations of two variables per group. Users can later add reference group or add variables to compare. Similar steps as in **t-test** for adding variables to compare.
+It is a non-parametric tests for comparing two groups. If there are more than two groups in the data, it will issue a warning message, giving the user the option to proceed with or halt the computation. Similar to the t-test, when user choose to proceed, it will automatically analyze all possible pairs of variables. Users can customize the analysis by adding groups for comparison. The steps for adding groups to compare are analogous to those used in the **t-test**.
+
 
 **Paired or Unpaired data**:
 
@@ -125,8 +129,57 @@ It is a non-parametric tests for comparing two groups. If the data has more than
 
 - Unpaired data: **Mann-Whitney test/ Wilcoxon Rank Sum test** is used for unpaired data.
 
+</font>
+</p>
 
 
+<br>
+
+<h4>**Kruskal-Wallis test**</h4>
+
+<p style="font-size:20px;"> 
+<font size = "4">
+
+It is a non-parametric statistical test for analyzing the differences of multiple groups. In PlotS, it can also be employed for analysis of just two groups. Dunn's test is used for post-hoc analysis.
+
+</font>
+</p>
+
+<h4 style = color:red;>**Statistic results**</h4>
+
+<p style="font-size:20px;"> 
+<font size = "4">
+All results related to statistic of the data will be displayed in the **Summary** section. The result can be downloaded as report or individual table and figure (if applicable).
+
+**Tables and figures**:
+
+- **Summary of the input data**: Upon selecting or importing the data, a concise summary of the dataset will be displayed..
+
+- **Descriptive statistics**: Descriptive statistics will be calculated based on the following conditions:
+
+     i. If the user selects a variable for the **X-axis**, the statistics will be computed for that variable.
+
+     ii. If the **Aesthetic options** is active and the selected variable is different from the one chosen for the **X-axis**, the statistics will be computed for the combination of the **X-axis** variable and the **Aesthetic options**.
+
+     Consequently, these statistics will be presented only after the user has selected and configured the graph.
+
+
+
+- **Figures**: When employing parametric statistical methods, three graphical representations are provided to assess the assumptions.
+
+  i. **Residuals vs Fitted plot**
+  
+  ii. **Density plot**
+  
+  iii. **Normal Q-Q plot**
+  
+- **Result of normality and homoscedasticity test**: This information is presented exclusively for parametric tests.
+
+- **Summary of statistic result**: It will display the result of selected statistical method.
+
+- **Effect size** : For parametric methods, users can select from various computation methods for effect size. In contrast, non-parametric methods allow only the adjustment of the bootstrap settings.
+
+- **Post-Hoc analysis**: Post-hoc analysis is conducted only for ANOVA and Kruskal-Wallis tests.
 
 </font>
 </p>

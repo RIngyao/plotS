@@ -114,6 +114,7 @@ provided for the main effect.</p></li>
 </ul>
 <p><strong>Post-hoc analysis for ANOVA: Tukey’s Honest Significant
 Difference test</strong></p>
+<p><em>Note: Currently, PlotS use type I sum of squares.</em></p>
 </font>
 </p>
 <p><br></p>
@@ -122,12 +123,13 @@ Difference test</strong></p>
 </h4>
 <p style="font-size:20px;">
 <p><font size="4"> It is a non-parametric tests for comparing two
-groups. If the data has more than two groups to compare than it will
-prompt a warning message to continue or stop the computation. Just as in
-t-test, proceeding the computation will by default analyse all possible
-combinations of two variables per group. Users can later add reference
-group or add variables to compare. Similar steps as in
-<strong>t-test</strong> for adding variables to compare.</p>
+groups. If there are more than two groups in the data, it will issue a
+warning message, giving the user the option to proceed with or halt the
+computation. Similar to the t-test, when user choose to proceed, it will
+automatically analyze all possible pairs of variables. Users can
+customize the analysis by adding groups for comparison. The steps for
+adding groups to compare are analogous to those used in the
+<strong>t-test</strong>.</p>
 <p><strong>Paired or Unpaired data</strong>:</p>
 <ul>
 <li><p>Paired data: If the test is to compare two related samples or
@@ -135,6 +137,63 @@ paired data, then it will use <strong>Wilcoxon signed-rank
 test</strong></p></li>
 <li><p>Unpaired data: <strong>Mann-Whitney test/ Wilcoxon Rank Sum
 test</strong> is used for unpaired data.</p></li>
+</ul>
+</font>
+</p>
+<p><br></p>
+<h4>
+<strong>Kruskal-Wallis test</strong>
+</h4>
+<p style="font-size:20px;">
+<p><font size="4"></p>
+<p>It is a non-parametric statistical test for analyzing the differences
+of multiple groups. In PlotS, it can also be employed for analysis of
+just two groups. Dunn’s test is used for post-hoc analysis.</p>
+</font>
+</p>
+<h4 style="color:red;">
+<strong>Statistic results</strong>
+</h4>
+<p style="font-size:20px;">
+<p><font size="4"> All results related to statistic of the data will
+be displayed in the <strong>Summary</strong> section. The result can be
+downloaded as report or individual table and figure (if applicable).</p>
+<p><strong>Tables and figures</strong>:</p>
+<ul>
+<li><p><strong>Summary of the input data</strong>: Upon selecting or
+importing the data, a concise summary of the dataset will be
+displayed..</p></li>
+<li><p><strong>Descriptive statistics</strong>: Descriptive statistics
+will be calculated based on the following conditions:</p>
+<ol style="list-style-type: lower-roman">
+<li><p>If the user selects a variable for the <strong>X-axis</strong>,
+the statistics will be computed for that variable.</p></li>
+<li><p>If the <strong>Aesthetic options</strong> is active and the
+selected variable is different from the one chosen for the
+<strong>X-axis</strong>, the statistics will be computed for the
+combination of the <strong>X-axis</strong> variable and the
+<strong>Aesthetic options</strong>.</p></li>
+</ol>
+<p>Consequently, these statistics will be presented only after the user
+has selected and configured the graph.</p></li>
+<li><p><strong>Figures</strong>: When employing parametric statistical
+methods, three graphical representations are provided to assess the
+assumptions.</p>
+<ol style="list-style-type: lower-roman">
+<li><p><strong>Residuals vs Fitted plot</strong></p></li>
+<li><p><strong>Density plot</strong></p></li>
+<li><p><strong>Normal Q-Q plot</strong></p></li>
+</ol></li>
+<li><p><strong>Result of normality and homoscedasticity test</strong>:
+This information is presented exclusively for parametric tests.</p></li>
+<li><p><strong>Summary of statistic result</strong>: It will display the
+result of selected statistical method.</p></li>
+<li><p><strong>Effect size</strong> : For parametric methods, users can
+select from various computation methods for effect size. In contrast,
+non-parametric methods allow only the adjustment of the bootstrap
+settings.</p></li>
+<li><p><strong>Post-Hoc analysis</strong>: Post-hoc analysis is
+conducted only for ANOVA and Kruskal-Wallis tests.</p></li>
 </ul>
 </font>
 </p>

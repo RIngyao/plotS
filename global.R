@@ -2277,7 +2277,7 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
     #post hoc test
     #global
 
-    posthoc <- dunn_test(data=data, formula = forml, p.adjust.method = pAdjustMethod, detailed=FALSE)
+    posthoc <- rstatix::dunn_test(data=data, formula = forml, p.adjust.method = pAdjustMethod, detailed=FALSE)
     #get compact letter
     if(isTRUE(pAdjust)){
       pval <- posthoc$p.adj
