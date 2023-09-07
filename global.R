@@ -2320,7 +2320,7 @@ welchs = logical. TRUE for welch and FALSE for student. require only for t.test.
 fa = formula. lm formula - eg. len ~ supp
 ... = additional arguments. can be used to specify paired or unpaired data in t.test
 
-Note: Currently the alternative for effect size of ANOVA (eta-squared) is only two.sided
+Note: Currently the alternative for effect size of ANOVA is only greater (as in spss)
 "
 
 efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, method = "cohen/hedge/glass/eta..", stat = "t.test/anova", welchs = FALSE, partial = TRUE, fa, ...){
@@ -2376,24 +2376,22 @@ efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, meth
     pav <- parameters::model_parameters(av)
     
     if(method == "Eta-squared"){
-      final_df <- effectsize::eta_squared(pav, partial = FALSE, alternative = "two.sided") %>% as.data.frame()
+      final_df <- effectsize::eta_squared(pav, partial = FALSE, alternative = "greater") %>% as.data.frame()
       final_df["magnitude"] <- effectsize::interpret_eta_squared(final_df$Eta2) %>% as.data.frame()
     }else if(method == "Partial eta-squared"){
-      final_df <- effectsize::eta_squared(pav, partial = TRUE, alternative = "two.sided") %>% as.data.frame()
-      print(final_df)
-      print(colnames(final_df))
+      final_df <- effectsize::eta_squared(pav, partial = TRUE, alternative = "greater") %>% as.data.frame()
       final_df["magnitude"] <- effectsize::interpret_eta_squared(final_df$Eta2_partial) #%>% as.data.frame()
     }else if(method == "Generalized partial eta-squared"){ 
       final_df <- effectsize::eta_squared(pav, partial = TRUE, generalized = TRUE, alternative = "two.sided") %>% as.data.frame()
       final_df["magnitude"] <- effectsize::interpret_eta_squared(final_df$Eta2_generalized) %>% as.data.frame()
     }else if(method == "Epsilon-squared"){
-      final_df <- effectsize::epsilon_squared(pav, partial = FALSE, alternative = "two.sided") %>% as.data.frame()
+      final_df <- effectsize::epsilon_squared(pav, partial = FALSE, alternative = "greater") %>% as.data.frame()
       final_df["magnitude"] <- effectsize::interpret_epsilon_squared(final_df$Epsilon2) %>% as.data.frame()
     }else if(method == "Omega-squared"){
-      final_df <- effectsize::omega_squared(pav, partial = FALSE, alternative = "two.sided") %>% as.data.frame()
+      final_df <- effectsize::omega_squared(pav, partial = FALSE, alternative = "greater") %>% as.data.frame()
       final_df["magnitude"] <- effectsize::interpret_omega_squared(final_df$Omega2) %>% as.data.frame()
     }else if(method == "Cohen's f"){
-      coh <- effectsize::cohens_f(pav, partial = FALSE, alternative = "two.sided") %>% as.data.frame()
+      coh <- effectsize::cohens_f(pav, partial = FALSE, alternative = "greater") %>% as.data.frame()
       if(abs(coh$Cohens_f) < 0.10){
         coh$magnitude <- "negligible"
       }else if(abs(coh$Cohens_f) >= 0.10 & abs(coh$Cohens_f) < 0.25){

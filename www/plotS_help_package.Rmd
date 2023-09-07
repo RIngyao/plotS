@@ -10,8 +10,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
+<h3 style="text-align: center;">**R packages used in the application and their links for documentation**</h3>
 
-#### **R packages used in the application and their links for documentation**
+<p style="font-size:20px;"> 
+<font size = "4">
+
 
 - [ggplot2](https://ggplot2.tidyverse.org/) : This app primarily relies on ggplot2 for plotting the graphs. 
 
@@ -27,3 +30,5 @@ knitr::opts_chunk$set(echo = TRUE)
     - [car](https://cran.r-project.org/web/packages/car/index.html), [coin](https://cran.r-project.org/web/packages/coin/index.html),
 [colourpicker](https://github.com/daattali/colourpicker), [data.table](https://cran.r-project.org/web/packages/data.table/index.html), [DT](https://rstudio.github.io/DT/), [effectsize](https://cran.r-project.org/web/packages/effectsize/index.html), [flextable](https://cran.r-project.org/web/packages/flextable/index.html), [ggforce](https://ggforce.data-imaginist.com/), [ggpp](https://cran.r-project.org/web/packages/ggpp/index.html), [ggpubr](https://cran.r-project.org/web/packages/ggpubr/index.html), [ggside](https://github.com/jtlandis/ggside), [glue](https://glue.tidyverse.org/), [MASS](https://cran.r-project.org/web/packages/MASS/index.html), [memoise](https://memoise.r-lib.org/), [mice](https://cran.r-project.org/web/packages/mice/index.html), [multcompView](https://cran.r-project.org/web/packages/multcompView/index.html), [openxlsx](https://ycphs.github.io/openxlsx/), [reactable](https://glin.github.io/reactable/), [readxl](https://readxl.tidyverse.org/), [rlang](https://rlang.r-lib.org/), [scales](https://cran.r-project.org/web/packages/scales/index.html), [shiny.router](https://github.com/Appsilon/shiny.router), [shinyalert](https://github.com/daattali/shinyalert), [shinyBS](https://ebailey78.github.io/shinyBS/), [shinydashboard](https://rstudio.github.io/shinydashboard/), [shinyjqui](https://cran.r-project.org/web/packages/shinyjqui/vignettes/introduction.html), [shinyjs](https://cran.r-project.org/web/packages/shinyjs/vignettes/shinyjs.html), [shinyWidgets](https://shinyapps.dreamrs.fr/shinyWidgets/), [skimr](https://github.com/ropensci/skimr), [svglite](https://www.tidyverse.org/blog/2021/02/svglite-2-0-0/), [vroom](https://www.tidyverse.org/blog/2019/05/vroom-1-0-0/).
 
+</font>
+</p>

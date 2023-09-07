@@ -1326,19 +1326,19 @@ helpSection <- div(
     column(10,
            shinydashboard::dashboardBody(
              tabItems(
-               uiOutput("tabContent")
-               # tabItem(tabName = "help1",
-               #         div(includeHTML("www/plotS_help.html"))
-               # ),
-               # tabItem(tabName = "help2",
-               #         div(includeHTML("www/plotS_help_graph.html"))
-               #         ),
-               # tabItem(tabName = "help3", 
-               #         div(includeHTML("www/plotS_help_stats.html"))
-               #         ),
-               # tabItem(tabName = "help4",
-               #         div(includeHTML("www/plotS_help_package.html"))
-               #         )
+               uiOutput("tabContent"),
+               tabItem(tabName = "help1",
+                       div(includeHTML("www/plotS_help.html"))
+               ),
+               tabItem(tabName = "help2",
+                       div(includeHTML("www/plotS_help_graph.html"))
+                       ),
+               tabItem(tabName = "help3",
+                       div(includeHTML("www/plotS_help_stats.html"))
+                       ),
+               tabItem(tabName = "help4",
+                       div(includeHTML("www/plotS_help_package.html"))
+                       )
              )
              #, selected = "help1"
            )
@@ -5610,7 +5610,7 @@ server <- function(input, output, session){
         # req(repNo() > 0)
         #get the formula
         forml <- reformulate(response = glue::glue("{input$yAxis}"), termlabels = glue::glue("{indpVar()}"))
-        efs_df <- rstatix::kruskal_effsize(data=ptable(), formula = forml,
+        efs_df <- rstatix::kruskal_effsize(data = ptable(), formula = forml,
                                            ci = TRUE,
                                            conf.level = 0.95,
                                            nboot = as.numeric(input$effectSizeMethod))
