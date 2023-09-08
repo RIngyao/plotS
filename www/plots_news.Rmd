@@ -1,0 +1,76 @@
+---
+title: "PlotS Maintenance News"
+author: ""
+date: "2023-09-08"
+output: html_fragment
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+<!-- <div class="newsDiv" style="width: 90%; min-height: 500px; margin: 0px; padding: 10px; background-image: linear-gradient(to right, #ffffff 50%, #F4E9CA, #ffffff)"> -->
+<!-- <h3>**We are working on two major updates**</h3> -->
+<!-- <ul> -->
+<!--   <li>Improve the performance of PlotS</li> -->
+<!--   <li>Add features for heatmap, upset plot, and cluster analysis</li> -->
+<!-- </ul> -->
+<!-- <!-- end of newsDiv -->
+<!-- </div> -->
+
+
+<div class="all">
+<div class="verticalLine" style="float: left; width: 10%; height: 500px; background-image: linear-gradient(to right, #ffffff 50%, #F4E9CA, #ffffff)">
+<!-- end of vertical line div -->
+</div>
+
+<div class="newsDiv" style="float: left; width: 90%; min-height: 500px; margin: 0px; padding: 10px; background-image: linear-gradient(to right, #ffffff 50%, #F4E9CA, #ffffff)">
+<h3>**We are working on two major updates**</h3>
+<ul>
+  <li>Improve the performance of PlotS</li>
+  <li>Add features for heatmap, upset plot, and cluster analysis</li>
+</ul>
+<!-- end of newsDiv -->
+</div>
+<!-- end of all div -->
+</div>
+
+
+
+<!-- rough -->
+
+<!-- <style> -->
+<!--   body.forest-background { -->
+<!--     background-image: url('https://plus.unsplash.com/premium_photo-1672398366154-ce83217b0121?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTl8fGZvcmVzdCUyMGZvZ3xlbnwwfHwwfHx8MA%3D%3D&w=1000&q=80'); /* Replace 'forest.jpg' with the actual filename of your forest image */ -->
+<!--     background-size: cover; -->
+<!--     background-repeat: no-repeat; -->
+<!--     background-attachment: fixed; -->
+<!--     margin: 0; -->
+<!--     padding: 0; -->
+<!--   } -->
+<!-- </style> -->
+
+
+
+
+
+
+
+<!-- <div class="all"> -->
+<!-- <!-- <div class="verticalLine" style="float: right; width: 10%; height: 500px; border-left: 2px dotted black;"> -->
+<!-- <svg class="wavyLine" style="float: right; width: 1%; height: 500px;"> -->
+<!--     <path d="M0 100 C50 0, 50 200, 100 100 S150 0, 200 100 S250 200, 300 100 S350 0, 400 100 S450 200, 500 100" stroke="black" fill="blue"/> -->
+<!-- </svg> -->
+<!-- <!-- end of vertical line div -->
+<!-- </div> -->
+<!-- <div class="newsDiv" style="float: left; width: 90%; min-height: 500px; margin: 0px; padding: 10px; background-image: linear-gradient(to right, #ffffff 50%, #F4E9CA, #ffffff)"> -->
+<!-- <h3>**We are working on two major updates**</h3> -->
+<!-- <ul> -->
+<!--   <li>Improve the performance of PlotS</li> -->
+<!--   <li>Add features for heatmap, upset plot, and cluster analysis</li> -->
+<!-- </ul> -->
+<!-- <!-- end of newsDiv -->
+<!-- </div> -->
+<!-- <!-- end of all div -->
+<!-- </div> -->

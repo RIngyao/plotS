@@ -1326,19 +1326,20 @@ helpSection <- div(
     column(10,
            shinydashboard::dashboardBody(
              tabItems(
-               uiOutput("tabContent"),
-               tabItem(tabName = "help1",
-                       div(includeHTML("www/plotS_help.html"))
-               ),
-               tabItem(tabName = "help2",
-                       div(includeHTML("www/plotS_help_graph.html"))
-                       ),
-               tabItem(tabName = "help3",
-                       div(includeHTML("www/plotS_help_stats.html"))
-                       ),
-               tabItem(tabName = "help4",
-                       div(includeHTML("www/plotS_help_package.html"))
-                       )
+               uiOutput("tabContent")
+               
+               # tabItem(tabName = "help1",
+               #         div(includeHTML("www/plotS_help.html"))
+               # ),
+               # tabItem(tabName = "help2",
+               #         div(includeHTML("www/plotS_help_graph.html"))
+               #         ),
+               # tabItem(tabName = "help3",
+               #         div(includeHTML("www/plotS_help_stats.html"))
+               #         ),
+               # tabItem(tabName = "help4",
+               #         div(includeHTML("www/plotS_help_package.html"))
+               #         )
              )
              #, selected = "help1"
            )
@@ -1346,7 +1347,11 @@ helpSection <- div(
   )
 )
 #help-----
+# newsSection <- div(includeMarkdown("www/plots_news.Rmd"))
+newsSection <- div(includeHTML("www/plots_news.html"))
+#news-----------
 
+#news-----------
 
 #ui-------------------
 ui <- fluidPage(
@@ -1425,8 +1430,10 @@ ui <- fluidPage(
                           tags$a(id="bt1", class="highlight", href = route_link("/"), tags$strong("About"))),
                   tags$li(style = "display:inline-block;padding:0px 20px 0px 20px; float:left;",
                           tags$a(id="bt2",  href = route_link("vizAna"), tags$strong("Visualize & analyze"))),
+                  tags$li(style = "display:inline-block;padding:0px 20px 0px 20px; float:left; color:#ccc; -moz-transition:all 0.2s; transition:all 0.2s",
+                          tags$a(id="btn3",  href = route_link("/help"), tags$strong("Help"))),
                   tags$li(style = "display:inline-block;padding:0px 50px 0px 20px; float:left; color:#ccc; -moz-transition:all 0.2s; transition:all 0.2s",
-                          tags$a(id="btn3",  href = route_link("/help"), tags$strong("Help")))
+                          tags$a(id="btn4",  href = route_link("/news"), tags$strong("News")))
                   )
 
         )
@@ -1448,22 +1455,27 @@ ui <- fluidPage(
           router_ui(
             route("/", aboutSection),
             route("vizAna", mainSection),
-            route("help", helpSection)
+            route("help", helpSection),
+            route("news", newsSection)
           )
         ),
         
         #add footer note
         tags$footer(
-          HTML('<p>  </p>'),
+          # HTML('<p>  </p>'),
           align = "center",
           style = "height: 100px; background-color: #ffffff; border-top: solid 1px; margin-top: 25px",#f2f2f2;" #d9d9d9
           #bottom: 10%;padding = 10px;
           HTML('
+          
           <p>
-          <p><b>Citation:</b> <b>Jajo, R., Kansal, S., Balyan, S. & Raghuvanshi, S. </b>PlotS: web-based application for data visualization and analysis. bioRxiv 2023.06.09.544161 (2023).<cite><a href="https://www.biorxiv.org/content/10.1101/2023.06.09.544161v1" style = "font-size:17px"> doi:10.1101/2023.06.09.544161</a></cite></p>
+            <b>Citation:</b> <b>Jajo, R., Kansal, S., Balyan, S. & Raghuvanshi, S. </b>PlotS: web-based application for data visualization and analysis. bioRxiv 2023.06.09.544161 (2023).<cite><a href="https://www.biorxiv.org/content/10.1101/2023.06.09.544161v1" style = "font-size:17px"> doi:10.1101/2023.06.09.544161</a></cite>
           </p>
           
-          <p><b>Feedback:</b> <a href = "mailto: jajoringyao@gmail.com" style = "font-size:17px">send email</a> <b> Bug report:</b> <a href="https://github.com/RIngyao/plotS" style = "font-size:17px"> GitHub</a></p>
+
+          <p>
+            <b>Feedback:</b> <a href = "mailto: jajoringyao@gmail.com" style = "font-size:17px">send email</a> <b> Bug report:</b> <a href="https://github.com/RIngyao/plotS" style = "font-size:17px"> GitHub</a>
+          </p>
          ')
         )#end of footer
 
