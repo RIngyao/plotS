@@ -1326,20 +1326,20 @@ helpSection <- div(
     column(10,
            shinydashboard::dashboardBody(
              tabItems(
-               uiOutput("tabContent")
+               uiOutput("tabContent"),
                
-               # tabItem(tabName = "help1",
-               #         div(includeHTML("www/plotS_help.html"))
-               # ),
-               # tabItem(tabName = "help2",
-               #         div(includeHTML("www/plotS_help_graph.html"))
-               #         ),
-               # tabItem(tabName = "help3",
-               #         div(includeHTML("www/plotS_help_stats.html"))
-               #         ),
-               # tabItem(tabName = "help4",
-               #         div(includeHTML("www/plotS_help_package.html"))
-               #         )
+               tabItem(tabName = "help1",
+                       div(includeHTML("www/plotS_help.html"))
+               ),
+               tabItem(tabName = "help2",
+                       div(includeHTML("www/plotS_help_graph.html"))
+                       ),
+               tabItem(tabName = "help3",
+                       div(includeHTML("www/plotS_help_stats.html"))
+                       ),
+               tabItem(tabName = "help4",
+                       div(includeHTML("www/plotS_help_package.html"))
+                       )
              )
              #, selected = "help1"
            )
