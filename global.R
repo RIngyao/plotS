@@ -1979,8 +1979,8 @@ computFunc <- function(data = "data", method = "none", numericVar = "numericVar(
   #formula: dependent (numeric) ~ independent (factor)
   #need to use reformulate() from stats package to use in formula
   if(method == "anova"){
-    indepVar <- aovInFunc(catVar, model)
-    forml <- reformulate(response = glue::glue("{numericVar}"), termlabels = glue::glue("{indepVar}"))
+    depVar <- aovInFunc(catVar, model)
+    forml <- reformulate(response = glue::glue("{numericVar}"), termlabels = glue::glue("{depVar}"))
   }else{
     message("formula-deriving")
     forml <- reformulate(response = glue::glue("{numericVar}"), termlabels = glue::glue("{catVar}"))
@@ -2318,12 +2318,13 @@ method = character. method name for estimating effect size. eg. cohen
 stat = character. Statistical method - 't.test' or 'anova'
 welchs = logical. TRUE for welch and FALSE for student. require only for t.test.
 fa = formula. lm formula - eg. len ~ supp
+alternative = character. alternative hypothesis - two.sided, greater or less
 ... = additional arguments. can be used to specify paired or unpaired data in t.test
 
 Note: Currently the alternative for effect size of ANOVA is only greater (as in spss)
 "
 
-efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, method = "cohen/hedge/glass/eta..", stat = "t.test/anova", welchs = FALSE, partial = TRUE, fa, ...){
+efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, method = "cohen/hedge/glass/eta..", stat = "t.test/anova", welchs = FALSE, partial = TRUE, fa, alternative, ...){
 
   if(stat == "t.test"){
 
@@ -2338,15 +2339,15 @@ efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, meth
     if(isTRUE(welchs)){
       #hedge will be the default
       efs <- switch(tolower(method),
-                    "cohen's d" = effectsize::cohens_d(data = dt2, x = fa, pooled_sd = FALSE, ...) %>% as.data.frame(),
-                    "hedge's g" = effectsize::hedges_g(data = dt2, x = fa, pooled_sd = FALSE, ...) %>% as.data.frame(),
-                    "glass delta" = effectsize::glass_delta(data = dt2, x = fa) %>% as.data.frame()
+                    "cohen's d" = effectsize::cohens_d(data = dt2, x = fa, pooled_sd = FALSE, ci = 0.95, alternative = alternative, ...) %>% as.data.frame(),
+                    "hedge's g" = effectsize::hedges_g(data = dt2, x = fa, pooled_sd = FALSE, ci = 0.95, alternative = alternative, ...) %>% as.data.frame(),
+                    "glass delta" = effectsize::glass_delta(data = dt2, x = fa, ci = 0.95, alternative = alternative) %>% as.data.frame()
       )
     }else{
       efs <- switch(tolower(method),
-                    "cohen's d" = effectsize::cohens_d(data = dt2, x = fa, pooled_sd = TRUE, ...) %>% as.data.frame(),
-                    "hedge's g" = effectsize::hedges_g(data = dt2, x = fa, pooled_sd = TRUE, ...) %>% as.data.frame(),
-                    "glass delta" = effectsize::glass_delta(data = dt2, x = fa) %>% as.data.frame()
+                    "cohen's d" = effectsize::cohens_d(data = dt2, x = fa, pooled_sd = TRUE, ci = 0.95, alternative = alternative, ...) %>% as.data.frame(),
+                    "hedge's g" = effectsize::hedges_g(data = dt2, x = fa, pooled_sd = TRUE, ci = 0.95, alternative = alternative, ...) %>% as.data.frame(),
+                    "glass delta" = effectsize::glass_delta(data = dt2, x = fa, ci = 0.95, alternative = alternative) %>% as.data.frame()
       )
     }
 
@@ -2376,22 +2377,22 @@ efS <- function(x = c("OJ", "VC"), v = "supp", y = "len", dt = ToothGrowth, meth
     pav <- parameters::model_parameters(av)
     
     if(method == "Eta-squared"){
-      final_df <- effectsize::eta_squared(pav, partial = FALSE, alternative = "greater") %>% as.data.frame()
+      final_df <- effectsize::eta_squared(pav, partial = FALSE, alternative = alternative, ci = 0.95) %>% as.data.frame()
       final_df["magnitude"] <- effectsize::interpret_eta_squared(final_df$Eta2) %>% as.data.frame()
     }else if(method == "Partial eta-squared"){
-      final_df <- effectsize::eta_squared(pav, partial = TRUE, alternative = "greater") %>% as.data.frame()
+      final_df <- effectsize::eta_squared(pav, partial = TRUE, alternative = alternative, ci = 0.95) %>% as.data.frame()
       final_df["magnitude"] <- effectsize::interpret_eta_squared(final_df$Eta2_partial) #%>% as.data.frame()
     }else if(method == "Generalized partial eta-squared"){ 
-      final_df <- effectsize::eta_squared(pav, partial = TRUE, generalized = TRUE, alternative = "two.sided") %>% as.data.frame()
+      final_df <- effectsize::eta_squared(pav, partial = TRUE, generalized = TRUE, alternative = alternative, ci = 0.95) %>% as.data.frame()
       final_df["magnitude"] <- effectsize::interpret_eta_squared(final_df$Eta2_generalized) %>% as.data.frame()
     }else if(method == "Epsilon-squared"){
-      final_df <- effectsize::epsilon_squared(pav, partial = FALSE, alternative = "greater") %>% as.data.frame()
+      final_df <- effectsize::epsilon_squared(pav, partial = FALSE, alternative = alternative, ci = 0.95) %>% as.data.frame()
       final_df["magnitude"] <- effectsize::interpret_epsilon_squared(final_df$Epsilon2) %>% as.data.frame()
     }else if(method == "Omega-squared"){
-      final_df <- effectsize::omega_squared(pav, partial = FALSE, alternative = "greater") %>% as.data.frame()
+      final_df <- effectsize::omega_squared(pav, partial = FALSE, alternative = alternative, ci = 0.95) %>% as.data.frame()
       final_df["magnitude"] <- effectsize::interpret_omega_squared(final_df$Omega2) %>% as.data.frame()
     }else if(method == "Cohen's f"){
-      coh <- effectsize::cohens_f(pav, partial = FALSE, alternative = "greater") %>% as.data.frame()
+      coh <- effectsize::cohens_f(pav, partial = FALSE, alternative = alternative, ci = 0.95) %>% as.data.frame()
       if(abs(coh$Cohens_f) < 0.10){
         coh$magnitude <- "negligible"
       }else if(abs(coh$Cohens_f) >= 0.10 & abs(coh$Cohens_f) < 0.25){

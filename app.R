@@ -1274,7 +1274,10 @@ mainSection <- div(
                                   
                                   div(
                                     class="effectSizeMethodDiv",
-                                    uiOutput("UiEffectSizeMethod")
+                                    uiOutput("UiEffectSizeMethod"),
+                                    conditionalPanel(condition = "input.stat == 'anova'",
+                                                     selectInput(inputId = "hypothesisAnova", label = "Alternative hypothesis", choices = c("two.sided", "greater", "less"), selected = "two.sided")
+                                                     )
                                     # uiOutput("UiBootstrapWarn")
                                   ),
                                   
@@ -5560,7 +5563,7 @@ server <- function(input, output, session){
 
         #run the function to determine effect size
         efs_list <- lapply(cbn, efS, dt = ptable(), v = indpVar(), y = input$yAxis, method = req(input$effectSizeMethod),
-                           stat = input$stat, welchs = ifelse(req(input$ttestMethod) == "welch", TRUE, FALSE), fa = forml, paired = ifelse(input$pairedData == "no", FALSE, TRUE))
+                           stat = input$stat, welchs = ifelse(req(input$ttestMethod) == "welch", TRUE, FALSE), fa = forml, paired = ifelse(input$pairedData == "no", FALSE, TRUE), alternative = req(input$alternativeHypothesis))
         #convert the list to data frame
         efs_df <- data.frame(matrix(nrow = 1, ncol = 8))
         for (i in seq_along(efs_list)) {
@@ -5578,7 +5581,7 @@ server <- function(input, output, session){
           avIndVar <- aovInFunc(indpVar())
           forml <- reformulate(response = input$yAxis, termlabels = avIndVar)
           efs_df <- efS(dt = ptable(), y = input$yAxis, method = input$effectSizeMethod,
-                        stat = input$stat, fa = forml, x = NULL, v = NULL)
+                        stat = input$stat, fa = forml, x = NULL, v = NULL, alternative = req(input$hypothesisAnova))
         }else{
           req(input$anovaModel)
           
@@ -5587,7 +5590,7 @@ server <- function(input, output, session){
           forml <- reformulate(response = input$yAxis, termlabels = avIndVar)
           
           efs_df <- efS(dt = ptable(), y = input$yAxis, method = input$effectSizeMethod,
-                        stat = input$stat, fa = forml, x = NULL, v = NULL)
+                        stat = input$stat, fa = forml, x = NULL, v = NULL, alternative = req(input$hypothesisAnova))
         }
 
       }else if(input$stat == "wilcoxon.test"){
@@ -5603,7 +5606,8 @@ server <- function(input, output, session){
                                             p.adjust.method = req(input$signifMethod),
                                             ci = TRUE,
                                             conf.level = 0.95,
-                                            nboot = as.numeric(input$effectSizeMethod)
+                                            nboot = as.numeric(input$effectSizeMethod),
+                                            alternative = req(input$alternativeHypothesis)
           )
         }else if(!isTruthy(req(input$choosePFormat))){
           efs_df <- rstatix::wilcox_effsize(data = ptable(), formula = forml,
@@ -5613,7 +5617,8 @@ server <- function(input, output, session){
                                             p.adjust.method = "none",
                                             ci = TRUE,
                                             conf.level = 0.95,
-                                            nboot = as.numeric(input$effectSizeMethod)
+                                            nboot = as.numeric(input$effectSizeMethod),
+                                            alternative = req(input$alternativeHypothesis)
           )
         }
 
