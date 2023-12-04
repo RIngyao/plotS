@@ -28,7 +28,7 @@ params$table1
 knitr::kable(params$table2)
 ```
 
-# Table 3. Summary for t-test (`r if(params$caption == "welch"){"Welch's test"}else{"Student's test"} `).
+# Table 3. Summary for Wilcoxon test (`r if(params$caption == "no"){"Rank-sum"}else{"Signed-rank"} `).
 
 '.y.' is the variable used in y-axis; 'group 1 & 2' are the groups compared in the test; 'n' are the sample counts; 'statistic' is the test used to compute the p-value; 'p' is the p-value
 ```{r }

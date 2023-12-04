@@ -1359,7 +1359,7 @@ newsSection <- div(includeHTML("www/plots_news.html"))
 #ui-------------------
 ui <- fluidPage(
   #analytics:
-  # tags$head(includeHTML(("www/analyse.html"))),
+  tags$head(includeHTML(("www/analyse.html"))),
   #link to CSS----------------
   includeCSS("www/uiStyle.css"),
   #link: https://stackoverflow.com/questions/27965931/tooltip-when-you-mouseover-a-ggplot-on-shiny
@@ -5303,8 +5303,8 @@ server <- function(input, output, session){
       validate(
         need(twoAnovaError() == 0, " ")
       )
-
-
+      
+      
       #type of stat
       if(input$stat == "t.test"){
         req(input$ttestMethod)
@@ -5398,7 +5398,7 @@ server <- function(input, output, session){
         }
         
         #save the stat summary for report
-        if(input$stat %in% c("t.test", "kruskal-wallis")){
+        if(input$stat %in% c("wilcoxon.test", "kruskal-wallis")){
           table3(testTable$df)
         }else{
           # for parametric
@@ -7667,7 +7667,7 @@ server <- function(input, output, session){
                             subcaption = reportSubCaption()
               )
             }else if(input$stat == "wilcoxon.test"){
-              param <- list(table1 = table1(), table2 = table2(), table3=table3(), table4 = table4(), subcaption = reportSubCaption())
+              param <- list(table1 = table1(), table2 = table2(), table3=table3(), table4 = table4(), caption = input$pairedData, subcaption = reportSubCaption())
             }else if(input$stat == "anova"){
               if(input$pairedData == "one"){
                 param <- list(table1 = table1(), table2 = table2(), table3=table3(), table4 = table4(), table5 = table5(), table6 = table6(),
